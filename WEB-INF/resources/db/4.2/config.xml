@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="mdnasim" id="Setting to enable or disable user sign up request">
+    <sql>
+      call add_cfg_prop(
+        'administrative', 'user_sign_up',
+        'user_sign_up', 'user_sign_up_desc',
+        'BOOLEAN', 'true'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Setting to enable or disable forgot password link">
+    <sql>
+      call add_cfg_prop(
+        'auth', 'forgot_password',
+        'forgot_password', 'forgot_password_desc',
+        'BOOLEAN', 'true'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Setting to configure success/error notification toast display time">
+    <sql>
+      call add_cfg_prop(
+        'common', 'toast_disp_time',
+        'toast_disp_time', 'toast_disp_time_desc',
+        'INT', '5'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Query: default result view">
+    <sql>
+      call add_cfg_prop(
+        'query', 'default_result_view',
+        'default_result_view', 'default_result_view_desc',
+        'FILE', 'classpath:/com/krishagni/catissueplus/core/de/query/default-result-view.json'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="agosavi" id="Collection protocol management training link">
+    <sql>
+      call add_cfg_prop(
+        'training', 'cp_setup_help_link',
+        'cp_setup_help_link', 'cp_setup_help_link_desc',
+        'STRING', 'http://help.openspecimen.org/collection-protocol'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Config setting to enable or disable notifications on DP role updates">
+    <sql>
+      call add_cfg_prop(
+        'notifications', 'email_users_dp_role_updated',
+        'users_dp_role_updated', 'users_dp_role_updated_desc',
+        'BOOLEAN', 'true'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Config setting to specify the domain that should be pre-selected on the user sign-in page">
+    <sql>
+      call add_cfg_prop(
+        'auth', 'default_domain',
+        'default_domain', 'default_domain_desc',
+        'STRING', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Scheduled job to cleanup old files" dbms="mysql">
+    <sql>
+      select identifier into @userId from catissue_user where login_name = '$system';
+
+      insert into os_scheduled_jobs
+        (identifier, name, created_by, start_date, end_date, scheduled_minute, scheduled_hour, scheduled_day_of_week,
+        scheduled_day_of_month, activity_status, repeat_schedule, type, command, task_impl_fqn, rt_args_provided, rt_args_help_text)
+      values
+        (default, 'Old files backlog cleaner', @userId, now(), null, 50, 0, 'SUNDAY',
+        null, 'Active', 'WEEKLY', 'INTERNAL', null, 'com.krishagni.catissueplus.core.administrative.services.impl.FilesBacklogCleaner', 0, null)
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Scheduled job to cleanup old files" dbms="oracle">
+    <sql endDelimiter="//">
+      declare
+        userId number;
+      begin
+        select identifier into userId from catissue_user where login_name like '$system';
+
+        insert into os_scheduled_jobs
+          (identifier, name, created_by, start_date, end_date, scheduled_minute, scheduled_hour, scheduled_day_of_week,
+          scheduled_day_of_month, activity_status, repeat_schedule, type, command, task_impl_fqn, rt_args_provided, rt_args_help_text)
+        values
+          (OS_SCHEDULED_JOBS_SEQ.nextVal, 'Old files backlog cleaner', userId, SYSDATE, null, 50, 0, 'SUNDAY',
+          null, 'Active', 'WEEKLY', 'INTERNAL', null, 'com.krishagni.catissueplus.core.administrative.services.impl.FilesBacklogCleaner', 0, 1);
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Config setting to specify the period for which the log files should be retained">
+    <sql>
+      call add_cfg_prop(
+        'common', 'log_files_retain_period',
+        'log_files_retain_period', 'log_files_retain_period_desc',
+        'INT', '30'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Remove config setting to enable/disable email notification on password reset request">
+    <sql>
+      call remove_cfg_prop('notifications', 'email_users_forgot_password_link');
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Setting to specify OpenSpecimen administrator phone number">
+    <sql>
+      call add_cfg_prop(
+        'email', 'admin_phone_no',
+        'admin_phone_no', 'admin_phone_no_desc',
+        'STRING', ''
+      );
+    </sql>
+  </changeSet>
+</databaseChangeLog>

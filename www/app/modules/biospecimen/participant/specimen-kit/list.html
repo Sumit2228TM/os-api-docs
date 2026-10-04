@@ -1,0 +1,78 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li>
+          <a ui-sref="cp-list">
+            <span translate="cp.list">Collection Protocols</span>
+          </a>
+        </li>
+        <li>
+          <a ui-sref="cp-list-view({cpId: cp.id})">
+            <span>{{cp.shortTitle}}</span>
+          </a>
+        </li>
+      </ul>
+      <h3>
+        <span translate="specimen_kit.list">Specimen Kits</span>
+      </h3>
+    </div>
+  </div>
+
+  <div class="container">
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th class="col">
+            <span translate="specimen_kit.id">ID</span>
+          </th>
+          <th class="col">
+            <span translate="specimen_kit.sender">Sender</span>
+          </th>
+          <th class="col">
+            <span translate="specimen_kit.sending_date">Sending Date</span>
+          </th>
+          <th class="col">
+            <span translate="specimen_kit.sending_site">Sending Site</span>
+          </th>
+          <th class="col">
+            <span translate="specimen_kit.collection_site">Collection Site</span>
+          </th>
+          <th class="col">
+            <span translate="specimen_kit.participants">Participants</span>
+          </th>
+          <th class="col">
+            <span translate="specimen_kit.specimens">Specimens</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-repeat="kit in kits" os-row-click="showKitOverview(kit)">
+          <td class="col">
+            <a ui-sref="specimen-kit-detail.overview({kitId: kit.id})">
+              <span>#{{kit.id}}</span>
+            </a>
+          </td>
+          <td class="col">
+            <span>{{kit.sender | osUserDisplayName}}</span>
+          </td>
+          <td class="col">
+            <span>{{kit.sendingDate | date: global.dateFmt | osNoValue}}</span>
+          </td>
+          <td class="col">
+            <span>{{kit.sendingSite}}</span>
+          </td>
+          <td class="col">
+            <span>{{kit.receivingSite}}</span>
+          </td>
+          <td class="col">
+            <span>{{kit.participantCount | number: 0}}</span>
+          </td>
+          <td class="col">
+            <span>{{kit.specimenCount | number: 0}}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

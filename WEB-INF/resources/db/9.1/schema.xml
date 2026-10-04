@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Container display name chosen by the user">
+    <addColumn tableName="OS_STORAGE_CONTAINERS">
+      <column name="DISPLAY_NAME" type="${text.type}(255)" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen cart folders">
+    <createTable tableName="OS_SPECIMEN_CART_FOLDERS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false" />
+      </column>
+      <column name="NAME" type="${text.type}(128)">
+        <constraints nullable="false" />
+      </column>
+      <column name="DESCRIPTION" type="${text.type}(255)" />
+      <column name="OWNER_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_CART_FOLDER_OWNER"
+          referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="CREATION_TIME" type="${timestamp.type}">
+        <constraints nullable="false" />
+      </column>
+      <column name="ACTIVITY_STATUS" type="${text.type}(32)">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen cart folder ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_SPECIMEN_CART_FOLDERS_SEQ" startValue="1" incrementBy="1" ordered="true" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen cart folder user groups">
+    <createTable tableName="OS_CART_FOLDER_USER_GROUPS">
+      <column name="FOLDER_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_CART_FOLDER_UG_FOLDER"
+          referencedTableName="OS_SPECIMEN_CART_FOLDERS" referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="GROUP_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_CART_FOLDER_UG_GROUP"
+          referencedTableName="OS_USER_GROUPS" referencedColumnNames="IDENTIFIER" />
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique constraint on cart folder, user group tuple">
+    <addUniqueConstraint constraintName="OS_CART_FOLDER_USER_GROUP_UQ"
+      tableName="OS_CART_FOLDER_USER_GROUPS" columnNames="FOLDER_ID, GROUP_ID" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen cart folder carts">
+    <createTable tableName="OS_CART_FOLDER_CARTS">
+      <column name="FOLDER_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_CART_FOLDER_CARTS_FOLDER"
+          referencedTableName="OS_SPECIMEN_CART_FOLDERS" referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="CART_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_CART_FOLDER_CARTS_CART"
+          referencedTableName="CATISSUE_SPECIMENLIST_TAGS" referencedColumnNames="IDENTIFIER" />
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique constraint on cart folder, cart tuple">
+    <addUniqueConstraint constraintName="OS_CART_FOLDER_CART_UQ"
+      tableName="OS_CART_FOLDER_CARTS" columnNames="FOLDER_ID, CART_ID" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to enable visit level consents">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="VISIT_CONSENTS" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Form save/delete notification settings">
+    <addColumn tableName="CATISSUE_FORM_CONTEXT">
+      <column name="NOTIFS_ENABLED" type="${boolean.type}" defaultValueBoolean="false">
+        <constraints nullable="false" />
+      </column>
+      <column name="DATA_IN_NOTIF" type="${boolean.type}" defaultValueBoolean="false">
+        <constraints nullable="false" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Form save/delete notification user groups">
+    <createTable tableName="OS_FORM_NOTIF_USER_GRPS">
+      <column name="FORM_CTXT_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_FORM_NOTIF_CTXT"
+          referencedTableName="CATISSUE_FORM_CONTEXT" referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="USER_GROUP_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_FORM_NOTIF_USER_GRP"
+          referencedTableName="OS_USER_GROUPS" referencedColumnNames="IDENTIFIER" />
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP group form save/delete notification settings">
+    <addColumn tableName="OS_CP_GROUP_FORMS">
+      <column name="NOTIFS_ENABLED" type="${boolean.type}" defaultValueBoolean="false">
+        <constraints nullable="false" />
+      </column>
+      <column name="DATA_IN_NOTIF" type="${boolean.type}" defaultValueBoolean="false">
+        <constraints nullable="false" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP group form save/delete notification user groups">
+    <createTable tableName="OS_CP_GROUP_FORM_NOTIF_USERS">
+      <column name="CP_GROUP_FORM_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_CPG_FORM_NOTIF_FORM"
+          referencedTableName="OS_CP_GROUP_FORMS" referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="USER_GROUP_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_CPG_FORM_NOTIF_USER_GROUP"
+          referencedTableName="OS_USER_GROUPS" referencedColumnNames="IDENTIFIER" />
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track users who effected the password change">
+    <addColumn tableName="CATISSUE_PASSWORD">
+      <column name="UPDATED_BY" type="${int.type}">
+        <constraints foreignKeyName="FK_PASSWORD_UPDATED_BY"
+          referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="User default printer">
+    <addColumn tableName="CATISSUE_USER">
+      <column name="DEFAULT_PRINTER_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_USER_PRINTER" referencedTableName="CATISSUE_PERMISSIBLE_VALUE"
+          referencedColumnNames="IDENTIFIER" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track IP address of the query user">
+    <addColumn tableName="CATISSUE_QUERY_AUDIT_LOGS">
+      <column name="IP_ADDRESS" type="${text.type}(255)" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track IP address of the user who effected the password change">
+    <addColumn tableName="CATISSUE_PASSWORD">
+      <column name="IP_ADDRESS" type="${text.type}(255)" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add a standalone index on specimen barcode">
+    <createIndex tableName="CATISSUE_SPECIMEN" indexName="CAT_SPECIMEN_BARCODE_IDX" >
+      <column name="BARCODE" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track impersonated user logins">
+    <addColumn tableName="OS_LOGIN_AUDIT_LOGS">
+      <column name="IMPERSONATED_BY" type="${int.type}">
+        <constraints foreignKeyName="FK_LOGIN_AUDIT_IMP_BY"
+          referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track IP address of the user who initiated the export">
+    <addColumn tableName="OS_EXPORT_JOBS">
+      <column name="IP_ADDRESS" type="${text.type}(255)" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track IP address of the user who initiated the import">
+    <addColumn tableName="OS_BULK_IMPORT_JOBS">
+      <column name="IP_ADDRESS" type="${text.type}(255)" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Additional specimen label format">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="ADDL_LABEL_FORMAT" type="${text.type}(255)" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen additional label">
+    <addColumn tableName="CATISSUE_SPECIMEN">
+      <column name="ADDITIONAL_LABEL" type="${text.type}(255)" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique specimen additional label per collection protocol" dbms="mysql">
+    <addUniqueConstraint constraintName="UQ_SPMN_ADDL_LABEL"
+      tableName="CATISSUE_SPECIMEN" columnNames="COLLECTION_PROTOCOL_ID, ADDITIONAL_LABEL" />
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Unique specimen additional label per collection protocol" dbms="oracle">
+    <sql>
+      create unique index UQ_SPMN_ADDL_LABEL on catissue_specimen(
+        case when
+          collection_protocol_id is not null and additional_label is not null
+        then
+          collection_protocol_id || '-' || additional_label
+        end
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Change width of API users' allowed IP range">
+    <modifyDataType tableName="CATISSUE_USER" columnName="IP_RANGE" newDataType="${text.type}(255)" />
+  </changeSet>
+</databaseChangeLog>

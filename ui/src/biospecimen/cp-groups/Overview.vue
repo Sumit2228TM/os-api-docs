@@ -1,0 +1,449 @@
+<template>
+  <os-page-toolbar v-if="ctx.selectedCps.length == 0 && (updateAllowed || importAllowed || exportAllowed || canAddCps)">
+    <template #default>
+      <os-button-link left-icon="edit" :label="$t('common.buttons.edit')" :url="editUrl" v-if="updateAllowed" />
+
+      <os-button left-icon="trash" :label="$t('common.buttons.delete')" @click="deleteCpg" v-if="updateAllowed" />
+
+      <os-button left-icon="plus" :label="$t('cpgs.add_cps')" @click="showAddCpsDialog" v-if="canAddCps" />
+
+      <os-menu icon="tasks" :label="$t('cpgs.workflows')" :options="wfOpts" v-if="wfOpts.length > 0" />
+
+      <os-menu icon="download" :label="$t('common.buttons.export')" :options="exportOpts" v-if="exportAllowed" />
+    </template>
+    <template #right>
+      <os-button left-icon="search" :label="$t('common.buttons.search')" @click="openSearch" />
+    </template>
+  </os-page-toolbar>
+
+  <os-page-toolbar v-else-if="ctx.selectedCps.length > 0">
+    <template #default>
+      <os-button left-icon="times" :label="$t('common.buttons.remove')" @click="removeSelectedCps" />
+    </template>
+  </os-page-toolbar>
+
+  <os-grid>
+    <os-grid-column width="12">
+      <os-list-view ref="cpsListView" :data="cpsList" :schema="cpsListSchema" :show-row-actions="true"
+        :loading="ctx.loading" :allowSelection="allowSelection"
+        @rowClicked="onCpRowClick" @selectedRows="onCpsSelection" @filtersUpdated="loadCps">
+        <template #rowActions="{rowObject}">
+          <os-button-group>
+            <os-button-link left-icon="user-friends" :url="participantsUrl(rowObject.cp)"
+              v-os-tooltip.bottom="$t('cps.view_participants')" v-if="!rowObject.cp.specimenCentric" />
+            <os-button-link left-icon="flask" :url="specimensUrl(rowObject.cp)"
+              v-os-tooltip.bottom="$t('cps.view_specimens')" />
+            <os-button-link left-icon="table" :url="catalogUrl(rowObject.cp)"
+              v-os-tooltip.bottom="$t('cps.view_catalog')" v-if="rowObject.cp.catalogId > 0" />
+            <os-button left-icon="file-code" v-os-tooltip.bottom="$t('cps.inherit_group_workflows')"
+              @click="inheritGroupWorkflows(rowObject.cp)"
+              v-if="rowObject.updateAllowed && rowObject.cp.groupWorkflowsInherited === false" />
+            <os-button left-icon="times" v-os-tooltip.bottom="$t('common.buttons.remove')"
+              @click="removeCp(rowObject.cp)" v-if="rowObject.updateAllowed" />
+          </os-button-group>
+        </template>
+
+        <template #footer>
+          <os-pager :start-at="ctx.startAt" :have-more="ctx.haveMoreCps"
+            @previous="previousPage" @next="nextPage" />
+        </template>
+      </os-list-view>
+    </os-grid-column>
+  </os-grid>
+
+  <os-confirm ref="confirmDeleteDialog">
+    <template #title>
+      <span v-t="'cpgs.delete_cpg_q'">Delete Collection Protocol Group?</span>
+    </template>
+    <template #message>
+      <span v-t="{path: 'cpgs.delete_cpg', args: cpg}">Delete Collection Protocol Group xyz?</span>
+    </template>
+  </os-confirm>
+
+  <os-confirm ref="removeCpsConfirmDialog">
+    <template #title>
+      <span v-if="ctx.toRemoveCps.length > 1" v-t="'cpgs.remove_cps'">Remove Collection Protocols?</span>
+      <span v-else v-t="'cpgs.remove_cp'">Remove Collection Protocol?</span>
+    </template>
+    <template #message>
+      <span v-if="ctx.toRemoveCps.length > 1" v-t="'cpgs.confirm_remove_cps'">Are you sure you want to remove the selected collection protocols from the group?</span>
+      <span v-else v-t="{path: 'cpgs.confirm_remove_cp', args: {cp: ctx.toRemoveCps[0].shortTitle}}">Are you sure you want to remove the collection protocol from the group?</span>
+    </template>
+  </os-confirm>
+
+  <os-confirm ref="inheritGroupWorkflowsConfirmDialog">
+    <template #title>
+      <span v-t="'cps.inherit_group_workflows'">Use Group Workflows?</span>
+    </template>
+    <template #message>
+      <span v-t="'cps.confirm_inherit_group_workflows'">
+        The collection protocol workflows will be replaced with the group workflows. Subsequent group workflow updates will be propagated to this collection protocol.
+      </span>
+    </template>
+  </os-confirm>
+
+  <os-dialog ref="addCpsDialog">
+    <template #header>
+      <span v-t="'cpgs.add_cps'">Add Collection Protocols</span>
+    </template>
+    <template #content>
+      <os-form ref="addCpsForm" :schema="addCpsFs" :data="ctx" />
+    </template>
+    <template #footer>
+      <os-button text :label="$t('common.buttons.cancel')" @click="hideAddCpsDialog" />
+      <os-button primary :label="$t('common.buttons.add')" @click="addCps" />
+    </template>
+  </os-dialog>
+
+  <os-dialog ref="importWfDialog">
+    <template #header>
+      <span v-t="'cps.import_workflows'">Import Workflows JSON</span>
+    </template>
+    <template #content>
+      <div>
+        <os-label>
+          <span v-t="'cps.choose_workflows_json_file'">Choose the workflows JSON file</span>
+        </os-label>
+        <os-file-upload ref="wfJsonUploader" :url="workflowsUploadUrl" :auto="false" :headers="reqHeaders" />
+      </div>
+    </template>
+    <template #footer>
+      <os-button text    :label="$t('common.buttons.cancel')" @click="hideImportWfDialog" />
+      <os-button primary :label="$t('common.buttons.import')" @click="importWorkflows" />
+    </template>
+  </os-dialog>
+</template>
+
+<script>
+import alertSvc  from '@/common/services/Alerts.js';
+import authSvc   from '@/common/services/Authorization.js';
+import cpSvc     from '@/biospecimen/services/CollectionProtocol.js';
+import cpgSvc    from '@/biospecimen/services/CollectionProtocolGroup.js';
+import http      from '@/common/services/HttpClient.js';
+import exportSvc from '@/common/services/ExportService.js';
+import routerSvc from '@/common/services/Router.js';
+
+import addCpsSchema from '@/biospecimen/schemas/cp-groups/add-cps.js';
+import cpsListSchema from '@/biospecimen/schemas/cp-groups/cps-list.js';
+
+export default {
+  props: ['cpg', 'permOpts'],
+
+  data() {
+    return {
+      ctx: {
+        cps: [],
+
+        startAt: 0,
+
+        haveMoreCps: false,
+
+        loading: false,
+
+        pageSize: 25,
+
+        filterValues: {},
+
+        selectedCps: [],
+
+        toRemoveCps: [],
+
+        cpsToAdd: [],
+
+        getAvailableCps: this._getAvailableCps
+      },
+
+      addCpsFs: addCpsSchema.layout,
+
+      cpsListSchema
+    }
+  },
+
+  created() {
+  },
+
+  watch: {
+    cpg: function(newVal, oldVal) {
+      if (!newVal || (oldVal && newVal.id == oldVal.id)) {
+        return;
+      }
+
+      this._loadCps(0);
+    }
+  },
+
+  computed: {
+    importAllowed: function() {
+      return this.permOpts && this.permOpts.importAllowed;
+    },
+
+    exportAllowed: function() {
+      return this.permOpts && this.permOpts.exportAllowed;
+    },
+
+    updateAllowed: function() {
+      return this.permOpts && this.permOpts.updateAllowed;
+    },
+
+    canAddCps: function() {
+      return authSvc.isAllowed({resource: 'CollectionProtocol', operations: ['Update']});
+    },
+
+    wfOpts: function() {
+      const opts = [];
+      if (this.exportAllowed) {
+        opts.push({icon: 'download', caption: this.$t('common.buttons.export'), onSelect: this.exportWorkflows});
+      }
+
+      if (this.importAllowed) {
+        opts.push({icon: 'upload',   caption: this.$t('common.buttons.import'), onSelect: this.showImportWfDialog});
+      }
+
+      return opts;
+    },
+
+    exportOpts: function() {
+      return [
+        {icon: 'calendar', caption: this.$t('cpgs.collection_protocols'),  onSelect: this.exportCps},
+        {icon: 'list-alt', caption: this.$t('cpgs.cpes'),                  onSelect: this.exportCpEvents},
+        {icon: 'flask',    caption: this.$t('cpgs.specimen_requirements'), onSelect: this.exportCpSrs}
+      ];
+    },
+
+    cpsList: function() {
+      return (this.ctx.cps || []).map(cp => ({cp, updateAllowed: this._isUpdateAllowed(cp)}));
+    },
+
+    editUrl: function() {
+      return routerSvc.getUrl('CpgAddEdit', {cpgId: this.cpg.id});
+    },
+
+    workflowsUploadUrl: function() {
+      return http.getUrl('collection-protocol-groups/' + this.cpg.id + '/workflows-file');
+    },
+
+    reqHeaders: function() {
+      return http.headers;
+    },
+
+    allowSelection: function() {
+      return this.cpsList.some(({updateAllowed}) => updateAllowed);
+    }
+  },
+
+  methods: {
+    openSearch: function() {
+      this.$refs.cpsListView.toggleShowFilters();
+    },
+
+    loadCps: function({filters, pageSize}) {
+      this.ctx.filterValues = filters || {};
+      this.ctx.pageSize = pageSize;
+      this._loadCps(0);
+    },
+
+    previousPage: function() {
+      this._loadCps(this.ctx.startAt - this.ctx.pageSize + 1);
+    },
+
+    nextPage: function() {
+      this._loadCps(this.ctx.startAt + this.ctx.pageSize - 1);
+    },
+
+    deleteCpg: function() {
+      this.$refs.confirmDeleteDialog.open().then(
+        resp => {
+          if (resp == 'proceed') {
+            cpgSvc.deleteCpg(this.cpg).then(
+              () => {
+                alertSvc.success({code: 'cpgs.deleted', args: this.cpg});
+                routerSvc.goto('CpgsList', {cpgId: -2});
+              }
+            );
+          }
+        }
+      );
+    },
+
+    showImportWfDialog: function() {
+      this.$refs.importWfDialog.open();
+    },
+
+    hideImportWfDialog: function() {
+      this.$refs.importWfDialog.close();
+    },
+
+    importWorkflows: function() {
+      this.$refs.wfJsonUploader.upload().then(
+        () => {
+          alertSvc.success({code: 'cpgs.workflows_imported'});
+          this.hideImportWfDialog()
+        }
+      );
+    },
+
+    exportWorkflows: function() {
+      cpgSvc.exportWorkflows(this.cpg);
+    },
+
+    exportCps: function() {
+      this._exportCpRecords('cp');
+    },
+
+    exportCpEvents: function() {
+      this._exportCpRecords('cpe');
+    },
+
+    exportCpSrs: function() {
+      this._exportCpRecords('sr');
+    },
+
+    onCpRowClick: function({cp}) {
+      routerSvc.goto('CpDetail.Overview', {cpId: cp.id});
+    },
+
+    onCpsSelection: function(selection) {
+      this.ctx.selectedCps = (selection || []).map(({rowObject: {cp}}) => cp);
+    },
+
+    participantsUrl: function(cp) {
+      return routerSvc.getUrl('ParticipantsList', {cpId: cp.id});
+    },
+
+    specimensUrl: function(cp) {
+      return routerSvc.getUrl('ParticipantsList', {cpId: cp.id}, {view: 'specimens_list'});
+    },
+
+    catalogUrl: function(cp) {
+      return routerSvc.getUrl('CatalogSearch', {catalogId: cp.catalogId}, {cpId: cp.id});
+    },
+
+    showAddCpsDialog: function() {
+      this.ctx.cpsToAdd = [];
+      this.$refs.addCpsDialog.open();
+    },
+
+    hideAddCpsDialog: function() {
+      this.ctx.cpsToAdd = [];
+      this.$refs.addCpsDialog.close();
+    },
+
+    addCps: function() {
+      const {cpsToAdd} = this.ctx;
+      if (!cpsToAdd || cpsToAdd.length == 0) {
+        alertSvc.error({code: 'cpgs.select_atleast_one_cp'});
+        return;
+      }
+
+      cpgSvc.addCps(this.cpg.id, cpsToAdd).then(
+        ({count}) => {
+          alertSvc.success({code: 'cpgs.cps_added', args: {count: count || cpsToAdd.length}});
+          this._loadCps(this.ctx.startAt);
+          this.hideAddCpsDialog();
+        }
+      );
+    },
+
+    removeSelectedCps: function() {
+      this._confirmRemoveCps(this.ctx.selectedCps);
+    },
+
+    removeCp: function(cp) {
+      this._confirmRemoveCps([cp]);
+    },
+
+    inheritGroupWorkflows: function(cp) {
+      this.$refs.inheritGroupWorkflowsConfirmDialog.open().then(
+        resp => {
+          if (resp != 'proceed') {
+            return;
+          }
+
+          cpSvc.inheritGroupWorkflows(cp.id).then(
+            () => {
+              cp.groupWorkflowsInherited = true;
+              alertSvc.success({code: 'cps.group_workflows_inherited', args: cp});
+            }
+          );
+        }
+      );
+    },
+
+    _confirmRemoveCps: function(cps) {
+      if (!cps || cps.length == 0) {
+        return;
+      }
+
+      this.ctx.toRemoveCps = cps;
+      this.$refs.removeCpsConfirmDialog.open().then(
+        resp => {
+          if (resp != 'proceed') {
+            return;
+          }
+
+          const cpIds = cps.map(cp => cp.id);
+          cpgSvc.removeCps(this.cpg.id, cpIds).then(
+            ({count}) => {
+              alertSvc.success({code: 'cpgs.cps_removed', args: {cp: cps[0].shortTitle, count: count || cpIds.length}});
+              this.ctx.selectedCps = [];
+              this._loadCps(this.ctx.startAt);
+            }
+          );
+        }
+      );
+    },
+
+    _loadCps: async function(startAt) {
+      if (!this.cpg || !this.cpg.id) {
+        return;
+      }
+
+      const ctx = this.ctx;
+      const pageSize = ctx.pageSize;
+      ctx.loading = true;
+
+      const filters = ctx.filterValues || {};
+      const cps = await cpSvc.getCps({
+        groupId: this.cpg.id,
+        includePi: true,
+        includeWfInheritance: true,
+        startAt,
+        maxResults: pageSize,
+        ...filters
+      });
+      if (cps.length == pageSize) {
+        ctx.haveMoreCps = true;
+        cps.splice(cps.length - 1, 1);
+      } else {
+        ctx.haveMoreCps = false;
+      }
+
+      ctx.cps = cps;
+      ctx.startAt = startAt;
+      ctx.loading = false;
+    },
+
+    _getAvailableCps: async function({query, maxResults}) {
+      const existingIds = new Set((this.ctx.cps || []).map(cp => cp.id));
+      const cps = await cpSvc.getCps({query, maxResults});
+      return (cps || [])
+        .filter(cp => !existingIds.has(cp.id))
+        .map(
+          (cp) => {
+            cp.displayLabel = cp.code ? cp.shortTitle + ' (' + cp.code + ')' : cp.shortTitle;
+            return cp;
+          }
+        );
+    },
+
+    _exportCpRecords: async function(objectType) {
+      const {id: groupId} = this.cpg;
+      exportSvc.exportRecords({objectType, params: {groupId}});
+    },
+
+    _isUpdateAllowed: function({shortTitle}) {
+      return authSvc.isAllowed({resource: 'CollectionProtocol', cp: shortTitle, operations: ['Update']});
+    }
+  }
+}
+</script>

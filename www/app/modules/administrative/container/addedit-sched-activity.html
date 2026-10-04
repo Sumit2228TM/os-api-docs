@@ -1,0 +1,98 @@
+<form name="saform" class="form-horizontal" os-form-validator="saform" novalidate>
+  <div class="os-modal">
+    <div class="os-modal-header">
+      <span ng-show="!sctx.activity.id">{{'container.maintenance.create_sched_activity' | translate}}</span>
+      <span ng-show="!!sctx.activity.id">{{'container.maintenance.update_sched_activity' | translate}}</span>
+    </div>
+
+    <div class="os-modal-body">
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.maintenance.name">Name</span>
+        </label>
+        <div class="col-xs-9">
+          <input name="name" type="text" class="form-control" ng-model="sctx.activity.name" required>
+          <div os-field-error field="saform.name"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.maintenance.task">Task</span>
+        </label>
+        <div class="col-xs-9">
+          <os-select name="task" ng-model="sctx.activity.$$uiProps.task" list="sctx.tasks"
+            display-prop="name" refresh="searchTask" required ng-disabled="!!sctx.activity.id">
+          </os-select>
+          <div os-field-error field="saform.task"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.maintenance.start_date">Start Date</label>
+        </label>
+        <div class="col-xs-9">
+          <os-date-picker name="startDate" date="sctx.activity.startDate" required>
+          </os-date-picker>
+          <div os-field-error field="saform.startDate"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.maintenance.cycle_interval">Cycle Interval</span>
+        </label>
+        <div class="col-xs-5">
+          <input name="cycleInt" type="text" class="form-control" ng-model="sctx.activity.cycleInterval"
+            ng-pattern="/^[1-9][0-9]*$/" required>
+          <div os-field-error field="saform.cycleInt"></div>
+        </div>
+        <div class="col-xs-4">
+          <os-select name="cycleIntUnit" ng-model="sctx.activity.cycleIntervalUnit" list="sctx.intervalUnits"
+            select-prop="name" display-prop="displayName" required>
+          </os-select>
+          <div os-field-error field="saform.cycleIntUnit"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.maintenance.rem_interval">Reminder Interval</span>
+        </label>
+        <div class="col-xs-5">
+          <input name="remInt" type="text" class="form-control" ng-model="sctx.activity.reminderInterval"
+            ng-pattern="/^[1-9][0-9]*$/" required>
+          <div os-field-error field="saform.remInt"></div>
+        </div>
+        <div class="col-xs-4">
+          <os-select name="remIntUnit" ng-model="sctx.activity.reminderIntervalUnit" list="sctx.intervalUnits"
+            select-prop="name" display-prop="displayName" required>
+          </os-select>
+          <div os-field-error field="saform.remIntUnit"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.maintenance.assigned_users">Assigned Users</span>
+        </label>
+        <div class="col-xs-9">
+          <os-users name="assignedUsers" ng-model="sctx.activity.assignedUsers" multiple required
+            placeholder="{{'container.maintenance.assigned_users' | translate}}">
+          </os-users>
+        </div>
+      </div>
+    </div>
+
+    <div class="os-modal-footer">
+      <button class="btn os-btn-text" ng-click="cancel()">
+        <span translate="common.buttons.discard">Cancel</span>
+      </button>
+      <button class="btn btn-primary" os-form-submit="saveOrUpdate()">
+        <span ng-show="!sctx.activity.id" translate="common.buttons.create">Create</span>
+        <span ng-show="!!sctx.activity.id" translate="common.buttons.update">Update</span>
+      </button>
+    </div>
+  </div>
+</form>

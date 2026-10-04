@@ -1,0 +1,75 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li>
+          <a ui-sref="cp-list-view({cpId: cp.id})">
+            <span>{{cp.shortTitle}}</span>
+          </a>
+        </li>
+      </ul>
+      <h3>
+        <span translate="participant.bulk_update">Bulk Edit Participants</span>
+      </h3>
+    </div>
+  </div>
+
+  <div class="container">
+    <form name="pform" class="form-horizontal" os-form-validator="pform" validator="pformValidator" novalidate>
+      <div ng-if="ctx.fields.length > 0">
+        <div ng-include="'modules/biospecimen/participant/dyna-bulk-edit.html'"></div>
+
+        <div class="os-divider"></div>
+
+        <div class="form-group">
+          <div class="col-xs-offset-3 col-xs-6">
+            <button class="btn btn-primary" os-form-submit="update()">
+              <span translate="common.buttons.update"> Update </span>
+            </button>
+            <button class="btn os-btn-text" ng-click="back()">
+              <span translate="common.buttons.discard"> Discard </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div ng-if="ctx.fields.length == 0">
+        <div ng-include="'modules/biospecimen/participant/static-bulk-edit.html'"></div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/static-bulk-edit.html">
+  <div class="os-alert-container inline">
+    <div class="alert alert-info">
+      <span translate="participant.bulk_edit_ee"></span>
+    </div>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/dyna-bulk-edit.html">
+  <div ng-repeat="editedField in ctx.editedFields"
+    ng-style="!$last && {'border-bottom': '1px solid #ddd', 'margin-bottom': '20px'}">
+    <div class="form-group">
+      <label class="col-xs-3 control-label">
+        <span translate="common.select_field">Field</span>
+      </label>
+      <div class="col-xs-6">
+        <os-select ng-model="editedField.field" list="ctx.fields" display-prop="caption"
+          on-select="onFieldSelect($index, $item)" on-remove="removeField($index)">
+        </os-select>
+      </div>
+    </div>
+    <div class="form-group" ng-if="!!editedField.field.name">
+      <label class="col-xs-3 control-label">
+        <span>{{editedField.field.caption}}</span>
+      </label>
+      <div class="col-xs-6">
+        <sde-form-field form-name="sform" name="{{$index}}" field="editedField.field"
+          obj="editedField.obj" opts="editedField.opts">
+        </sde-form-field>
+      </div>
+    </div>
+  </div>
+</script>

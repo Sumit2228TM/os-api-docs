@@ -1,0 +1,302 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<object-schema>
+  <name>cp</name>
+
+  <record> 
+    <name>com.krishagni.catissueplus.core.biospecimen.events.CollectionProtocolDetail</name>
+    
+    <field>
+      <caption>#getMessage("cp_identifier")</caption>
+      <attribute>id</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("cp_title")</caption>
+      <attribute>title</attribute>
+    </field>
+    
+    <field>
+      <caption>#getMessage("cp_short_title")</caption>
+      <attribute>shortTitle</attribute>
+    </field>
+    
+    <field>
+      <caption>#getMessage("cp_code")</caption>
+      <attribute>code</attribute>
+    </field>
+
+    <record>
+      <attribute>cpg</attribute>
+      <caption>#getMessage("cp_group")</caption>
+
+      <field>
+        <caption>#getMessage("common_name")</caption>
+        <attribute>name</attribute>
+      </field>
+    </record>
+
+    <record>
+      <attribute>principalInvestigator</attribute>
+      <caption>#getMessage("cp_pi")</caption>
+      
+      <field>
+        <caption>#getMessage("cp_pi_email")</caption>
+        <attribute>emailAddress</attribute>
+      </field>
+    </record>
+    
+    <record>
+      <attribute>coordinators</attribute>
+      <multiple>true</multiple>
+      <caption>#getMessage("cp_coordinator")</caption>
+      
+      <field>
+        <caption>#getMessage("cp_coordinator_email")</caption>
+        <attribute>emailAddress</attribute>
+      </field>
+    </record>
+
+    <record>
+      <attribute>cpSites</attribute>
+      <multiple>true</multiple>
+      <caption>#getMessage("cp_sites")</caption>
+
+      <field>
+        <caption>#getMessage("cp_site_name")</caption>
+        <attribute>siteName</attribute>
+      </field>
+
+      <field>
+        <caption>#getMessage("cp_site_code")</caption>
+        <attribute>code</attribute>
+      </field>
+    </record>
+
+    <field>
+      <type>dateOnly</type>
+      <caption>#getMessage("cp_start_date")</caption>
+      <attribute>startDate</attribute>
+    </field>
+  
+    <field>
+      <type>dateOnly</type>
+      <caption>#getMessage("cp_end_date")</caption>
+      <attribute>endDate</attribute>
+    </field>
+    
+    <field>
+      <caption>#getMessage("cp_irb_id")</caption>
+      <attribute>irbId</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("cp_specimen_centric")</caption>
+      <attribute>specimenCentric</attribute>
+      <type>boolean</type>
+    </field>
+    
+    <field>
+      <caption>#getMessage("cp_anticipated_participants_cnt")</caption>
+      <attribute>anticipatedParticipantsCount</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("cp_sop_document_url")</caption>
+      <attribute>sopDocumentUrl</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("cp_sop_document_name")</caption>
+      <attribute>sopDocumentName</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("cp_store_spr")</caption>
+      <attribute>storeSprEnabled</attribute>
+      <type>boolean</type>
+    </field>
+
+    <field>
+      <caption>#getMessage("cp_extract_spr_text")</caption>
+      <attribute>extractSprText</attribute>
+      <type>boolean</type>
+    </field>
+
+    <field>
+      <caption>#getMessage("cp_ppid_fmt")</caption>
+      <attribute>ppidFmt</attribute>
+    </field>
+    
+    <field>
+      <caption>#getMessage("cp_visit_name_fmt")</caption>
+      <attribute>visitNameFmt</attribute>
+    </field>
+    
+    <field>
+      <caption>#getMessage("cp_spmn_label_fmt")</caption>
+      <attribute>specimenLabelFmt</attribute>
+    </field>
+    
+    <field>
+      <caption>#getMessage("cp_derivative_label_fmt")</caption>
+      <attribute>derivativeLabelFmt</attribute>
+    </field>
+    
+    <field>
+      <caption>#getMessage("cp_aliquot_label_fmt")</caption>
+      <attribute>aliquotLabelFmt</attribute>
+    </field>
+    
+    <field>
+      <type>boolean</type>
+      <caption>#getMessage("cp_manual_ppid_enabled")</caption>
+      <attribute>manualPpidEnabled</attribute>
+    </field>
+    
+    <field>
+      <type>boolean</type>
+      <caption>#getMessage("cp_manual_visit_name_enabled")</caption>
+      <attribute>manualVisitNameEnabled</attribute>
+    </field>
+    
+    <field>
+      <type>boolean</type>
+      <caption>#getMessage("cp_manual_spmn_label_enabled")</caption>
+      <attribute>manualSpecLabelEnabled</attribute>
+    </field>
+
+    <field>
+      <type>boolean</type>
+      <caption>#getMessage("cp_close_parent_specimens")</caption>
+      <attribute>closeParentSpecimens</attribute>
+    </field>
+
+    <field>
+      <type>boolean</type>
+      <caption>#getMessage("cp_set_qty_to_zero")</caption>
+      <attribute>setQtyToZero</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("cp_additional_label_fmt")</caption>
+      <attribute>additionalLabelFmt</attribute>
+    </field>
+
+    <field>
+      <type>boolean</type>
+      <caption>#getMessage("cp_enable_specimen_barcoding")</caption>
+      <attribute>barcodingEnabled</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("cp_specimen_barcode_fmt")</caption>
+      <attribute>specimenBarcodeFmt</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("cp_label_seq_key")</caption>
+      <attribute>labelSequenceKey</attribute>
+    </field>
+
+    <field>
+      <type>boolean</type>
+      <caption>#getMessage("cp_kit_labels")</caption>
+      <attribute>kitLabelsEnabled</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("cp_visit_collection_mode")</caption>
+      <attribute>visitCollectionMode</attribute>
+    </field>
+    
+    <field>
+      <caption>#getMessage("cp_spmn_label_pre_print_mode")</caption>
+      <attribute>spmnLabelPrePrintMode</attribute>
+    </field>
+
+    <field>
+      <type>boolean</type>
+      <caption>#getMessage("cp_storage_site_based_access")</caption>
+      <attribute>storageSiteBasedAccess</attribute>
+    </field>
+
+    <field>
+      <type>boolean</type>
+      <caption>#getMessage("cp_draft_data_entry")</caption>
+      <attribute>draftDataEntry</attribute>
+    </field>
+
+    <record>
+      <attribute>spmnLabelPrintSettings</attribute>
+      <multiple>true</multiple>
+      <caption>#getMessage("cp_spmn_label_print_settings")</caption>
+      
+      <field>
+        <caption>#getMessage("cp_spmn_label_print_settings_lineage")</caption>
+        <attribute>lineage</attribute>
+      </field>
+      
+      <field>
+        <caption>#getMessage("cp_spmn_label_print_settings_print_mode")</caption>
+        <attribute>printMode</attribute>
+      </field>
+      
+      <field>
+        <caption>#getMessage("cp_spmn_label_print_settings_copies")</caption>
+        <attribute>copies</attribute>
+      </field>
+    </record>
+
+    <field>
+      <caption>#getMessage("cp_container_auto_allocation_strategy")</caption>
+      <attribute>containerSelectionStrategy</attribute>
+    </field>
+
+    <field>
+      <type>boolean</type>
+      <caption>#getMessage("cp_store_aliquots_in_same_box")</caption>
+      <attribute>aliquotsInSameContainer</attribute>
+    </field>
+
+    <record>
+      <attribute>distributionProtocols</attribute>
+      <multiple>true</multiple>
+      <caption>#getMessage("cp_distribution_protocols")</caption>
+
+      <field>
+        <caption>#getMessage("cp_short_title")</caption>
+        <attribute>shortTitle</attribute>
+      </field>
+    </record>
+
+    <field>
+      <caption>#getMessage("cp_description_url")</caption>
+      <attribute>descriptionUrl</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("cp_catalog_id")</caption>
+      <attribute>catalogId</attribute>
+    </field>
+
+    <record>
+      <attribute>requestManagerGroup</attribute>
+      <caption>#getMessage("cp_req_mgr_group")</caption>
+
+      <field>
+        <caption>#getMessage("common_name")</caption>
+        <attribute>name</attribute>
+      </field>
+    </record>
+
+    <field>
+      <caption>#getMessage("cp_activity_status")</caption>
+      <attribute>activityStatus</attribute>
+    </field>
+
+    <record type="customFields" entityType="CollectionProtocolExtension">
+      <attribute>extensionDetail</attribute>
+    </record>
+  </record>
+</object-schema>

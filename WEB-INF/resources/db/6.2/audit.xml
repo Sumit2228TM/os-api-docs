@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="PV: Specimen requirement PVs">
+    <addColumn tableName="CATISSUE_CP_REQ_SPECIMEN_AUD">
+      <column name="ANATOMIC_SITE_ID" type="${int.type}"/>
+      <column name="LATERALITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: SR collection procedure">
+    <addColumn tableName="CATISSUE_CP_REQ_SPECIMEN_AUD">
+      <column name="COLLECTION_PROCEDURE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: SR collection container">
+    <addColumn tableName="CATISSUE_CP_REQ_SPECIMEN_AUD">
+      <column name="COLLECTION_CONTAINER_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: SR class and type">
+    <addColumn tableName="CATISSUE_CP_REQ_SPECIMEN_AUD">
+      <column name="SPECIMEN_CLASS_ID" type="${int.type}"/>
+      <column name="SPECIMEN_TYPE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: SR pathology status">
+    <addColumn tableName="CATISSUE_CP_REQ_SPECIMEN_AUD">
+      <column name="PATHOLOGICAL_STATUS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen PVs">
+    <addColumn tableName="CATISSUE_SPECIMEN_AUD">
+      <column name="ANATOMIC_SITE_ID" type="${int.type}"/>
+      <column name="LATERALITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen class and type">
+    <addColumn tableName="CATISSUE_SPECIMEN_AUD">
+      <column name="SPECIMEN_CLASS_ID" type="${int.type}"/>
+      <column name="SPECIMEN_TYPE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen path status">
+    <addColumn tableName="CATISSUE_SPECIMEN_AUD">
+      <column name="PATHOLOGICAL_STATUS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen biohazards">
+    <addColumn tableName="OS_SPECIMEN_BIOHAZARDS_AUD">
+      <column name="BIOHAZARD_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Add index on specimen biohazard revision" dbms="mysql">
+    <createIndex tableName="OS_SPECIMEN_BIOHAZARDS_AUD" indexName="SPMN_BIOHAZARD_REV_IDX">
+      <column name="REV"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Drop the older biohazard PK">
+    <dropPrimaryKey tableName="OS_SPECIMEN_BIOHAZARDS_AUD"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Drop not null constraint on older biohazard column">
+    <dropNotNullConstraint tableName="OS_SPECIMEN_BIOHAZARDS_AUD"
+      columnName="BIOHAZARD" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Container specimen class restriction">
+    <addColumn tableName="OS_STOR_CONT_SPEC_CLASSES_AUD">
+      <column name="SPECIMEN_CLASS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: container specimen class restriction - index on REV" dbms="mysql">
+    <createIndex tableName="OS_STOR_CONT_SPEC_CLASSES_AUD" indexName="STOR_CONT_CLASSES_AUD_REV_IDX">
+      <column name="REV"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop older container specimen class restriction PK">
+    <dropPrimaryKey tableName="OS_STOR_CONT_SPEC_CLASSES_AUD"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop older container specimen class restriction">
+    <dropNotNullConstraint tableName="OS_STOR_CONT_SPEC_CLASSES_AUD" columnName="SPECIMEN_CLASS" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Container specimen type restriction">
+    <addColumn tableName="OS_STOR_CONT_SPEC_TYPES_AUD">
+      <column name="SPECIMEN_TYPE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: container specimen type restriction - index on REV" dbms="mysql">
+    <createIndex tableName="OS_STOR_CONT_SPEC_TYPES_AUD" indexName="STOR_CONT_TYPES_AUD_REV_IDX">
+      <column name="REV"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop older container specimen type restriction PK">
+    <dropPrimaryKey tableName="OS_STOR_CONT_SPEC_TYPES_AUD"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop older container specimen type restriction">
+    <dropNotNullConstraint tableName="OS_STOR_CONT_SPEC_TYPES_AUD" columnName="SPECIMEN_TYPE" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: CPE fields">
+    <addColumn tableName="CATISSUE_COLL_PROT_EVENT_AUD">
+      <column name="CLINICAL_STATUS_ID" type="${int.type}"/>
+      <column name="CLINICAL_DIAGNOSIS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: visit fields - 1">
+    <addColumn tableName="CAT_SPECIMEN_COLL_GROUP_AUD">
+      <column name="CLINICAL_STATUS_ID" type="${int.type}"/>
+      <column name="COHORT_ID" type="${int.type}"/>
+      <column name="MISSED_REASON_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop not null constraint on older CD">
+    <dropNotNullConstraint tableName="OS_VISIT_CLIN_DIAGNOSES_AUD" columnName="CLINICAL_DIAGNOSIS" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: visit clinical diagnosis">
+    <addColumn tableName="OS_VISIT_CLIN_DIAGNOSES_AUD">
+      <column name="CLINICAL_DIAGNOSIS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: participant fields">
+    <addColumn tableName="CATISSUE_PARTICIPANT_AUD">
+      <column name="GENDER_ID" type="${int.type}"/>
+      <column name="VITAL_STATUS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: participant race">
+    <addColumn tableName="CATISSUE_RACE_AUD">
+      <column name="RACE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: participant race - index on REV" dbms="mysql">
+    <createIndex tableName="CATISSUE_RACE_AUD" indexName="RACE_AUD_REV_IDX">
+      <column name="REV"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop older race restriction PK">
+    <dropPrimaryKey tableName="CATISSUE_RACE_AUD"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop older race not null constraint">
+    <dropNotNullConstraint tableName="CATISSUE_RACE_AUD"
+      columnName="RACE_NAME" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: participant ethnicity">
+    <addColumn tableName="OS_PARTICIPANT_ETHNICITIES_AUD">
+      <column name="ETHNICITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: participant ethnicity - index on REV">
+    <createIndex tableName="OS_PARTICIPANT_ETHNICITIES_AUD" indexName="ETHNICITY_AUD_REV_IDX">
+      <column name="REV"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop older ethnicity not null constraint">
+    <dropNotNullConstraint tableName="OS_PARTICIPANT_ETHNICITIES_AUD"
+      columnName="ETHNICITY" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Site type">
+    <addColumn tableName="CATISSUE_SITE_AUD">
+      <column name="TYPE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Consent response">
+    <addColumn tableName="CAT_CONSENT_TIER_RESPONSE_AUD">
+      <column name="RESPONSE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Shipment specimen received quality">
+    <addColumn tableName="OS_SHIPMENT_SPECIMENS_AUD">
+      <column name="RECEIVED_QUALITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Shipment container received quality">
+    <addColumn tableName="OS_SHIPMENT_CONTAINERS_AUD">
+      <column name="RECEIVED_QUALITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Normalised DP requirement PVs">
+    <addColumn tableName="OS_DP_REQUIREMENTS_AUD">
+      <column name="SPECIMEN_TYPE_ID" type="${int.type}"/>
+      <column name="ANATOMIC_SITE_ID" type="${int.type}"/>
+      <column name="CLINICAL_DIAGNOSIS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Normalised DP requirement pathology status">
+    <addColumn tableName="OS_DPR_PATHOLOGY_STATUSES_AUD">
+      <column name="PATHOLOGY_STATUS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track the auditing of participant medical identifiers">
+    <addColumn tableName="CATISSUE_PART_MEDICAL_ID_AUD">
+      <column name="PARTICIPANT_ID" type="${int.type}"/>
+      <column name="participant_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="User time zone">
+    <addColumn tableName="CATISSUE_USER_AUD">
+      <column name="TIME_ZONE" type="${text.type}(32)"/>
+      <column name="timeZone_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

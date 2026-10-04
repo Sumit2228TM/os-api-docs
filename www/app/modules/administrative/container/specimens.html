@@ -1,0 +1,35 @@
+<div class="os-detail-sublist">
+  <div class="os-page-header-actions">
+    <os-list-pager opts="lctx.pagerOpts"></os-list-pager>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left">
+      <os-specimen-ops specimens="getSelectedSpecimens()" init-list="loadSpecimens()">
+      </os-specimen-ops>
+
+      <os-assign-to-spmn-list on-add-to-list="addSpecimensToList(list)" menu-align="left">
+      </os-assign-to-spmn-list>
+
+      <button class="default" ng-click="downloadReport()" title="{{'common.buttons.download_report' | translate}}">
+        <span class="fa fa-download"></span>
+        <span translate="common.buttons.download_report">Download Report</span>
+      </button>
+    </div>
+
+    <div class="right" ng-if="lctx.showSearch">
+      <button class="default" os-right-drawer-toggle ng-click="toggleSearch()"
+        title="{{'common.buttons.search' | translate}}">
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+
+  <div>
+    <os-list params="lctx.params" item-sref="specimen({specimenId: row.hidden.specimenId})"
+      enable-selection="true" show-item="showSpecimen(row)" init-ctrl="setListCtrl($list)"
+      empty-state="lctx.emptyState">
+    </os-list>
+  </div>
+</div>

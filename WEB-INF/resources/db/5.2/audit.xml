@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Revision entity records - staging area">
+    <createTable tableName="OS_REV_ENTITY_RECS_TMP">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="REV" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="REV_TYPE" type="${tinyint.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ENTITY_NAME" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ENTITY_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Entity audit revision details sequence" dbms="oracle">
+    <createSequence sequenceName="OS_REV_ENTITY_RECS_TMP_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Procedure to initialize revision entity records" runOnChange="true" dbms="mysql">
+    <sql endDelimiter="//">
+      drop procedure if exists load_revision_entity_records;
+    </sql>
+
+    <sql endDelimiter="//">
+      create procedure load_revision_entity_records(
+        in entityName text,
+        in entityTable text
+      )
+      begin
+        select concat(
+          'insert into os_rev_entity_recs_tmp',
+          '  (rev, rev_type, entity_name, entity_id) ',
+          'select ',
+          '  o.rev as rev, o.revtype as rev_type, re.entityname as entity_name, ',
+          '  o.identifier as entity_id ',
+          'from ',
+          '  os_revisions r ',
+          '  inner join os_revision_entities re on re.rev = r.rev and re.entityname = \'', entityName, '\'',
+          '  inner join ', entityTable, ' o on o.rev = re.rev '
+        ) into @dml;
+
+        prepare stmt from @dml;
+
+        execute stmt;
+
+        deallocate prepare stmt;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Procedure to initialize revision entity records" runOnChange="true" dbms="oracle">
+    <sql endDelimiter="//">
+      create or replace procedure load_revision_entity_records(
+        entityName in varchar2,
+        entityTable in varchar2
+      ) is
+      begin
+        execute immediate
+          'insert into os_rev_entity_recs_tmp
+             (identifier, rev, rev_type, entity_name, entity_id)
+           select
+             os_rev_entity_recs_tmp_seq.nextval as identifier, o.rev as rev, o.revtype as rev_type,
+             re.entityname as entity_name, o.identifier as entity_id
+           from
+             os_revisions r
+             inner join os_revision_entities re on re.rev = r.rev and re.entityname = ''' || entityName || '''' ||
+           ' inner join ' || entityTable || ' o on o.rev = re.rev ';
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Stage storage container and type revision entity records">
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.ContainerType',
+        'os_container_types_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.StorageContainer',
+        'os_storage_containers_aud'
+      )
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Stage institute, department, site, and user revision entity records">
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.Institute',
+        'catissue_institution_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.Department',
+        'os_departments_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.Site',
+        'catissue_site_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.User',
+        'catissue_user_aud'
+      )
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Stage distribution protocol, requirement and order revision entity records">
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.DistributionProtocol',
+        'cat_distribution_protocol_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.DpDistributionSite',
+        'os_dist_protocol_sites_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.DpRequirement',
+        'os_dp_requirements_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.DistributionOrder',
+        'os_orders_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.DistributionOrderItem',
+        'os_order_items_aud'
+      )
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Stage shipment and shipment item revision entity records">
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.Shipment',
+        'os_shipments_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.ShipmentSpecimen',
+        'os_shipment_specimens_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.ShipmentContainer',
+        'os_shipment_containers_aud'
+      )
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Stage specimen request and request item revision entity records">
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.SpecimenRequest',
+        'os_specimen_requests_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.SpecimenRequestItem',
+        'os_specimen_request_items_aud'
+      )
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Stage collection protocols, sites, events, requirement, and consent revision entity records">
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol',
+        'cat_collection_protocol_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocolSite',
+        'catissue_site_cp_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.CpSpecimenLabelPrintSetting',
+        'os_spmn_lbl_print_settings_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocolEvent',
+        'catissue_coll_prot_event_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.SpecimenRequirement',
+        'catissue_cp_req_specimen_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.ConsentTier',
+        'catissue_consent_tier_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.CpConsentTier',
+        'catissue_consent_tier_aud'
+      )
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Stage registration, participant, pmi, visit, specimen, and related revision entity records">
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocolRegistration',
+        'catissue_coll_prot_reg_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.Participant',
+        'catissue_participant_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.ParticipantMedicalIdentifier',
+        'catissue_part_medical_id_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.ConsentTierResponse',
+        'cat_consent_tier_response_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.Visit',
+        'cat_specimen_coll_group_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.Specimen',
+        'catissue_specimen_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.SpecimenExternalIdentifier',
+        'os_spmn_external_ids_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.administrative.domain.StorageContainerPosition',
+        'os_container_positions_aud'
+      )
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.SpecimenKit',
+        'os_specimen_kits_aud'
+      )
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet id="vpawar" author="Stage specimen cart revision entity records">
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.SpecimenList',
+        'catissue_specimenlist_tags_aud'
+      )
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet id="vpawar" author="Stage consent statement revision entity records">
+    <sql endDelimiter="//">
+      call load_revision_entity_records(
+        'com.krishagni.catissueplus.core.biospecimen.domain.ConsentStatement',
+        'os_consent_statements_aud'
+      )
+      //
+    </sql>
+  </changeSet>
+</databaseChangeLog>

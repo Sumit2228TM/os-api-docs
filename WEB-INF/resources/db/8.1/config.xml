@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Enable or disable failed login notifications">
+    <sql>
+      call add_cfg_prop(
+        'auth', 'notify_failed_logins',
+        'notify_failed_logins', 'notify_failed_logins_desc',
+        'BOOLEAN', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Order email notification attachment type">
+    <sql>
+      call add_cfg_prop(
+        'administrative', 'order_attachment_type',
+        'order_attachment_type', 'order_attachment_type_desc',
+        'STRING', 'none'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Enable or disable reducing specimen quantity to zero on disposal">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'zero_disposed_spmn_qty',
+        'zero_disposed_spmn_qty', 'zero_disposed_spmn_qty_desc',
+        'BOOLEAN', ''
+      );
+    </sql>
+  </changeSet>
+</databaseChangeLog>

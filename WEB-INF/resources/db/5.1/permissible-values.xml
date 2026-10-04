@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Shipment item receive quality PV attribute">
+    <sql>
+      insert into catissue_cde
+        (public_id, long_name, definition, version, last_updated)
+      values
+        ('shipment_item_received_quality', 'Shipment Received Quality', 'Shipment Received Quality', '5.1', ${now});
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Load shipment item receive quality PVs">
+    <sql>
+      insert into catissue_permissible_value
+        (identifier, public_id, value)
+      values
+        (getNextPvId(), 'shipment_item_received_quality', 'Acceptable');
+    </sql>
+
+    <sql>
+      insert into catissue_permissible_value
+        (identifier, public_id, value)
+      values
+        (getNextPvId(), 'shipment_item_received_quality', 'Unacceptable');
+    </sql>
+  </changeSet>
+</databaseChangeLog>

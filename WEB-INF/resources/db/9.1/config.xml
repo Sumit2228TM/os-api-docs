@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Max. specimens update limit">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'max_spmns_update_limit',
+        'max_spmns_update_limit', 'max_spmns_update_limit_desc',
+        'INT', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Max. audit report period">
+    <sql>
+      call add_cfg_prop(
+        'common', 'max_audit_report_period',
+        'max_audit_report_period', 'max_audit_report_period_desc',
+        'INT', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Max. concurrent login sessions">
+    <sql>
+      call add_cfg_prop(
+        'auth', 'max_login_sessions',
+        'max_login_sessions', 'max_login_sessions_desc',
+        'INT', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Auto approve user signup requests">
+    <sql>
+      call add_cfg_prop(
+        'administrative', 'auto_approve_signup',
+        'auto_approve_signup', 'auto_approve_signup_desc',
+        'BOOLEAN', 'false'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Default role to assign to users on auto approval of their signup requests">
+    <sql>
+      call add_cfg_prop(
+        'administrative', 'def_role_on_signup',
+        'def_role_on_signup', 'def_role_on_signup_desc',
+        'STRING', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Default institute to use for the newly signed up users">
+    <sql>
+      call add_cfg_prop(
+        'administrative', 'def_signup_institute',
+        'def_signup_institute', 'def_signup_institute_desc',
+        'STRING', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to permit local account signups">
+    <sql>
+      call add_cfg_prop(
+        'administrative', 'local_account_signups',
+        'local_account_signups', 'local_account_signups_desc',
+        'BOOLEAN', 'true'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="System level additional label format">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'specimen_addl_label_format',
+        'specimen_addl_label_format', 'specimen_addl_label_format_desc',
+        'STRING', ''
+      );
+    </sql>
+  </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,77 @@
+<div class="os-detail-sublist">
+  <div class="os-page-commands">
+    <div class="left">
+      <span ng-show="mctx.allowEdits" class="os-btns">
+        <button class="default" ng-click="addEditActivityLog()">
+          <span class="fa fa-plus"></span>
+          <span translate="common.buttons.create">Create</span>
+        </button>
+      </span>
+      <os-export show-if-allowed="containerResource.importOpts" class="default" detail="mctx.exportDetail"></os-export>
+    </div>
+  </div>
+
+  <div class="os-list-container clearfix">
+    <div class="col-xs-12">
+      <table class="os-table os-table-hover">
+        <thead class="os-table-head">
+          <tr class="row">
+            <th class="col">
+              <span translate="container.maintenance.activity">Activity</span>
+            </th>
+            <th class="col">
+              <span translate="container.maintenance.performed_by">Performed By</span>
+            </th>
+            <th class="col">
+              <span translate="container.maintenance.activity_date">Activity Date</span>
+            </th>
+            <th class="col">
+              <span translate="container.maintenance.time_taken_mins">Time Taken (mins)</span>
+            </th>
+            <th class="col">
+              <span translate="container.maintenance.comments">Comments</span>
+            </th>
+            <th class="col" ng-show="mctx.allowEdits">
+              <span>&nbsp;</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="os-table-body">
+          <tr class="row" ng-if="mctx.activityLogsState.loading || mctx.activityLogsState.empty">
+            <td class="col" colspan="100%">
+              <os-empty-list state="mctx.activityLogsState"></os-empty-list>
+            </td>
+          </tr>
+          <tr class="row" ng-repeat="log in mctx.activityLogs">
+            <td class="col">
+              <span ng-show="!log.scheduledActivityName">{{log.taskName}}</span>
+              <span ng-show="!!log.scheduledActivityName">{{log.scheduledActivityName}}</span>
+            </td>
+            <td class="col">
+              <span>{{log.performedBy | osUserDisplayName}}</span>
+            </td>
+            <td class="col">
+              <span>{{log.activityDate | date: global.dateFmt}}</span>
+            </td>
+            <td class="col">
+              <span>{{log.timeTaken | osNoValue}}</span>
+            </td>
+            <td class="col">
+              <span>{{log.comments | osNoValue}}</span>
+            </td>
+            <td class="col" ng-show="mctx.allowEdits">
+              <div class="btn-group">
+                <button class="btn btn-default btn-xs" ng-click="addEditActivityLog(log)">
+                  <span class="fa fa-pencil"></span>
+                </button>
+                <button class="btn btn-default btn-xs" ng-click="archiveActivityLog(log)">
+                  <span class="fa fa-archive"></span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,12 @@
+[
+  "Participant.ppid",
+  "Participant.regDate",
+  "Participant.gender",
+  "Participant.race",
+  "SpecimenCollectionGroup.clinicalDiagnoses.value",
+  "Specimen.label",
+  "Specimen.type",
+  "Specimen.tissueSite",
+  "Specimen.spmnCollRecvDetails.collTime",
+  "Specimen.specimenStatistics.ischemiaTime"
+]

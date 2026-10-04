@@ -1,0 +1,18 @@
+<div>
+  <div class="os-search">
+    <div class="os-head">
+      <h3 class="os-title" translate="institute.filter.title">Institute Filter</h3>
+    </div>
+
+    <div class="os-body">
+      <div class="form-group">
+        <input os-md-input type="text" ng-model="instituteFilterOpts.name" class="form-control"
+          placeholder="{{'institute.name' | translate}}">
+      </div>
+
+      <os-clear-filters opts="instituteFilterOpts"></os-clear-filters>
+    </div>
+  </div>
+
+  <os-list-page-size opts="pagerOpts" on-change="pageSizeChanged()"></os-list-page-size>
+</div>

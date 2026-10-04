@@ -1,0 +1,63 @@
+<div>
+  <div class="clearfix">
+    <div class="col-xs-12">
+      <table class="os-table">
+        <thead class="os-table-head">
+          <tr class="row">
+            <th class="col os-pointer-cursor" ng-click="sortBy('name')">
+              <span translate="container.name">Name</span>
+              <span ng-show="ctx.orderBy == 'name'" class="fa"
+                ng-class="{'asc': 'fa-long-arrow-up', 'desc': 'fa-long-arrow-down'}[ctx.direction]">
+              </span>
+            </th>
+            <th class="col">
+              <span translate="container.dimension">Dimension</span>
+            </th>
+            <th class="col" ng-if="shipment.status != 'Shipped'"> 
+              <span translate="container.parent_container">Parent Container</span>
+            </th>
+            <th class="col">
+              <span translate="shipments.specimens">Specimens</th>
+            </th>
+            <th class="col" ng-if="shipment.status == 'Received'">
+              <span translate="shipments.received_quality">Quality</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="os-table-body">
+          <tr class="row" ng-if="ctx.emptyState.empty || ctx.emptyState.loading">
+            <td class="col" colspan="100%">
+              <os-empty-list state="ctx.emptyState"></os-empty-list>
+            </td>
+          </tr>
+
+          <tr class="row" ng-repeat="item in ctx.shipmentContainers" ng-init="container = item.container">
+            <td class="col">
+              <a ui-sref="container-detail.overview({containerId: container.id})">
+                <span>{{container.name}}</span>
+              </a>
+            </td>
+            <td class="col" ng-switch on="container.positionLabelingMode != 'NONE'">
+              <span ng-switch-when="true">{{container.noOfRows}} X {{container.noOfColumns}}</span>
+              <span ng-switch-when="false" translate="common.not_applicable">Not Applicable</span>
+            </td>
+            <td class="col" ng-if="shipment.status != 'Shipped'">
+              <os-disp-storage-position position="container.storageLocation"></os-disp-storage-position>
+            </td>
+            <td class="col">
+              <span>{{item.specimensCount | number: 0}}</span>
+            </td>
+            <td class="col" ng-if="shipment.status == 'Received'">
+              <span>{{item.receivedQuality}}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <span ng-if="!ctx.loading && ctx.shipmentContainers.length > 0 && ctx.shipmentContainers.length < ctx.totalItems">
+        <pager total-items="ctx.totalItems" items-per-page="ctx.itemsPerPage" ng-model="ctx.currPage">
+        </pager>
+      </span>
+    </div>
+  </div>
+</div>

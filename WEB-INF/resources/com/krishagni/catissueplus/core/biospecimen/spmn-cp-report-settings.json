@@ -1,0 +1,42 @@
+{
+  "dataQueryAql": "select Specimen.type, count(distinct Specimen.id) as \"Specimens\" where  Specimen.collectionStatus = \"Collected\" and  Specimen.specimenPosition.container.name exists and date_range(Specimen.createdOn, last_cal_month)",
+
+  "metricsCfg": {
+    "primarySpmns": {
+      "type": "AQL",
+      "aql": "select count(Specimen.id) where Specimen.lineage = \"New\" and Specimen.collectionStatus = \"Collected\" and date_range(Specimen.createdOn, last_cal_month)"
+    },
+
+    "totalPrimarySpmns": {
+      "type": "AQL",
+      "aql": "select count(Specimen.id) where Specimen.lineage = \"New\" and Specimen.collectionStatus = \"Collected\""
+    },
+
+    "aliquots": {
+      "type": "AQL",
+      "aql": "select count(Specimen.id) where Specimen.lineage = \"Aliquot\" and Specimen.collectionStatus = \"Collected\" and date_range(Specimen.createdOn, last_cal_month)"
+    },
+
+    "totalAliquots": {
+      "type": "AQL",
+      "aql": "select count(Specimen.id) where Specimen.lineage = \"Aliquot\" and Specimen.collectionStatus = \"Collected\""
+    },
+
+    "distributedSpmns": {
+      "type": "AQL",
+      "aql": "select count(Specimen.label) where date_range(Specimen.specimenOrders.executionDate, last_cal_month) and Specimen.specimenOrders.orderStatus = \"EXECUTED\" and Specimen.specimenOrders.status in (\"DISTRIBUTED\", \"DISTRIBUTED_AND_CLOSED\")"
+    },
+
+    "totalDistributedSpmns": {
+      "type": "AQL",
+      "aql": "select count(Specimen.label) where Specimen.specimenOrders.orderStatus = \"EXECUTED\" and Specimen.specimenOrders.status in (\"DISTRIBUTED\", \"DISTRIBUTED_AND_CLOSED\")"
+    },
+
+    "top5Spmns": {
+      "type": "AQL",
+      "aql": "select Specimen.type as \"Specimen Type\", count(Specimen.id) as \"Specimens\" where Specimen.lineage = \"Aliquot\" and Specimen.collectionStatus = \"Collected\" order by count(Specimen.id) desc limit 0, 5"
+    }
+  },
+
+  "emailTmplKey": "default_cp_report"
+}

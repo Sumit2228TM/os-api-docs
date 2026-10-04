@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+  
+  <changeSet author="agosavi" id="Notifications table">
+    <createTable tableName="OS_NOTIFICATIONS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+
+      <column name="OPERATION" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="ENTITY_TYPE" type="${text.type}(64)">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="ENTITY_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="MESSAGE" type="${text.type}(512)">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="CREATED_BY" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      
+      <column name="CREATION_TIME" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  
+  <changeSet author="agosavi" id="Notifications sequence" dbms="oracle">
+    <createSequence sequenceName="OS_NOTIFS_SEQ" startValue="1" incrementBy="1" ordered="true" />
+  </changeSet>
+  
+  <changeSet author="agosavi" id="Add FK on user who triggered notification">
+    <addForeignKeyConstraint constraintName="FK_NOTIFICATION_CREATED_BY"
+      baseTableName="OS_NOTIFICATIONS" baseColumnNames="CREATED_BY"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+  
+  <changeSet author="agosavi" id="User notifications">
+    <createTable tableName="OS_USER_NOTIFICATIONS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="NOTIFICATION_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="URL_KEY" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="STATUS" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+  
+  <changeSet author="agosavi" id="Notifications user sequence" dbms="oracle">
+    <createSequence sequenceName="OS_USER_NOTIFS_SEQ" startValue="1" incrementBy="1" ordered="true" />
+  </changeSet>
+  
+  <changeSet author="agosavi" id="Add FK on notified user">
+    <addForeignKeyConstraint constraintName="FK_NOTIF_USERS_USER_ID"
+      baseTableName="OS_USER_NOTIFICATIONS" baseColumnNames="USER_ID"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+  
+  <changeSet author="agosavi" id="Add FK on notification">
+    <addForeignKeyConstraint constraintName="FK_NOTIF_USERS_NOTIF_ID"
+      baseTableName="OS_USER_NOTIFICATIONS" baseColumnNames="NOTIFICATION_ID"
+      referencedTableName="OS_NOTIFICATIONS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Updated user view to include primary site" runOnChange="true">
+    <sql>
+      create or replace view USER_VIEW as (
+        select
+          u.identifier as identifier, u.first_name as first_name, u.last_name as last_name,
+          u.email_address as email_address, concat(u.first_name, concat(' ', u.last_name)) as name,
+          i.name as institute_name, s.identifier as primary_site_id, s.name as primary_site_name
+        from
+          catissue_user u
+          inner join catissue_institution i on i.identifier = u.institute_id
+          left join catissue_site s on s.identifier = u.primary_site_id
+        where
+          u.activity_status != 'Disabled' and
+          i.activity_status != 'Disabled' and
+          (s.identifier is null or s.activity_status != 'Disabled')
+      )
+    </sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Updated the CP coordinator view to include primary site" runOnChange="true">
+    <sql>
+      create or replace view cp_coord_view as (
+        select
+          u.identifier as identifier, u.first_name as first_name, u.last_name as last_name,
+          u.email_address as email_address, concat(u.first_name, concat(' ', u.last_name)) as name,
+          i.name as institute_name, s.identifier as primary_site_id, s.name as primary_site_name,
+          cpcrd.collection_protocol_id as cp_id
+        from
+          catissue_coll_coordinators cpcrd
+          inner join catissue_user u on u.identifier = cpcrd.user_id
+          inner join catissue_institution i on i.identifier = u.institute_id
+          left join catissue_site s on s.identifier = u.primary_site_id
+        where
+          u.activity_status != 'Disabled' and
+          i.activity_status != 'Disabled' and
+          (s.identifier is null or s.activity_status != 'Disabled')
+      )
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add index on EMPI field of staged participants to fasten participants lookup based on EMPI">
+    <createIndex tableName="OS_STAGED_PARTICIPANTS" indexName="OS_STAGED_PARTS_EMPI_IDX">
+      <column name="EMPI_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="Add specimen list to order">
+    <addColumn tableName="OS_ORDERS">
+      <column name="SPECIMEN_LIST_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="FK on specimen list in order">
+    <addForeignKeyConstraint constraintName="FK_OS_DO_SPMN_LIST_ID"
+      baseTableName="OS_ORDERS" baseColumnNames="SPECIMEN_LIST_ID"
+      referencedTableName="CATISSUE_SPECIMENLIST_TAGS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="Maintain status of API calls for container store list">
+    <addColumn tableName="OS_CONTAINER_STORE_LISTS">
+      <column name="STATUS" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="STATE" type="${tinyint.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="agosavi" id="Table for print rules">
+    <createTable tableName="OS_PRINT_RULES">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+
+      <column name="OBJECT_TYPE" type="${text.type}(32)">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="INSTITUTE_ID" type="${int.type}"/>
+
+      <column name="UPDATED_BY" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="UPDATED_ON" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="RULE_DEF" type="${clob.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="ACTIVITY_STATUS" type="${text.type}(32)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="agosavi" id="Print rules identifier sequence" dbms="oracle">
+    <createSequence sequenceName="OS_PRINT_RULES_SEQ" startValue="1" incrementBy="1" ordered="true" />
+  </changeSet>
+
+  <changeSet author="agosavi" id="Add FK on print rule institute">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists foreignKeyTableName="OS_PRINT_RULES" foreignKeyName="FK_PRINT_RULE_INST_ID"/>
+      </not>
+    </preConditions>
+
+    <addForeignKeyConstraint constraintName="FK_PRINT_RULE_INST_ID"
+      baseTableName="OS_PRINT_RULES" baseColumnNames="INSTITUTE_ID"
+      referencedTableName="CATISSUE_INSTITUTION" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="agosavi" id="Add FK on print rule updated by">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists foreignKeyTableName="OS_PRINT_RULES" foreignKeyName="FK_PRINT_RULE_UPDATED_BY"/>
+      </not>
+    </preConditions>
+
+    <addForeignKeyConstraint constraintName="FK_PRINT_RULE_UPDATED_BY"
+      baseTableName="OS_PRINT_RULES" baseColumnNames="UPDATED_BY"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Collection protocol setting to specify visit collection mode">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="VISIT_COLLECTION_MODE" type="${text.type}(16)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Participant specimen collection status">
+    <createView viewName="OS_CPR_SPMN_STATS_VIEW" replaceIfExists="true">
+      select
+        cpr.identifier as identifier,
+        count(distinct
+          case when spmn.collection_status = 'Collected' then
+            spmn.identifier
+          else
+            null
+          end
+        ) as specimens_collected,
+        count(distinct
+          case when spmn.collection_status = 'Missed Collection' then
+            spmn.identifier
+          else
+            null
+          end
+        ) as specimens_missed,
+        count(distinct
+          case when ((sr.identifier is not null and spmn.identifier is null) or spmn.collection_status = 'Pending') then
+            case when (spmn.identifier is not null and spmn.req_specimen_id is null) then
+              concat('s', spmn.identifier)
+            else
+              concat('sr', sr.identifier)
+            end
+          else
+            null
+          end
+        ) as specimens_pending
+      from
+        catissue_coll_prot_reg cpr
+        left join catissue_coll_prot_event cpe
+          on cpe.collection_protocol_id = cpr.collection_protocol_id
+        left join catissue_cp_req_specimen sr
+          on sr.collection_protocol_event_id = cpe.identifier and sr.activity_status != 'Disabled'
+        left join catissue_specimen_coll_group visit
+          on (visit.collection_protocol_event_id = cpe.identifier or visit.collection_protocol_event_id is null)
+            and visit.collection_protocol_reg_id = cpr.identifier and visit.activity_status != 'Disabled'
+        left join catissue_specimen spmn
+          on (spmn.req_specimen_id is null or spmn.req_specimen_id = sr.identifier)
+            and spmn.specimen_collection_group_id = visit.identifier and spmn.activity_status != 'Disabled'
+      group by
+        cpr.identifier
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Boolean indicating whether the container position is blocked">
+    <addColumn tableName="OS_CONTAINER_POSITIONS">
+      <column name="BLOCKED" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

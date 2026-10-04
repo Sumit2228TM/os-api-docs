@@ -1,0 +1,52 @@
+<div class="os-search">
+  <div class="os-head">
+    <h3 class="os-title" translate="shipments.filters">
+      Filters
+    </h3>
+  </div>
+
+  <div class="os-body">
+    <div class="form-group">
+      <input type="text" ng-model="filterOpts.name" class="form-control"
+        os-md-input placeholder="{{'shipments.name' | translate}}">
+    </div>
+
+    <div class="form-group">
+      <os-sites md-type="true" ng-model="filterOpts.sendingSite" placeholder="{{'shipments.sending_site' | translate}}"
+        list-all="true">
+      </os-sites>
+    </div>
+
+    <div class="form-group">
+      <div os-md-input ng-model="filterOpts.recvInstitute" placeholder="{{'shipments.receiving_institute' | translate}}">
+        <os-institutes ng-model="filterOpts.recvInstitute" on-select="onInstituteSelect()" md-type="true"
+          placeholder="{{'shipments.receiving_institute' | translate}}">
+        </os-institutes>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <os-sites md-type="true" ng-model="filterOpts.recvSite" placeholder="{{'shipments.receiving_site' | translate}}"
+        institute="filterOpts.recvInstitute" list-all="true">
+      </os-sites>
+    </div>
+
+    <div class="form-group">
+      <os-select os-md-input ng-model="filterOpts.status" list="statuses" select-prop="name" display-prop="caption"
+        placeholder="{{'shipments.status' | translate}}">
+      </os-select>
+    </div>
+
+    <!--  will be added later with backend code
+    <div class="form-group">
+      <os-date-picker date="filterOpts.shippedDate" md-type="true"
+        placeholder="{{'shipments.shipped_date' | translate}}">
+      </os-date-picker>
+    </div>
+    -->
+
+    <os-clear-filters opts="filterOpts"></os-clear-filters>
+  </div>
+
+  <os-list-page-size opts="pagerOpts" on-change="pageSizeChanged()"></os-list-page-size>
+</div>

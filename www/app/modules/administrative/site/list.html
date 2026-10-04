@@ -1,0 +1,144 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3>
+        <span translate="site.list">Sites</span>
+      </h3>
+    </div>
+    <div class="os-page-header-actions">
+      <os-list-pager opts="pagerOpts"></os-list-pager>
+    </div>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left">
+      <div ng-if="!ctx.checkList.anySelected">
+        <div ng-include="'modules/administrative/site/single-site-ops.html'"></div>
+      </div>
+
+      <div ng-if="ctx.checkList.anySelected">
+        <div ng-include="'modules/administrative/site/bulk-site-ops.html'"></div>
+      </div>
+    </div>
+    <div class="right">
+      <button class="default" os-right-drawer-toggle title="{{'site.tooltip.search' | translate}}">
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="alert alert-info os-lean-box" ng-show="ctx.checkList.count > 0">
+      <span> {{'common.items_selected_info' | translate: ctx.checkList}} </span>
+    </div>
+
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th show-if-admin="institute" class="col os-click-esc">
+            <div class="os-select-specimen-cb">
+              <os-checkbox ng-change="ctx.checkList.toggleSelectAll()" ng-model="ctx.checkList.allSelected">
+              </os-checkbox>
+            </div>
+          </th>
+          <th class="col">
+            <span translate="site.name">Name</span>
+          </th>
+          <th class="col">
+            <span translate="site.type">Type</span>
+          </th>
+          <th class="col">
+            <span translate="site.code">Code</span>
+          </th>
+          <th class="col">
+            <span translate="site.institute">Institute</span>
+          </th>
+          <th class="col">
+            <span translate="site.cp_count">Collection Protocols</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-if="ctx.emptyState.empty || ctx.emptyState.loading">
+          <td class="col" colspan="100%">
+            <os-empty-list state="ctx.emptyState"></os-empty-list>
+          </td>
+        </tr>
+
+        <tr class="row" ng-repeat="site in siteList" os-row-click="showSiteOverview(site)">
+          <td show-if-admin="institute" class="col os-click-esc">
+            <div class="os-select-specimen-cb">
+              <os-checkbox ng-change="ctx.checkList.toggleSelectItem($index)"
+                ng-model="ctx.checkList.items[$index].selected">
+              </os-checkbox>
+            </div>
+          </td>
+          <td class="col">
+            <a ui-sref="site-detail.overview({siteId: site.id})">
+              <span>{{site.name}}</span>
+            </a>
+          </td>
+          <td class="col">
+            <span>{{site.type}}</span>
+          </td>
+          <td class="col">
+            <span>{{site.code | osNoValue}}</span>
+          </td>
+          <td class="col">
+            <span>{{site.instituteName}}</span>
+          </td>
+          <td class="col">
+            <span>{{site.cpCount | number: 0}}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div os-right-drawer ng-include="'modules/administrative/site/search.html'"></div>
+
+</div>
+
+<script type="text/ng-template" id="modules/administrative/site/single-site-ops.html">
+  <div>
+    <button show-if-admin="institute" class="default" title="{{'site.tooltip.add' | translate}}"
+      ui-sref="site-addedit({siteId: ''})">
+      <span class="fa fa-plus"></span>
+      <span translate="common.buttons.create">Create</span>
+    </button>
+    <div show-if-admin="institute" dropdown class="os-inline-btn">
+      <button class="default dropdown-toggle">
+        <span translate="common.buttons.import">Import</span>
+        <span class="fa fa-caret-down"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li>
+          <a ui-sref="site-import">
+            <span class="fa fa-hospital-o"></span>
+            <span translate="site.list">Sites</span>
+          </a>
+        </li>
+        <li>
+          <a ui-sref="site-import-jobs">
+            <span class="fa fa-list-alt"></span>
+            <span translate="bulk_imports.view_jobs">View Jobs</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <os-export show-if-admin="institute" class="default" detail="ctx.exportDetail"></os-export>
+    <os-help class="os-btns btn default" link="site_help_link"></os-help>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/administrative/site/bulk-site-ops.html">
+  <div>
+    <button class="default" title="{{'site.tooltip.delete_sites' | translate}}" ng-click="deleteSites()">
+      <span class="fa fa-trash"></span>
+      <span translate="common.buttons.delete">Delete</span>
+    </button>
+
+    <os-export show-if-admin="institute" class="default" detail="ctx.exportDetail" check-list="ctx.checkList"></os-export>
+  </div>
+</script>

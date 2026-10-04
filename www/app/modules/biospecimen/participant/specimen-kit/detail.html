@@ -1,0 +1,32 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li>
+          <a ui-sref="specimen-kit-list">
+            <span translate="specimen_kit.list">Specimen Kits</span>
+          </a>
+        </li>
+      </ul>
+      <h3>
+        <span>
+          <span translate="specimen_kit.title">Specimen Kit</span>
+          #{{kit.id}}
+        </span>
+      </h3>
+    </div>
+  </div>
+
+  <div os-side-menu>
+    <ul>
+      <li ui-sref-active="active">
+        <a ui-sref=".overview">
+          <span class="fa fa-eye"></span>
+          <span class="os-title" translate="specimen_kit.menu.overview">Overview</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="os-side-menu-page-content" ui-view></div>
+</div>

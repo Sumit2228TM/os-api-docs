@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Oracle table column constraints view" runOnChange="true" dbms="oracle">
+    <createView viewName="OS_COLUMN_CONS_VIEW" replaceIfExists="true">
+      select
+        uc.constraint_name,
+        uc.table_name,
+        uc.constraint_type,
+        (listagg(ucc.column_name, ' ') within group (order by ucc.position)) as column_names
+      from
+        user_constraints uc
+        inner join user_cons_columns ucc on ucc.constraint_name = uc.constraint_name
+      group by
+        uc.constraint_name, uc.table_name, uc.constraint_type
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Generic stored procedure to drop a unique constraint" runOnChange="true" dbms="oracle">
+    <sql endDelimiter="//">
+      create or replace procedure os_drop_unique_constraint(
+        tableName IN varchar2,
+        columnNames IN varchar2) as
+
+        constraintName varchar2(128);
+      begin
+        begin
+          select
+            constraint_name into constraintName
+          from
+            os_column_cons_view
+          where
+            upper(table_name) = upper(tableName) and
+            constraint_type = 'U' and
+            upper(column_names) = upper(columnNames);
+          exception
+            when no_data_found then
+              constraintName := null;
+        end;
+
+        if constraintName is not null then
+          execute immediate 'alter table ' || tableName || ' drop constraint ' || constraintName;
+        end if;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Oracle function to convert a blob to clob" dbms="oracle">
+    <sql endDelimiter="//">
+      CREATE OR REPLACE FUNCTION convert_to_clob(l_blob BLOB) RETURN CLOB IS
+        l_clob         CLOB;
+        l_dest_offset  NUMBER := 1;
+        l_src_offset   NUMBER := 1;
+        l_lang_context NUMBER := dbms_lob.default_lang_ctx;
+        l_warning      NUMBER;
+      BEGIN
+        dbms_lob.createtemporary(l_clob, TRUE);
+        dbms_lob.converttoclob(
+          dest_lob     => l_clob,
+          src_blob     => l_blob,
+          amount       => dbms_lob.lobmaxsize,
+          dest_offset  => l_dest_offset,
+          src_offset   => l_src_offset,
+          blob_csid    => nls_charset_id('AL32UTF8'),
+          lang_context => l_lang_context,
+          warning      => l_warning
+        );
+        RETURN l_clob;
+      END convert_to_clob;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Oracle function to convert a clob to blob" dbms="oracle">
+    <sql endDelimiter="//">
+      CREATE OR REPLACE FUNCTION convert_to_blob(l_clob CLOB) RETURN BLOB IS
+        l_blob         BLOB;
+        l_dest_offset  NUMBER := 1;
+        l_src_offset   NUMBER := 1;
+        l_lang_context NUMBER := dbms_lob.default_lang_ctx;
+        l_warning      NUMBER;
+      BEGIN
+        dbms_lob.createtemporary(l_blob, TRUE);
+        dbms_lob.converttoblob(
+          dest_lob     => l_blob,
+          src_clob     => l_clob,
+          amount       => dbms_lob.lobmaxsize,
+          dest_offset  => l_dest_offset,
+          src_offset   => l_src_offset,
+          blob_csid    => nls_charset_id('AL32UTF8'),
+          lang_context => l_lang_context,
+          warning      => l_warning
+        );
+        RETURN l_blob;
+      END convert_to_blob;
+      //
+    </sql>
+  </changeSet>
+</databaseChangeLog>

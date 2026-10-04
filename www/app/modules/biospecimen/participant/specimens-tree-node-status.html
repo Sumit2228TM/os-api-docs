@@ -1,0 +1,14 @@
+<span>
+  <span ng-if="!specimen.hasOnlyPendingChildren || !hidePendingSpmns">
+    <a ng-if="specimen.hasChildren && specimen.isOpened"
+      class="fa fa-chevron-circle-down" ng-click="closeSpecimenNode(specimen)">
+    </a>
+    <a ng-if="specimen.hasChildren && !specimen.isOpened"
+      class="fa fa-chevron-circle-right" ng-click="openSpecimenNode(specimen)">
+    </a>
+  </span>
+  <span class="fa fa-circle"
+    ng-style="{'margin-left': specimen.hasChildren && specimen.hasOnlyPendingChildren && hidePendingSpmns ? '16px' : '0px'}"
+    os-tree-node-status="specimen">
+  </span>
+</span>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vgaikwad" id="Increase width of clinical diagnosis">
+    <modifyDataType tableName="CATISSUE_COLL_PROT_EVENT_AUD" columnName="CLINICAL_DIAGNOSIS" newDataType="${text.type}(255)" />
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="Audit distribution protocol set modifications">
+    <addColumn tableName="cat_collection_protocol_aud">
+      <column name="distributionProtocols_MOD" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+  
+  <changeSet author="ckhilosiya" id="Audit and track changes to allowed DPs in CP">
+    <createTable tableName="OS_CP_ALLOWED_DPS_AUD">
+      <column name="REV" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="REVTYPE" type="${smallint.type}"/>
+
+      <column name="CP_ID" type="${int.type}"/>
+
+      <column name="DP_ID" type="${int.type}"/>
+    </createTable>
+  </changeSet>
+</databaseChangeLog>

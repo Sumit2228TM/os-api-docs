@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.de.domain.Form" table="DYEXTN_CONTAINERS" batch-size="25"
+    entity-name="com.krishagni.catissueplus.core.de.domain.Form">
+
+    <id name="id" column="IDENTIFIER"/>
+
+    <property name="name" column="NAME"/>
+
+    <property name="caption" column="CAPTION"/>
+
+    <many-to-one name="createdBy" column="CREATED_BY"/>
+
+    <property name="creationTime" column="CREATE_TIME"/>
+
+    <many-to-one name="updatedBy" column="LAST_MODIFIED_BY"/>
+
+    <property name="updateTime" column="LAST_MODIFY_TIME"/>
+
+    <property name="deletedOn" column="DELETED_ON"/>
+
+    <set name="associations" inverse="true" mutable="false">
+      <key column="CONTAINER_ID"/>
+      <one-to-many class="krishagni.catissueplus.beans.FormContextBean"/>
+    </set>
+
+    <filter name="activeForms"/>
+
+    <sql-query name="getRevisions">
+      <return-scalar column="rev" type="long"/>
+      <return-scalar column="rev_type" type="integer"/>
+      <return-scalar column="userId" type="long"/>
+      <return-scalar column="first_name" type="string"/>
+      <return-scalar column="last_name" type="string"/>
+      <return-scalar column="email_address" type="string"/>
+      <return-scalar column="rev_time" type="timestamp"/>
+      <return-scalar column="formId" type="long"/>
+      <return-scalar column="name" type="string"/>
+      <return-scalar column="caption" type="string"/>
+      <return-scalar column="deleted_on" type="timestamp"/>
+
+      select
+        r.rev, r.rev_type,
+        u.identifier as userId, u.first_name, u.last_name, u.email_address,
+        r.rev_time, r.identifier as formId, r.name, r.caption, r.deleted_on
+      from
+        dyextn_containers_aud r
+        inner join catissue_user u on u.identifier = r.rev_by
+      where
+        r.identifier = :formId
+      order by
+        r.rev desc
+    </sql-query>
+  </class>
+</hibernate-mapping>

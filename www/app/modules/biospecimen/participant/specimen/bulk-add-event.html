@@ -1,0 +1,239 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3>
+        <span ng-show="!ctx.event" translate="specimens.bulk_events.add_edit">Create Bulk Event</span>
+        <span ng-show="!!ctx.event" translate="specimens.bulk_events.receive">Receive Specimens</span>
+      </h3>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div os-wizard="eventWizard" type="classic">
+      <os-wizard-step order="0" title="{{'specimens.bulk_events.select_specimens' | translate}}"
+        on-finish="validateSpecimens()">
+        <div ng-include src="'participant/specimen/bulkevent-select-specimens.html'"></div>
+      </os-wizard-step>
+      
+      <os-wizard-step order="1" title="{{'specimens.bulk_events.options' | translate}}" on-finish="passThrough()"
+        ng-if="ctx.allowEventSelect">
+        <div ng-include src="'participant/specimen/bulkevent-options.html'"></div>
+      </os-wizard-step>
+
+      <os-wizard-step order="2" title="{{'specimens.bulk_events.event_details' | translate}}" on-finish="passThrough()">
+        <div ng-include src="'participant/specimen/bulkevent-add-details.html'"></div>
+      </os-wizard-step>
+    </div>
+  </div>
+</div>
+
+<script type="text/ng-template" id="participant/specimen/bulkevent-select-specimens.html">
+  <form name="sform" class="form-horizontal" os-form-validator="sform" validator="sformValidator" novalidate>
+    <div class="os-alert-container show inline" ng-if="!ctx.specimens || ctx.specimens.length == 0">
+      <div class="alert alert-danger">
+        <span translate="specimens.bulk_events.no_specimens_in_list">
+          No specimens in list to add event. Add at least one specimen
+        </span>
+      </div>
+    </div>
+
+    <os-add-specimens allow-visit-names="ctx.recvWf" scan-visit-names="ctx.recvWf" on-add="addSpecimens(specimens)"
+      filter-opts="ctx.spmnFilterOpts" error-opts="ctx.errorOpts"
+      placeholder="{{'specimens.bulk_events.enter_specimen_label' | translate}}">
+    </os-add-specimens>
+
+    <table class="os-table bulk-edit" ng-if="ctx.specimens && ctx.specimens.length > 0">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th class="col">
+            <span translate="specimens.label">Label</span>
+          </th>
+          <th class="col">
+            <span translate="specimens.description">Description</span>
+          </th>
+          <th class="col" ng-if="ctx.showVisit">
+            <span translate="specimens.visit_name">Visit</span>
+          </th>
+          <th class="col">
+            <span translate="specimens.location">Storage Location</span>
+          </th>
+          <th class="col">
+            <span translate="specimens.qty">Quantity</span>
+          </th>
+          <th class="col">
+            <span>&nbsp;</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-repeat="spmn in ctx.specimens">
+          <td class="col">
+            <a ui-sref="specimen({specimenId: spmn.id})">
+              <span>{{spmn.label}}</span>
+              <span ng-if="!!spmn.barcode"> ({{spmn.barcode}}) </span>
+            </a>
+          </td>
+          <td class="col">
+            <a ui-sref="specimen({specimenId: spmn.id})">
+              <os-specimen-desc specimen="spmn" detailed="true" show-req-label="true"></os-specimen-desc>
+            </a>
+          </td>
+          <td class="col" ng-if="ctx.showVisit">
+            <span ng-if="!spmn.$$specimenCentricCp">{{spmn.visitName}}</span>
+          </td>
+          <td class="col">
+            <os-disp-storage-position position="spmn.storageLocation"></os-disp-storage-position>
+          </td>
+          <td class="col">
+            <os-spmn-measure-val specimen="spmn" value="spmn.availableQty"></os-spmn-measure-val>
+          </td>
+          <td class="col">
+            <button class="btn btn-xs btn-default" ng-click="removeSpecimen($index)">
+              <span class="fa fa-remove"></span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="os-divider"></div>
+    
+    <div class="form-group right-btns">
+      <div class="col-xs-offset-3 col-xs-9">
+        <button class="btn os-btn-text" ng-click="back()">
+          <span translate="common.buttons.cancel">Cancel</span>
+        </button>
+        <button class="btn btn-primary" os-form-submit="initOptionsView(); eventWizard.next();"
+          ng-disabled="!ctx.specimens || ctx.specimens.length == 0">
+          <span translate="common.buttons.next">Next</span>
+        </button>
+      </div>
+    </div>
+  </form>
+</script>
+
+<script type="text/ng-template" id="participant/specimen/bulkevent-options.html">
+  <form name="optForm" class="form-horizontal" os-form-validator="optForm" validator="optFormValidator" novalidate>
+    <div class="form-group">
+      <label class="col-xs-3 control-label">
+        <span translate="specimens.bulk_events.op">Action</label>
+      </label>
+      <div class="col-xs-6">
+        <label class="radio-inline">
+          <input type="radio" name="op" ng-model="ctx.op" ng-value="'ADD'" ng-change="onOpSelect()">
+          <span translate="specimens.bulk_events.add">Add</span>
+        </label>
+        <label class="radio-inline">
+          <input type="radio" name="op" ng-model="ctx.op" ng-value="'EDIT'" ng-change="onOpSelect()">
+          <span translate="specimens.bulk_events.edit">Edit</span>
+        </label>
+        <div os-field-error field="optForm.op"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label">
+        <span translate="specimens.bulk_events.select_event">Select Event</span>
+      </label>
+      <div class="col-xs-6">
+        <os-select name="eventName" list="ctx.events" display-prop="caption"
+          select-prop="formId" ng-model="ctx.formId" on-select="onEventSelect()" required>
+        </os-select>
+        <div os-field-error field="optForm.eventName"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label">
+        <span translate="specimens.bulk_events.mode">Mode</span>
+      </label>
+      <div class="col-xs-6">
+        <label class="radio-inline">
+          <input type="radio" name="mode" ng-model="ctx.mode" ng-value="'SINGLE'" ng-change="onModeSelect()">
+          <span translate="specimens.bulk_events.single">Single</span>
+        </label>
+        <label class="radio-inline">
+          <input type="radio" name="mode" ng-model="ctx.mode" ng-value="'TABLE'" ng-change="onModeSelect()">
+          <span translate="specimens.bulk_events.table">Table</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="os-divider"></div>
+
+    <div class="form-group right-btns">
+      <div class="col-xs-offset-3 col-xs-9">
+        <button class="btn os-btn-text" ng-click="back()">
+          <span translate="common.buttons.cancel">Cancel</span>
+        </button>
+        <button class="btn os-btn-secondary" ng-click="eventWizard.previous()">
+          <span translate="common.buttons.previous">Previous</span>
+        </button>
+        <button class="btn btn-primary" os-form-submit="initEventDetailsView(); eventWizard.next()">
+          <span translate="common.buttons.next">Next</span>
+        </button>
+      </div>
+    </div>
+  </form>
+</script>
+
+<script type="text/ng-template" id="participant/specimen/bulkevent-add-details.html">
+  <form name="eventForm" class="form-horizontal" os-form-validator="eventForm" validator="eventFormValidator" novalidate
+    ng-if="ctx.showForm">
+
+    <span ng-if="ctx.mode == 'SINGLE'">
+      <div class="os-alert-container show inline" ng-if="ctx.noEvents">
+        <div class="alert alert-warning">
+          <span ng-bind-html="'specimens.bulk_events.no_events' | translate: ctx.opts.formDef"></span>
+        </div>
+      </div>
+
+      <div class="os-alert-container show inline" ng-if="ctx.noEventsFor.length > 0">
+        <div class="alert alert-warning">
+          <span ng-bind-html="'specimens.bulk_events.no_events_for' | translate: {caption: ctx.opts.formDef.caption, labels: ctx.noEventsFor}"></span>
+        </div>
+      </div>
+    </span>
+
+    <div class="row" ng-if="ctx.mode == 'SINGLE' && !!ctx.opts.formDef">
+      <div class="col-xs-12">
+        <div class="os-entity-extn-form-fields">
+          <div id="de-form" class="os-extn-form" os-de-form ctrl="ctx.formCtrl" opts="ctx.opts">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" ng-if="ctx.mode == 'TABLE'">
+      <button class="btn os-btn-text" ng-click="copyFirstToAll()" ng-if="!!ctx.opts.tableData">
+        <span translate="specimens.bulk_events.copy_first_to_all">Copy First To All</span>
+      </button>
+    </div>
+    
+    <div class="form-group" ng-if="ctx.mode == 'TABLE' && !!ctx.opts.tableData">
+      <div class="col-xs-12">
+        <div os-de-table opts="ctx.opts" ctrl="ctx.tabCtrl"></div>
+
+        <div class="os-divider"></div>
+      </div>
+    </div>
+
+
+    <div class="form-group right-btns">
+      <div class="col-xs-offset-3 col-xs-9">
+        <button class="btn os-btn-text" ng-click="back()">
+          <span translate="common.buttons.cancel">Cancel</span>
+        </button>
+        <button class="btn os-btn-secondary" ng-click="ctx.showForm = false; eventWizard.previous()">
+          <span translate="common.buttons.previous">Previous</span>
+        </button>
+        <button ng-show="!ctx.event" class="btn btn-primary" os-form-submit="saveEvent(true)">
+          <span translate="specimens.bulk_events.save_n_more">Save and Add More</span>
+        </button>
+        <button class="btn btn-primary" os-form-submit="saveEvent()">
+          <span translate="common.buttons.save">Save</span>
+        </button>
+      </div>
+    </div>
+  </form>
+</script>

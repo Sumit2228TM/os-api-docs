@@ -1,0 +1,1224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Index on PV attribute and value">
+    <createIndex tableName="CATISSUE_PERMISSIBLE_VALUE" indexName="PV_ATTR_VALUE_IDX">
+      <column name="PUBLIC_ID"/>
+      <column name="VALUE"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen requirement PVs">
+    <addColumn tableName="CATISSUE_CP_REQ_SPECIMEN">
+      <column name="ANATOMIC_SITE_ID" type="${int.type}"/>
+      <column name="LATERALITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: SR: collection procedure">
+    <addColumn tableName="CATISSUE_CP_REQ_SPECIMEN">
+      <column name="COLLECTION_PROCEDURE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: SR: collection container">
+    <addColumn tableName="CATISSUE_CP_REQ_SPECIMEN">
+      <column name="COLLECTION_CONTAINER_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: SR: class and type">
+    <addColumn tableName="CATISSUE_CP_REQ_SPECIMEN">
+      <column name="SPECIMEN_CLASS_ID" type="${int.type}"/>
+      <column name="SPECIMEN_TYPE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: SR: pathological status">
+    <addColumn tableName="CATISSUE_CP_REQ_SPECIMEN">
+      <column name="PATHOLOGICAL_STATUS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen requirement anatomic site">
+    <addForeignKeyConstraint constraintName="FK_SPMN_REQ_ANATOMIC_SITE"
+      baseTableName="CATISSUE_CP_REQ_SPECIMEN" baseColumnNames="ANATOMIC_SITE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen requirement laterality">
+    <addForeignKeyConstraint constraintName="FK_SPMN_REQ_LATERALITY"
+      baseTableName="CATISSUE_CP_REQ_SPECIMEN" baseColumnNames="LATERALITY_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen requirement collection procedure">
+    <addForeignKeyConstraint constraintName="FK_SPMN_REQ_COLL_PROC"
+      baseTableName="CATISSUE_CP_REQ_SPECIMEN" baseColumnNames="COLLECTION_PROCEDURE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen requirement collection container">
+    <addForeignKeyConstraint constraintName="FK_SPMN_REQ_COLL_CONT"
+      baseTableName="CATISSUE_CP_REQ_SPECIMEN" baseColumnNames="COLLECTION_CONTAINER_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen requirement class">
+    <addForeignKeyConstraint constraintName="FK_SPMN_REQ_CLASS"
+      baseTableName="CATISSUE_CP_REQ_SPECIMEN" baseColumnNames="SPECIMEN_CLASS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen requirement type">
+    <addForeignKeyConstraint constraintName="FK_SPMN_REQ_TYPE"
+      baseTableName="CATISSUE_CP_REQ_SPECIMEN" baseColumnNames="SPECIMEN_TYPE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen requirement path status">
+    <addForeignKeyConstraint constraintName="FK_SPMN_REQ_PATH_STATUS"
+      baseTableName="CATISSUE_CP_REQ_SPECIMEN" baseColumnNames="PATHOLOGICAL_STATUS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen PVs">
+    <addColumn tableName="CATISSUE_SPECIMEN">
+      <column name="ANATOMIC_SITE_ID" type="${int.type}"/>
+      <column name="LATERALITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen class and type">
+    <addColumn tableName="CATISSUE_SPECIMEN">
+      <column name="SPECIMEN_CLASS_ID" type="${int.type}"/>
+      <column name="SPECIMEN_TYPE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen path status">
+    <addColumn tableName="CATISSUE_SPECIMEN">
+      <column name="PATHOLOGICAL_STATUS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen biohazard">
+    <addColumn tableName="OS_SPECIMEN_BIOHAZARDS">
+      <column name="BIOHAZARD_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Drop not null constraint on older specimen biohazard">
+    <dropNotNullConstraint tableName="OS_SPECIMEN_BIOHAZARDS"
+      columnName="BIOHAZARD" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen anatomic site">
+    <addForeignKeyConstraint constraintName="FK_SPMN_ANATOMIC_SITE"
+      baseTableName="CATISSUE_SPECIMEN" baseColumnNames="ANATOMIC_SITE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen laterality">
+    <addForeignKeyConstraint constraintName="FK_SPMN_LATERALITY"
+      baseTableName="CATISSUE_SPECIMEN" baseColumnNames="LATERALITY_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen class">
+    <addForeignKeyConstraint constraintName="FK_SPMN_CLASS"
+      baseTableName="CATISSUE_SPECIMEN" baseColumnNames="SPECIMEN_CLASS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen type">
+    <addForeignKeyConstraint constraintName="FK_SPMN_TYPE"
+      baseTableName="CATISSUE_SPECIMEN" baseColumnNames="SPECIMEN_TYPE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen path status">
+    <addForeignKeyConstraint constraintName="FK_SPMN_PATH_STATUS"
+      baseTableName="CATISSUE_SPECIMEN" baseColumnNames="PATHOLOGICAL_STATUS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen biohazard">
+    <addForeignKeyConstraint constraintName="FK_SPMN_BIOHAZARD"
+      baseTableName="OS_SPECIMEN_BIOHAZARDS" baseColumnNames="BIOHAZARD_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen collection procedure">
+    <addColumn tableName="CATISSUE_COLL_EVENT_PARAM">
+      <column name="COLLECTION_PROCEDURE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen collection container">
+    <addColumn tableName="CATISSUE_COLL_EVENT_PARAM">
+      <column name="COLLECTION_CONTAINER_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen received quality">
+    <addColumn tableName="CATISSUE_RECEIVED_EVENT_PARAM">
+      <column name="RECEIVED_QUALITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen collection procedure">
+    <addForeignKeyConstraint constraintName="FK_SPMN_COLL_PROC"
+      baseTableName="CATISSUE_COLL_EVENT_PARAM" baseColumnNames="COLLECTION_PROCEDURE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen collection container">
+    <addForeignKeyConstraint constraintName="FK_SPMN_COLL_CONT"
+      baseTableName="CATISSUE_COLL_EVENT_PARAM" baseColumnNames="COLLECTION_CONTAINER_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen received quality">
+    <addForeignKeyConstraint constraintName="FK_SPMN_RECV_QUALITY"
+      baseTableName="CATISSUE_RECEIVED_EVENT_PARAM" baseColumnNames="RECEIVED_QUALITY_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Container specimen class restriction">
+    <addColumn tableName="OS_STOR_CONT_SPEC_CLASSES">
+      <column name="SPECIMEN_CLASS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on container specimen class restriction">
+    <addForeignKeyConstraint constraintName="FK_CONT_SPMN_CLASS"
+      baseTableName="OS_STOR_CONT_SPEC_CLASSES" baseColumnNames="SPECIMEN_CLASS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop older container specimen class restriction">
+    <dropNotNullConstraint tableName="OS_STOR_CONT_SPEC_CLASSES" columnName="SPECIMEN_CLASS" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Container computed specimen class restriction">
+    <addColumn tableName="OS_STOR_CONT_COMP_SPEC_CLASSES">
+      <column name="SPECIMEN_CLASS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on container computed specimen class restriction">
+    <addForeignKeyConstraint constraintName="FK_CONT_COMP_SPMN_CLASS"
+      baseTableName="OS_STOR_CONT_COMP_SPEC_CLASSES" baseColumnNames="SPECIMEN_CLASS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop older container computed specimen class restriction">
+    <dropNotNullConstraint tableName="OS_STOR_CONT_COMP_SPEC_CLASSES" columnName="SPECIMEN_CLASS" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Container specimen type restriction">
+    <addColumn tableName="OS_STOR_CONT_SPEC_TYPES">
+      <column name="SPECIMEN_TYPE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on container specimen type restriction">
+    <addForeignKeyConstraint constraintName="FK_CONT_SPMN_TYPE"
+      baseTableName="OS_STOR_CONT_SPEC_TYPES" baseColumnNames="SPECIMEN_TYPE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop older container specimen type restriction" dbms="mysql">
+    <dropNotNullConstraint tableName="OS_STOR_CONT_SPEC_TYPES" columnName="SPECIMEN_TYPE" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Container computed specimen type restriction">
+    <addColumn tableName="OS_STOR_CONT_COMP_SPEC_TYPES">
+      <column name="SPECIMEN_TYPE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on container computed specimen type restriction">
+    <addForeignKeyConstraint constraintName="FK_CONT_COMP_SPMN_TYPE"
+      baseTableName="OS_STOR_CONT_COMP_SPEC_TYPES" baseColumnNames="SPECIMEN_TYPE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop older container computed specimen type restriction" dbms="mysql">
+    <dropNotNullConstraint tableName="OS_STOR_CONT_COMP_SPEC_TYPES" columnName="SPECIMEN_TYPE" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: CPE fields">
+    <addColumn tableName="CATISSUE_COLL_PROT_EVENT">
+      <column name="CLINICAL_STATUS_ID" type="${int.type}"/>
+      <column name="CLINICAL_DIAGNOSIS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on CPE clinical status">
+    <addForeignKeyConstraint constraintName="FK_CPE_CLINICAL_STATUS"
+      baseTableName="CATISSUE_COLL_PROT_EVENT" baseColumnNames="CLINICAL_STATUS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on CPE clinical diagnosis">
+    <addForeignKeyConstraint constraintName="FK_CPE_CLINICAL_DIAGNOSIS"
+      baseTableName="CATISSUE_COLL_PROT_EVENT" baseColumnNames="CLINICAL_DIAGNOSIS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: visit fields - 1">
+    <addColumn tableName="CATISSUE_SPECIMEN_COLL_GROUP">
+      <column name="CLINICAL_STATUS_ID" type="${int.type}"/>
+      <column name="COHORT_ID" type="${int.type}"/>
+      <column name="MISSED_REASON_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on visit clinical status">
+    <addForeignKeyConstraint constraintName="FK_VISIT_CLINICAL_STATUS"
+      baseTableName="CATISSUE_SPECIMEN_COLL_GROUP" baseColumnNames="CLINICAL_STATUS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on visit cohort">
+    <addForeignKeyConstraint constraintName="FK_VISIT_COHORT"
+      baseTableName="CATISSUE_SPECIMEN_COLL_GROUP" baseColumnNames="COHORT_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on visit missed reason">
+    <addForeignKeyConstraint constraintName="FK_VISIT_MISSED_REASON"
+      baseTableName="CATISSUE_SPECIMEN_COLL_GROUP" baseColumnNames="MISSED_REASON_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: visit clinical diagnosis">
+    <addColumn tableName="OS_VISIT_CLIN_DIAGNOSES">
+      <column name="CLINICAL_DIAGNOSIS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: create index on visit ID of clinical diagnoses">
+    <createIndex tableName="OS_VISIT_CLIN_DIAGNOSES" indexName="VISIT_ID_CD_IDX">
+      <column name="VISIT_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop PK on older CD column">
+    <dropPrimaryKey tableName="OS_VISIT_CLIN_DIAGNOSES"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop not null constraint on older CD">
+    <dropNotNullConstraint tableName="OS_VISIT_CLIN_DIAGNOSES" columnName="CLINICAL_DIAGNOSIS" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on visit clinical diagnosis">
+    <addForeignKeyConstraint constraintName="FK_VISIT_CLINICAL_DIAGNOSIS"
+      baseTableName="OS_VISIT_CLIN_DIAGNOSES" baseColumnNames="CLINICAL_DIAGNOSIS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: participant fields">
+    <addColumn tableName="CATISSUE_PARTICIPANT">
+      <column name="GENDER_ID" type="${int.type}"/>
+      <column name="VITAL_STATUS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on participant gender">
+    <addForeignKeyConstraint constraintName="FK_PART_GENDER"
+      baseTableName="CATISSUE_PARTICIPANT" baseColumnNames="GENDER_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on participant vital status">
+    <addForeignKeyConstraint constraintName="FK_PART_VITAL_STATUS"
+      baseTableName="CATISSUE_PARTICIPANT" baseColumnNames="VITAL_STATUS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: participant race">
+    <addColumn tableName="CATISSUE_RACE">
+      <column name="RACE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: create index on participant ID of gender" dbms="mysql">
+    <createIndex tableName="CATISSUE_RACE" indexName="PART_RACE_IDX">
+      <column name="PARTICIPANT_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop PK on older race column">
+    <dropPrimaryKey tableName="CATISSUE_RACE"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop not null constraint on older race" dbms="mysql">
+    <dropNotNullConstraint tableName="CATISSUE_RACE" columnName="RACE_NAME" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on participant race">
+    <addForeignKeyConstraint constraintName="FK_PART_RACE_ID"
+      baseTableName="CATISSUE_RACE" baseColumnNames="RACE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: participant ethnicity">
+    <addColumn tableName="OS_PARTICIPANT_ETHNICITIES">
+      <column name="ETHNICITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: create index on participant ID of ethnicity">
+    <createIndex tableName="OS_PARTICIPANT_ETHNICITIES" indexName="PART_ETHNICITY_IDX">
+      <column name="PARTICIPANT_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop PK on older ethnicity column">
+    <dropPrimaryKey tableName="OS_PARTICIPANT_ETHNICITIES"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop not null constraint on older ethnicity">
+    <dropNotNullConstraint tableName="OS_PARTICIPANT_ETHNICITIES" columnName="ETHNICITY" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on participant ethnicity">
+    <addForeignKeyConstraint constraintName="FK_PART_ETHNICITY_ID"
+      baseTableName="OS_PARTICIPANT_ETHNICITIES" baseColumnNames="ETHNICITY_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: staged participant fields">
+    <addColumn tableName="OS_STAGED_PARTICIPANTS">
+      <column name="GENDER_ID" type="${int.type}"/>
+      <column name="VITAL_STATUS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on staged participant gender">
+    <addForeignKeyConstraint constraintName="FK_STG_PART_GENDER"
+      baseTableName="OS_STAGED_PARTICIPANTS" baseColumnNames="GENDER_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on staged participant vital status">
+    <addForeignKeyConstraint constraintName="FK_STG_PART_VITAL_STATUS"
+      baseTableName="OS_STAGED_PARTICIPANTS" baseColumnNames="VITAL_STATUS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: staged participant race">
+    <addColumn tableName="OS_STAGED_PARTICIPANT_RACES">
+      <column name="RACE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop not null constraint on older staged particiapnt race">
+    <dropNotNullConstraint tableName="OS_STAGED_PARTICIPANT_RACES"
+      columnName="RACE_NAME" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on staged participant race">
+    <addForeignKeyConstraint constraintName="FK_STG_PART_RACE_ID"
+      baseTableName="OS_STAGED_PARTICIPANT_RACES" baseColumnNames="RACE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: staged participant ethnicity">
+    <addColumn tableName="OS_STAGED_PART_ETHNICITIES">
+      <column name="ETHNICITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: create index on staged participant ID of ethnicity">
+    <createIndex tableName="OS_STAGED_PART_ETHNICITIES" indexName="STG_PART_ETHNICITY_IDX">
+      <column name="PARTICIPANT_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop PK on older staged participant ethnicity column">
+    <dropPrimaryKey tableName="OS_STAGED_PART_ETHNICITIES"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: drop not null constraint on older staged participant ethnicity">
+    <dropNotNullConstraint tableName="OS_STAGED_PART_ETHNICITIES"
+      columnName="ETHNICITY" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on staged participant ethnicity">
+    <addForeignKeyConstraint constraintName="FK_STG_PART_ETHNICITY_ID"
+      baseTableName="OS_STAGED_PART_ETHNICITIES" baseColumnNames="ETHNICITY_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen embedded event - embedding medium">
+    <addColumn tableName="CATISSUE_EMBEDDED_EVENT_PARAM">
+      <column name="EMBEDDING_MEDIUM_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen embedding medium">
+    <addForeignKeyConstraint constraintName="FK_SPE_EMBEDDING_MEDIUM"
+      baseTableName="CATISSUE_EMBEDDED_EVENT_PARAM" baseColumnNames="EMBEDDING_MEDIUM_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen fixed event - fixation type">
+    <addColumn tableName="CATISSUE_FIXED_EVENT_PARAM">
+      <column name="FIXATION_TYPE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen fixed event - drop not null constraint on fixation type">
+    <dropNotNullConstraint tableName="CATISSUE_FIXED_EVENT_PARAM"
+      columnName="FIXATION_TYPE" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen fixation type">
+    <addForeignKeyConstraint constraintName="FK_SPE_FIXATION_TYPE"
+      baseTableName="CATISSUE_FIXED_EVENT_PARAM" baseColumnNames="FIXATION_TYPE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen frozen event - frozen method">
+    <addColumn tableName="CATISSUE_FROZEN_EVENT_PARAM">
+      <column name="METHOD_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen frozen method">
+    <addForeignKeyConstraint constraintName="FK_SPE_FROZEN_METHOD"
+      baseTableName="CATISSUE_FROZEN_EVENT_PARAM" baseColumnNames="METHOD_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Specimen tissue event - histological quality">
+    <addColumn tableName="CATISSUE_TIS_SPE_EVENT_PARAM">
+      <column name="HISTOLOGICAL_QUALITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on specimen histological quality">
+    <addForeignKeyConstraint constraintName="FK_SPE_HIST_QUALITY"
+      baseTableName="CATISSUE_TIS_SPE_EVENT_PARAM" baseColumnNames="HISTOLOGICAL_QUALITY_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Site type">
+    <addColumn tableName="CATISSUE_SITE">
+      <column name="TYPE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on site type">
+    <addForeignKeyConstraint constraintName="FK_SITE_TYPE"
+      baseTableName="CATISSUE_SITE" baseColumnNames="TYPE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Consent response">
+    <addColumn tableName="CATISSUE_CONSENT_TIER_RESPONSE">
+      <column name="RESPONSE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on consent response">
+    <addForeignKeyConstraint constraintName="FK_CONSENT_RESP"
+      baseTableName="CATISSUE_CONSENT_TIER_RESPONSE" baseColumnNames="RESPONSE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Shipment specimen received quality">
+    <addColumn tableName="OS_SHIPMENT_SPECIMENS">
+      <column name="RECEIVED_QUALITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on shipment specimen received quality">
+    <addForeignKeyConstraint constraintName="FK_SHIP_SPMN_RECV_QLTY"
+      baseTableName="OS_SHIPMENT_SPECIMENS" baseColumnNames="RECEIVED_QUALITY_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Shipment container received quality">
+    <addColumn tableName="OS_SHIPMENT_CONTAINERS">
+      <column name="RECEIVED_QUALITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: FK on shipment container received quality">
+    <addForeignKeyConstraint constraintName="FK_SHIP_CONT_RECV_QLTY"
+      baseTableName="OS_SHIPMENT_CONTAINERS" baseColumnNames="RECEIVED_QUALITY_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Updated procedure to refresh anticipated specimens" runOnChange="true" dbms="mysql">
+    <sql>
+      drop procedure if exists stage_anticipated_specimens;
+    </sql>
+
+    <sql endDelimiter="//">
+      create procedure stage_anticipated_specimens(in cp_list text)
+      begin
+        drop table if exists tmp_os_cpr_anticipated_spmns;
+
+        set @create_tmp_table = concat('create table
+          tmp_os_cpr_anticipated_spmns (identifier bigint auto_increment primary key)
+        as
+          select
+            r.identifier cpr_id,
+            r.registration_date reg_date,
+            e.code event_code,
+            e.collection_point_label event_label,
+            case
+              when v.collection_status = \'Pending\' and v.collection_timestamp is not null then v.collection_timestamp
+              else date_add(r.registration_date, interval (e.offset - me.min_offset) day)
+            end event_date,
+            e.clinical_status_id,
+            e.clinical_diagnosis_id,
+            spmn.identifier req_id,
+            spmn.spec_req_label req_name,
+            spmn.code req_code,
+            spmn.lineage,
+            spmn.specimen_class_id,
+            spmn.specimen_type_id,
+            spmn.anatomic_site_id anatomic_site_id,
+            spmn.laterality_id laterality_id,
+            spmn.initial_quantity quantity,
+            spmn.concentration,
+            spmn.pathological_status_id path_status_id,
+            spmn.collection_container_id,
+            spmn.collection_procedure_id
+          from
+            catissue_coll_prot_reg r
+            inner join (
+              select
+                ae.identifier, ae.code, ae.collection_point_label, ae.collection_protocol_id,
+                ae.study_calendar_event_point, ae.event_point_unit, ae.activity_status,
+                ae.clinical_status_id, ae.clinical_diagnosis_id,
+                case
+                  when ae.event_point_unit = \'YEARS\' then ae.study_calendar_event_point * 365
+                  when ae.event_point_unit = \'MONTHS\' then ae.study_calendar_event_point * 30
+                  when ae.event_point_unit = \'WEEKS\' then ae.study_calendar_event_point * 7
+                  else ae.study_calendar_event_point
+                end as offset
+              from
+                catissue_coll_prot_event ae
+              where
+                ae.activity_status != \'Disabled\'
+            ) e on e.collection_protocol_id = r.collection_protocol_id
+            inner join catissue_cp_req_specimen spmn on spmn.collection_protocol_event_id = e.identifier
+            left join catissue_specimen_coll_group v
+              on v.collection_protocol_event_id = e.identifier and
+                v.collection_protocol_reg_id = r.identifier and
+                v.activity_status != \'Disabled\'
+            left join (
+              select
+                reg.identifier as reg_id,
+                min(
+                  case
+                    when cpe.event_point_unit = \'YEARS\'  then cpe.study_calendar_event_point * 365
+                    when cpe.event_point_unit = \'MONTHS\' then cpe.study_calendar_event_point * 30
+                    when cpe.event_point_unit = \'WEEKS\'  then cpe.study_calendar_event_point * 7
+                    else cpe.study_calendar_event_point
+                  end
+                ) as min_offset
+              from
+                catissue_coll_prot_reg reg
+                inner join catissue_coll_prot_event cpe on cpe.collection_protocol_id = reg.collection_protocol_id
+                left join catissue_specimen_coll_group v
+                  on v.collection_protocol_reg_id = reg.identifier and
+                    v.collection_protocol_event_id = cpe.identifier and
+                    v.activity_status != \'Disabled\'
+              where
+                ((cpe.activity_status = \'Active\' and v.identifier is null) or
+                 (v.identifier is not null)) and
+                reg.activity_status = \'Active\' and
+                reg.collection_protocol_id in (', cp_list, ')
+              group by
+                reg.identifier
+            ) me on me.reg_id = r.identifier
+          where
+            ((e.activity_status = \'Active\' and v.identifier is null) or
+             (v.collection_status = \'Pending\')) and
+             r.activity_status = \'Active\' and
+             r.collection_protocol_id in (', cp_list, ') and
+             spmn.activity_status = \'Active\'');
+
+      prepare create_sql from @create_tmp_table;
+      execute create_sql;
+      deallocate prepare create_sql;
+      end;
+      //
+    </sql>
+
+    <sql>
+      drop procedure if exists refresh_anticipated_specimens;
+    </sql>
+
+    <sql endDelimiter="//">
+      create procedure refresh_anticipated_specimens(in cp_list text)
+      begin
+        call stage_anticipated_specimens(cp_list);
+
+        drop table if exists os_cpr_anticipated_spmns;
+
+        alter table tmp_os_cpr_anticipated_spmns rename os_cpr_anticipated_spmns;
+
+        create index os_cpr_aspmns_cpr_date_idx on os_cpr_anticipated_spmns (cpr_id, event_date);
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Updated procedure to refresh anticipated specimens" runOnChange="true" dbms="oracle">
+    <sql endDelimiter="//">
+      create or replace procedure stage_anticipated_specimens(cp_list in varchar2) AUTHID CURRENT_USER is
+        seq_id number;
+      begin
+        drop_table_if_exists('tmp_os_cpr_anticipated_spmns');
+        drop_table_if_exists('tmp_input_cps');
+
+        select os_cpr_anticipated_spmns_seq.nextval into seq_id from dual;
+        seq_id := 1 - seq_id;
+
+        execute immediate 'alter sequence os_cpr_anticipated_spmns_seq increment by ' || seq_id || ' nocache';
+        select os_cpr_anticipated_spmns_seq.nextval into seq_id from dual;
+        execute immediate 'alter sequence os_cpr_anticipated_spmns_seq increment by 1 nocache';
+
+        execute immediate 'create table tmp_input_cps(id number(19, 0))';
+        execute immediate 'insert into tmp_input_cps select * from table(split(:1, '',''))' using cp_list;
+
+        execute immediate '
+          create table
+            tmp_os_cpr_anticipated_spmns
+          as select
+            os_cpr_anticipated_spmns_seq.nextval as identifier,
+            r.identifier cpr_id,
+            r.registration_date reg_date,
+            e.code event_code,
+            e.collection_point_label event_label,
+            case
+              when v.collection_status = ''Pending'' and v.collection_timestamp is not null then v.collection_timestamp
+              else r.registration_date + (e.offset - me.min_offset)
+            end event_date,
+            e.clinical_status_id,
+            e.clinical_diagnosis_id,
+            spmn.identifier req_id,
+            spmn.spec_req_label req_name,
+            spmn.code req_code,
+            spmn.lineage,
+            spmn.specimen_class_id,
+            spmn.specimen_type_id,
+            spmn.anatomic_site_id anatomic_site_id,
+            spmn.laterality_id laterality_id,
+            spmn.initial_quantity quantity,
+            spmn.concentration,
+            spmn.pathological_status_id path_status_id,
+            spmn.collection_container_id,
+            spmn.collection_procedure_id
+          from
+            catissue_coll_prot_reg r
+            inner join (
+              select
+                ae.identifier, ae.code, ae.collection_point_label, ae.collection_protocol_id,
+                ae.study_calendar_event_point, ae.event_point_unit, ae.activity_status,
+                ae.clinical_status_id, ae.clinical_diagnosis_id,
+                case
+                  when ae.event_point_unit = ''YEARS'' then ae.study_calendar_event_point * 365
+                  when ae.event_point_unit = ''MONTHS'' then ae.study_calendar_event_point * 30
+                  when ae.event_point_unit = ''WEEKS'' then ae.study_calendar_event_point * 7
+                  else ae.study_calendar_event_point
+                end as offset
+              from
+                catissue_coll_prot_event ae
+              where
+                ae.activity_status != ''Disabled''
+            ) e on e.collection_protocol_id = r.collection_protocol_id
+            inner join catissue_cp_req_specimen spmn on spmn.collection_protocol_event_id = e.identifier
+            left join catissue_specimen_coll_group v
+              on v.collection_protocol_event_id = e.identifier and
+                v.collection_protocol_reg_id = r.identifier and
+                v.activity_status != ''Disabled''
+            left join (
+              select
+                reg.identifier as reg_id,
+                min(
+                  case
+                    when cpe.event_point_unit = ''YEARS''  then cpe.study_calendar_event_point * 365
+                    when cpe.event_point_unit = ''MONTHS'' then cpe.study_calendar_event_point * 30
+                    when cpe.event_point_unit = ''WEEKS''  then cpe.study_calendar_event_point * 7
+                    else cpe.study_calendar_event_point
+                  end
+                ) as min_offset
+              from
+                catissue_coll_prot_reg reg
+                inner join catissue_coll_prot_event cpe on cpe.collection_protocol_id = reg.collection_protocol_id
+                left join catissue_specimen_coll_group v
+                  on v.collection_protocol_reg_id = reg.identifier and
+                    v.collection_protocol_event_id = cpe.identifier and
+                    v.activity_status != ''Disabled''
+              where
+                ((cpe.activity_status = ''Active'' and v.identifier is null) or
+                 (v.identifier is not null)) and
+                reg.collection_protocol_id in (select * from tmp_input_cps) and
+                reg.activity_status = ''Active''
+              group by
+                reg.identifier
+            ) me on me.reg_id = r.identifier
+          where
+            ((e.activity_status = ''Active'' and v.identifier is null) or
+             (v.collection_status = ''Pending'')) and
+            r.activity_status = ''Active'' and
+            spmn.activity_status = ''Active'' and
+            r.collection_protocol_id in (select * from tmp_input_cps)';
+      end;
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      create or replace procedure refresh_anticipated_specimens(cp_list in varchar2) AUTHID CURRENT_USER is
+      begin
+        stage_anticipated_specimens(cp_list);
+        declare
+          table_does_not_exist exception;
+          pragma exception_init(table_does_not_exist, -942); -- ORA-00942
+        begin
+          execute immediate 'drop table os_cpr_anticipated_spmns';
+        exception
+          when table_does_not_exist then null;
+        end;
+
+        execute immediate 'alter table tmp_os_cpr_anticipated_spmns rename to os_cpr_anticipated_spmns';
+
+        execute immediate 'create index os_cpr_aspmns_cpr_date_idx on os_cpr_anticipated_spmns (cpr_id, event_date)';
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV: Anticipated specimens table">
+    <addColumn tableName="OS_CPR_ANTICIPATED_SPMNS">
+      <column name="CLINICAL_STATUS_ID" type="${int.type}"/>
+      <column name="CLINICAL_DIAGNOSIS_ID" type="${int.type}"/>
+      <column name="SPECIMEN_CLASS_ID" type="${int.type}"/>
+      <column name="SPECIMEN_TYPE_ID" type="${int.type}"/>
+      <column name="ANATOMIC_SITE_ID" type="${int.type}"/>
+      <column name="LATERALITY_ID" type="${int.type}"/>
+      <column name="PATH_STATUS_ID" type="${int.type}"/>
+      <column name="COLLECTION_CONTAINER_ID" type="${int.type}"/>
+      <column name="COLLECTION_PROCEDURE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track impersonated user ID in API calls log">
+    <addColumn tableName="OS_USER_API_CALLS_LOG">
+      <column name="IMPERSONATED_USER_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on impersonated user ID">
+    <addForeignKeyConstraint constraintName="FK_CALL_LOG_IMP_USER_ID"
+      baseTableName="OS_USER_API_CALLS_LOG" baseColumnNames="IMPERSONATED_USER_ID"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Transfer event from/to position display coordinates">
+    <addColumn tableName="CATISSUE_TRANSFER_EVENT_PARAM">
+      <column name="FROM_ROW" type="${text.type}(32)"/>
+      <column name="FROM_COL" type="${text.type}(32)"/>
+      <column name="TO_ROW" type="${text.type}(32)"/>
+      <column name="TO_COL" type="${text.type}(32)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update existing transfer events' from/to position display coordinates">
+    <customChange class="com.krishagni.catissueplus.core.upgrade.UpdateTransferEventDisplayFormat"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update PPI specimen type UID sequence key values to use type PV ID">
+    <customChange class="com.krishagni.catissueplus.core.upgrade.UpdatePpiSpecimenTypeUidSequence"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update visit specimen type UID sequence key values to use type PV ID">
+    <customChange class="com.krishagni.catissueplus.core.upgrade.UpdateVisitSpecimenTypeUidSequence"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Normalised DP requirement PVs">
+    <addColumn tableName="OS_DP_REQUIREMENTS">
+      <column name="SPECIMEN_TYPE_ID" type="${int.type}"/>
+      <column name="ANATOMIC_SITE_ID" type="${int.type}"/>
+      <column name="CLINICAL_DIAGNOSIS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on DP requirement specimen type">
+    <addForeignKeyConstraint constraintName="FK_DPR_SPECIMEN_TYPE"
+      baseTableName="OS_DP_REQUIREMENTS" baseColumnNames="SPECIMEN_TYPE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on DP requirement anatomic site">
+    <addForeignKeyConstraint constraintName="FK_DPR_ANATOMIC_SITE"
+      baseTableName="OS_DP_REQUIREMENTS" baseColumnNames="ANATOMIC_SITE_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on DP requirement clinical diagnosis">
+    <addForeignKeyConstraint constraintName="FK_DPR_CLINICAL_DIAGNOSIS"
+      baseTableName="OS_DP_REQUIREMENTS" baseColumnNames="CLINICAL_DIAGNOSIS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Normalised DP requirement pathology status">
+    <addColumn tableName="OS_DPR_PATHOLOGY_STATUSES">
+      <column name="PATHOLOGY_STATUS_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on DP requirement pathology status">
+    <addForeignKeyConstraint constraintName="FK_DPR_PATH_STATUS"
+      baseTableName="OS_DPR_PATHOLOGY_STATUSES" baseColumnNames="PATHOLOGY_STATUS_ID"
+      referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique constraint on the container position" dbms="mysql">
+    <addUniqueConstraint constraintName="CONTAINER_POS_UQ"
+      tableName="OS_CONTAINER_POSITIONS" columnNames="STORAGE_CONTAINER_ID,POS_ONE_STR,POS_TWO_STR"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique constraint on the container position" dbms="oracle">
+    <sql>
+      create unique index CONTAINER_POS_UQ on os_container_positions(
+        case when
+          pos_one_str is not null and pos_two_str is not null
+        then
+          storage_container_id || '-' || pos_one_str || '-' || pos_two_str
+        end
+      );
+    </sql>
+  </changeSet>
+
+  <!-- CP groups -->
+  <changeSet author="vpawar" id="CP Group: CP groups">
+    <createTable tableName="OS_CP_GROUPS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="NAME" type="${text.type}(64)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP Group: Group CPs">
+    <createTable tableName="OS_CP_GROUP_CPS">
+      <column name="GROUP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP Group: FK on group ID">
+    <addForeignKeyConstraint constraintName="FK_CP_GROUP_ID"
+      baseTableName="OS_CP_GROUP_CPS" baseColumnNames="GROUP_ID"
+      referencedTableName="OS_CP_GROUPS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP Group: FK on group CP ID">
+    <addForeignKeyConstraint constraintName="FK_CP_GROUP_CP_ID"
+      baseTableName="OS_CP_GROUP_CPS" baseColumnNames="CP_ID"
+      referencedTableName="CATISSUE_COLLECTION_PROTOCOL" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP Group: Group ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_CP_GROUPS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP Group: group forms">
+    <createTable tableName="OS_CP_GROUP_FORMS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="GROUP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ENTITY_TYPE" type="${text.type}(32)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="FORM_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="MULTIPLE_RECORDS" type="${boolean.type}" defaultValue="0">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP Group: Group form ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_CP_GROUP_FORMS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP Group: FK on forms group ID">
+    <addForeignKeyConstraint constraintName="FK_GRP_FORMS_GROUP_ID"
+      baseTableName="OS_CP_GROUP_FORMS" baseColumnNames="GROUP_ID"
+      referencedTableName="OS_CP_GROUPS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP Group: FK on group form ID">
+    <addForeignKeyConstraint constraintName="FK_GRP_FORMS_FORM_ID"
+      baseTableName="OS_CP_GROUP_FORMS" baseColumnNames="FORM_ID"
+      referencedTableName="DYEXTN_CONTAINERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP Group: Group ID in saved queries">
+    <addColumn tableName="CATISSUE_SAVED_QUERIES">
+      <column name="CP_GROUP_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP Group: FK on saved queries CP group ID">
+    <addForeignKeyConstraint constraintName="FK_SAVED_QUERIES_CP_GRP_ID"
+      baseTableName="CATISSUE_SAVED_QUERIES" baseColumnNames="CP_GROUP_ID"
+      referencedTableName="OS_CP_GROUPS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP Group: Group workflows">
+    <addColumn tableName="OS_CP_GROUPS">
+      <column name="WORKFLOWS" type="${clob.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container transfer events">
+    <createTable tableName="OS_CONTAINER_TRANSFER_EVENTS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="CONTAINER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="FROM_SITE_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="FROM_CONTAINER_ID" type="${int.type}"/>
+      <column name="FROM_ROW" type="${text.type}(16)"/>
+      <column name="FROM_COLUMN" type="${text.type}(16)"/>
+      <column name="FROM_ROW_ORDINAL" type="${smallint.type}"/>
+      <column name="FROM_COLUMN_ORDINAL" type="${smallint.type}"/>
+      <column name="FROM_POSITION" type="${smallint.type}"/>
+      <column name="TO_SITE_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="TO_CONTAINER_ID" type="${int.type}"/>
+      <column name="TO_ROW" type="${text.type}(16)"/>
+      <column name="TO_COLUMN" type="${text.type}(16)"/>
+      <column name="TO_ROW_ORDINAL" type="${smallint.type}"/>
+      <column name="TO_COLUMN_ORDINAL" type="${smallint.type}"/>
+      <column name="TO_POSITION" type="${smallint.type}"/>
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="TRANSFER_TIME" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Reason for transferring the container">
+    <addColumn tableName="OS_CONTAINER_TRANSFER_EVENTS">
+      <column name="REASON" type="${text.type}(255)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container transfer event ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_CONT_TRANSFER_EVENT_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on container transfer event - container">
+    <addForeignKeyConstraint constraintName="FK_CONT_TRAF_EVT_CONTAINER"
+      baseTableName="OS_CONTAINER_TRANSFER_EVENTS" baseColumnNames="CONTAINER_ID"
+      referencedTableName="OS_STORAGE_CONTAINERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on container transfer event - from site">
+    <addForeignKeyConstraint constraintName="FK_CONT_TRAF_EVT_FROM_SITE"
+      baseTableName="OS_CONTAINER_TRANSFER_EVENTS" baseColumnNames="FROM_SITE_ID"
+      referencedTableName="CATISSUE_SITE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on container transfer event - from container">
+    <addForeignKeyConstraint constraintName="FK_CONT_TRAF_EVT_FROM_CONT"
+      baseTableName="OS_CONTAINER_TRANSFER_EVENTS" baseColumnNames="FROM_CONTAINER_ID"
+      referencedTableName="OS_STORAGE_CONTAINERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on container transfer event - to site">
+    <addForeignKeyConstraint constraintName="FK_CONT_TRAF_EVT_TO_SITE"
+      baseTableName="OS_CONTAINER_TRANSFER_EVENTS" baseColumnNames="TO_SITE_ID"
+      referencedTableName="CATISSUE_SITE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on container transfer event - to container">
+    <addForeignKeyConstraint constraintName="FK_CONT_TRAF_EVT_TO_CONT"
+      baseTableName="OS_CONTAINER_TRANSFER_EVENTS" baseColumnNames="TO_CONTAINER_ID"
+      referencedTableName="OS_STORAGE_CONTAINERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on container transfer event - user">
+    <addForeignKeyConstraint constraintName="FK_CONT_TRAF_EVT_USER"
+      baseTableName="OS_CONTAINER_TRANSFER_EVENTS" baseColumnNames="USER_ID"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container transfer event specimens">
+    <createTable tableName="OS_CONT_TRANSFER_EVT_SPMNS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="EVENT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="SPECIMEN_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container transfer event specimens event ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_CONT_TRAF_EVENT_SPMN_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK - container transfer specimen event id">
+    <addForeignKeyConstraint constraintName="FK_CONT_TRAF_SPMN_EVT_ID"
+      baseTableName="OS_CONT_TRANSFER_EVT_SPMNS" baseColumnNames="EVENT_ID"
+      referencedTableName="OS_CONTAINER_TRANSFER_EVENTS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK - container transfer specimen id">
+    <addForeignKeyConstraint constraintName="FK_CONT_TRAF_SPMN_ID"
+      baseTableName="OS_CONT_TRANSFER_EVT_SPMNS" baseColumnNames="SPECIMEN_ID"
+      referencedTableName="CATISSUE_SPECIMEN" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to add record entry for specimen container transfer event" dbms="mysql" runOnChange="true">
+    <sql endDelimiter="//" >
+      drop trigger if exists os_trg_cont_transfer_event_re //
+    </sql>
+    <sql endDelimiter="//" >
+      create trigger os_trg_cont_transfer_event_re after insert on os_container_transfer_events
+      for each row
+      begin
+        insert into os_cont_transfer_evt_spmns
+          (event_id, specimen_id)
+        select
+          new.identifier, pos.occupying_specimen_id
+        from
+          os_containers_hierarchy ch
+          inner join os_container_positions pos on pos.storage_container_id = ch.descendent_id
+        where
+          ch.ancestor_id = new.container_id and
+          pos.occupying_specimen_id is not null;
+
+        select
+          fc.identifier into @fcId
+        from
+          catissue_form_context fc
+          inner join dyextn_containers c on c.identifier = fc.container_id
+        where
+          c.name = 'ContainerTransferEvent' and
+          c.deleted_on is null and
+          fc.deleted_on is null and
+          fc.entity_type = 'SpecimenEvent' and
+          fc.cp_id = -1;
+
+        insert into catissue_form_record_entry
+          (form_ctxt_id, object_id, record_id, updated_by, update_time, activity_status)
+        select
+          @fcId, specimen_id, identifier, new.user_id, current_timestamp(), 'ACTIVE'
+        from
+          os_cont_transfer_evt_spmns
+        where
+          event_id = new.identifier;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to add record entry for specimen container transfer event" dbms="oracle" runOnChange="true">
+    <sql splitStatements="false">
+      create or replace trigger os_trg_cont_transfer_event_re after insert on os_container_transfer_events
+      for each row
+      declare
+        fcId catissue_form_context.identifier%type;
+      begin
+        insert into os_cont_transfer_evt_spmns
+          (identifier, event_id, specimen_id)
+        select
+          os_cont_traf_event_spmn_seq.nextval, :new.identifier, pos.occupying_specimen_id
+        from
+          os_containers_hierarchy ch
+          inner join os_container_positions pos on pos.storage_container_id = ch.descendent_id
+        where
+          ch.ancestor_id = :new.container_id and
+          pos.occupying_specimen_id is not null;
+
+        select
+          fc.identifier into fcId
+        from
+          catissue_form_context fc
+          inner join dyextn_containers c on c.identifier = fc.container_id
+        where
+          c.name = 'ContainerTransferEvent' and
+          c.deleted_on is null and
+          fc.deleted_on is null and
+          fc.entity_type = 'SpecimenEvent' and
+          fc.cp_id = -1;
+
+        insert into catissue_form_record_entry
+          (identifier, form_ctxt_id, object_id, record_id, updated_by, update_time, activity_status)
+        select
+          catissue_form_rec_entry_seq.nextval, fcId, specimen_id, identifier, :new.user_id, current_timestamp, 'ACTIVE'
+        from
+          os_cont_transfer_evt_spmns
+        where
+          event_id = :new.identifier;
+      end;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PV activity status">
+    <addColumn tableName="CATISSUE_PERMISSIBLE_VALUE">
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)" defaultValue="Active">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="User time zone">
+    <addColumn tableName="CATISSUE_USER">
+      <column name="TIME_ZONE" type="${text.type}(32)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Time zone to use for bulk importing the records in the input CSV file">
+    <addColumn tableName="OS_BULK_IMPORT_JOBS">
+      <column name="TIME_ZONE" type="${text.type}(32)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Print job item ID">
+    <addColumn tableName="OS_LABEL_PRINT_JOB_ITEMS">
+      <column name="ITEM_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,103 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<object-schema>
+  <name>distributionProtocol</name>
+  <record>
+    <name>com.krishagni.catissueplus.core.administrative.events.DistributionProtocolDetail</name>
+
+    <field>
+      <caption>#getMessage("dp_identifier")</caption>
+      <attribute>id</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("dp_title")</caption>
+      <attribute>title</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("dp_short_title")</caption>
+      <attribute>shortTitle</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("dp_receiving_institute")</caption>
+      <attribute>instituteName</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("dp_receiving_site")</caption>
+      <attribute>defReceivingSiteName</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("dp_activity_status")</caption>
+      <attribute>activityStatus</attribute>
+    </field>
+
+    <record>
+      <attribute>principalInvestigator</attribute>
+      <caption>#getMessage("dp_pi")</caption>
+
+      <field>
+        <caption>#getMessage("dp_pi_email")</caption>
+        <attribute>emailAddress</attribute>
+      </field>
+    </record>
+
+    <record>
+      <attribute>coordinators</attribute>
+      <multiple>true</multiple>
+      <caption>#getMessage("dp_coordinator")</caption>
+
+      <field>
+        <caption>#getMessage("dp_coordinator_email")</caption>
+        <attribute>emailAddress</attribute>
+      </field>
+    </record>
+
+    <field>
+      <caption>#getMessage("dp_irb_id")</caption>
+      <attribute>irbId</attribute>
+    </field>
+
+    <field>
+      <type>dateOnly</type>
+      <caption>#getMessage("dp_start_date")</caption>
+      <attribute>startDate</attribute>
+    </field>
+
+    <field>
+      <type>dateOnly</type>
+      <caption>#getMessage("dp_end_date")</caption>
+      <attribute>endDate</attribute>
+    </field>
+
+    <field>
+      <type>boolean</type>
+      <caption>#getMessage("dp_disable_email_notifs")</caption>
+      <attribute>disableEmailNotifs</attribute>
+    </field>
+
+    <record>
+      <caption>#getMessage("dp_distributing_sites")</caption>
+      <attribute>distributingSitesMapList</attribute>
+      <multiple>true</multiple>
+
+      <field>
+        <caption>#getMessage("dp_distributing_institute")</caption>
+        <attribute>institute</attribute>
+      </field>
+
+      <field>
+        <caption>#getMessage("dp_distributing_site")</caption>
+        <attribute>site</attribute>
+        <multiple>true</multiple>
+      </field>
+    </record>
+
+    <record type="customFields" entityType="DistributionProtocolExtension">
+      <attribute>extensionDetail</attribute>
+    </record>
+  </record>
+</object-schema>

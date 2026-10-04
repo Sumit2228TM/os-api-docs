@@ -1,0 +1,43 @@
+<div ng-controller="SpecimenSystemEventViewCtrl">
+  <ul class="os-key-values os-one-col">
+    <li class="item">
+      <strong class="key key-sm strong" translate="entities.distribution_order">Order</strong>
+      <span class="value value-md">
+        <a ui-sref="object-state-params-resolver({
+          stateName: 'order-detail.overview', objectName: 'distribution_order',
+          key: 'name', value: evtCtx.order})">
+          <span>{{evtCtx.order}}</span>
+        </a>
+      </span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="orders.return_qty"></strong>
+      <os-spmn-measure-val value="evtCtx.quantity" specimen="evtCtx.specimen"></os-spmn-measure-val>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="orders.return_location">Return Location</strong>
+      <span class="value value-md">
+        <a ng-show="!!evtCtx.container.id" ui-sref="container-detail.locations({containerId: evtCtx.container.id})">
+          <span>{{evtCtx.container.name}}</span>
+          <span ng-show="!!evtCtx.row && !!evtCtx.column">({{evtCtx.row}} x {{evtCtx.column}})</span>
+        </a>
+      </span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="orders.freeze_thaw_on_return"></strong>
+      <span class="value value-md">{{evtCtx.incrementFreezeThaw | osNoValue}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="orders.returned_by">Returned By</strong>
+      <span class="value value-md">{{evtCtx.user.name}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="orders.return_date">Return Date</strong>
+      <span class="value value-md">{{evtCtx.time | date: $root.global.dateTimeFmt}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="orders.comments">Comments</strong>
+      <span class="value value-md">{{evtCtx.comments | osNoValue}}</span>
+    </li>
+  </ul>
+</div>

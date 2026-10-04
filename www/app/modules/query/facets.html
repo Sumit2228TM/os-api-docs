@@ -1,0 +1,138 @@
+<div class="os-query-facets-panel">
+  <h4 class="title" ng-if="!resultsCtx.showFacetSearch">
+    <span translate="queries.filters"> Filters </span>
+    <button class="btn btn-xs btn-default" ng-click="showFacetSearch()" ng-if="resultsCtx.facets.length >= 10">
+      <span class="fa fa-search"></span>
+    </button>
+  </h4>
+
+  <div class="facet-search-input" ng-if="resultsCtx.showFacetSearch">
+    <input type="text" os-md-input ng-model="resultsCtx.facetSearchTerm"
+      placeholder="{{'queries.search_facet' | translate}}">
+    <button class="btn btn-xs btn-default" ng-click="hideFacetSearch()">
+      <span class="fa fa-times"></span>
+    </button>
+  </div>
+
+  <accordion class="facets-list">
+    <accordion-group class="facet" ng-repeat="facet in filteredFacets = (resultsCtx.facets | filter: {caption: resultsCtx.facetSearchTerm})" is-open="facet.isOpen">
+      <accordion-heading class="head">
+        <a ng-click="toggleFacetValues(facet)">
+          <span class="toggle" ng-switch on="facet.isOpen">
+            <span class="fa fa-angle-down"  ng-switch-when="true"></span>
+            <span class="fa fa-angle-right" ng-switch-when="false"></span>
+          </span>
+          <span class="name">
+            {{facet.caption}}
+          </span>
+        </a>
+        <a class="clear" ng-if="facet.selectedValues.length > 0" ng-click="clearFacetValueSelection($event, facet)">
+          <span class="fa fa-times-circle"></span>
+        </a>
+      </accordion-heading>
+      <div class="values os-scrollbar" ng-if="facet.isOpen">
+        <div class="facet-range clearfix" ng-if="facet.isRange">
+          <div ng-if="facet.relOp == 'any' || facet.relOp == 'between' || facet.relOp == 'exists'">
+            <div class="col-xs-5 os-no-left-padding" ng-switch on="facet.dataType">
+              <div class="os-md-input" ng-switch-when="DATE">
+                <input type="text" ng-model="facet.min" placeholder="{{'queries.range_min' | translate}}"
+                  os-query-date-picker="{{global.queryDateFmt}}">
+              </div>
+              <div class="os-md-input" ng-switch-default>
+                <input type="text" ng-model="facet.min" placeholder="{{'queries.range_min' | translate}}">
+              </div>
+            </div>
+            <div class="col-xs-5 os-no-left-padding" ng-switch on="facet.dataType">
+              <div class="os-md-input" ng-switch-when="DATE">
+                <input type="text" ng-model="facet.max" placeholder="{{'queries.range_max' | translate}}"
+                  os-query-date-picker="{{global.queryDateFmt}}">
+              </div>
+              <div class="os-md-input" ng-switch-default>
+                <input type="text" ng-model="facet.max" placeholder="{{'queries.range_max' | translate}}">
+              </div>
+            </div>
+          </div>
+          <div ng-if="facet.relOp == 'lt' || facet.relOp == 'le'">
+            <div class="col-xs-10 os-no-left-padding" ng-switch on="facet.dataType">
+              <div class="os-md-input" ng-switch-when="DATE">
+                <input type="text" ng-model="facet.max" placeholder="{{'queries.range_max' | translate}}"
+                  os-query-date-picker="{{global.queryDateFmt}}">
+              </div>
+              <div class="os-md-input" ng-switch-default>
+                <input type="text" ng-model="facet.max" placeholder="{{'queries.range_max' | translate}}">
+              </div>
+            </div>
+          </div>
+          <div ng-if="facet.relOp == 'gt' || facet.relOp == 'ge'">
+            <div class="col-xs-10 os-no-left-padding" ng-switch on="facet.dataType">
+              <div class="os-md-input" ng-switch-when="DATE">
+                <input type="text" ng-model="facet.min" placeholder="{{'queries.range_min' | translate}}"
+                  os-query-date-picker="{{global.queryDateFmt}}">
+              </div>
+              <div class="os-md-input" ng-switch-default>
+                <input type="text" ng-model="facet.min" placeholder="{{'queries.range_min' | translate}}">
+              </div>
+            </div>
+          </div>
+          <div ng-if="facet.relOp == 'eq'">
+            <div class="col-xs-10 os-no-left-padding" ng-switch on="facet.dataType">
+              <div class="os-md-input" ng-switch-when="DATE">
+                <input type="text" ng-model="facet.min" placeholder="{{'queries.range_eq' | translate}}"
+                  os-query-date-picker="{{global.queryDateFmt}}" ng-change="facet.max = facet.min">
+              </div>
+              <div class="os-md-input" ng-switch-default>
+                <input type="text" ng-model="facet.min" placeholder="{{'queries.range_eq' | translate}}"
+                  ng-change="facet.max = facet.min">
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-2 os-no-left-padding">
+            <button class="btn btn-xs btn-success" ng-click="addRangeCond(facet)">
+              <span>Go</span>
+            </button>
+          </div>
+        </div>
+
+        <div ng-if="!facet.isRange && !facet.hideOptions && (!!facet.searchFor || facet.values.length > 10)">
+          <div class="os-md-input">
+            <input type="text" ng-model="facet.searchFor" placeholder="{{'queries.search_filter_value' | translate}}"
+              ng-change="searchFacetValue(facet)">
+          </div>
+        </div>
+
+        <div ng-if="!facet.isRange && facet.hideOptions">
+          <div class="form-group os-md-input">
+            <textarea ng-model="facet.searchFor" placeholder="{{'queries.multiple_filter_values' | translate}}" rows="2">
+            </textarea>
+          </div>
+          <div class="form-group">
+            <button class="btn btn-xs btn-success" ng-click="addCond(facet)">
+              <span>Go</span>
+            </button>
+          </div>
+        </div>
+
+        <ul>
+          <li class="value" ng-repeat="value in facet.values | filter : {value: facet.searchFor}">
+            <div class="select-cb">
+              <os-checkbox ng-model="value.selected" ng-change="toggleFacetValueSelection(facet, value)">
+              </os-checkbox>
+            </div>
+            <div class="text" ng-if="facet.dataType == 'STRING'">
+              <span>{{value.value}}</span>
+            </div>
+            <div class="text" ng-if="facet.dataType != 'STRING'">
+              <span>{{value.value | osFacetRange: facet}}</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </accordion-group>
+
+    <div class="os-alert-container inline" ng-if="!filteredFacets.length">
+      <div class="alert alert-info">
+        <span translate="queries.no_matching_facet"></span>
+      </div>
+    </div>
+  </accordion>
+</div>

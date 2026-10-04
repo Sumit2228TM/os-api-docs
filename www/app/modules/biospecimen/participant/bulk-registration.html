@@ -1,0 +1,168 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li>
+          <a ui-sref="cp-list-view({cpId: cp.id})">
+            <span>{{cp.shortTitle}}</span>
+          </a>
+        </li>
+      </ul>
+      <h3>
+        <span translate="participant.bulk_registration">Bulk Participant Registration</span>
+      </h3>
+    </div>
+  </div>
+
+  <div class="container">
+    <div os-wizard="kitWizard" type="classic">
+      <os-wizard-step title="{{'participant.bulk_registration' | translate}}" on-finish="passThrough()">
+        <div ng-include src="'modules/biospecimen/participant/registration-details.html'"></div>
+      </os-wizard-step>
+
+      <os-wizard-step title="{{'participant.specimen_kit.prepare_kit' | translate}}" on-finish="passThrough()">
+        <div ng-include src="'modules/biospecimen/participant/specimen-kit.html'"></div>
+      </os-wizard-step>
+    </div>
+  </div>
+</div>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/registration-details.html">
+  <form name="pform" class="form-horizontal" os-form-validator="pform" novalidate>
+    <div class="form-group">
+      <label class="col-xs-3 control-label">
+        <span translate="participant.num_of_participants">Number of Participants</span>
+      </label>
+      <div class="col-xs-6">
+        <input type="text" name="numOfParticipants" ng-model="ctx.regCount" class="form-control"
+          placeholder="{{'participant.num_of_participants' | translate}}" ng-pattern="/^[0-9]*[1-9]+[0-9]*$/" required>
+        <div os-field-error field="pform.numOfParticipants"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label">
+        <span translate="participant.collection_site">Collection Site</span>
+      </label>
+      <div class="col-xs-6">
+        <os-sites name="collectionSite" ng-model="ctx.collectionSite" list-all="{{!ctx.mrnAccessRestriction}}"
+          placeholder="{{'participant.collection_site' | translate}}">
+        </os-sites>
+        <div os-field-error field="pform.collectionSite"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-xs-offset-1 col-xs-9">
+        <table class="os-table os-table-hover os-table-fixed bulk-edit" overflow="auto" ng-if="ctx.cpEvents.length > 0">
+          <thead class="os-table-head">
+            <tr class="row">
+              <th class="col col-xs-12">
+                <div class="clearfix">
+                  <div class="pull-left">
+                    <os-checkbox ng-change="toggleAllEventSelect()" ng-model="ctx.selection.all"></os-checkbox>
+                  </div>
+                  <div class="pull-left os-ctrl-padding-top" style="padding-left: 12px;">
+                    <span translate="cp.cpe_point_label">Event Point Label</span>
+                  </div>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="os-table-body">
+            <tr class="row" ng-repeat="event in ctx.cpEvents | orderBy:['eventPoint', 'id']"
+              ng-class="{selected: event.selected}">
+              <td class="col">
+                <div class="clearfix">
+                  <div class="pull-left">
+                    <os-checkbox ng-change="toggleEventSelect(event)" ng-model="event.selected"></os-checkbox>
+                  </div>
+                  <div class="pull-left os-ctrl-padding-top" style="padding-left: 12px;">
+                    <os-event-desc event-point="event.eventPoint" event-point-unit="event.eventPointUnit"
+                      event-label="event.eventLabel" event-code="event.code" coding-enabled="cpViewCtx.codingEnabled">
+                    </os-event-desc>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="os-divider"></div>
+
+    <div class="form-group right-btns">
+      <div class="col-xs-12">
+        <button class="btn os-btn-text" ng-click="back()">
+          <span translate="common.buttons.cancel"> Cancel </span>
+        </button>
+        <button type="submit" class="btn btn-primary" os-form-submit="kitWizard.next(false)">
+          <span translate="participant.buttons.prepare_kit">Prepare Kit</span>
+        </button>
+        <button type="submit" class="btn btn-primary" os-form-submit="registerParticipants()">
+          <span translate="participant.buttons.reg_participants">Register Participants</span>
+        </button>
+      </div>
+    </div>
+  </form>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimen-kit.html">
+  <form name="kitForm" class="form-horizontal" os-form-validator="kitForm" novalidate>
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="participant.specimen_kit.sending_site">Sending Site</label>
+      <div class="col-xs-6">
+        <os-select name="sendingSite" ng-model="ctx.kitDetail.sendingSite" list="ctx.cpSites"
+           placeholder="{{'participant.specimen_kit.sending_site' | translate}}" required>
+        </os-select>
+        <div os-field-error field="kitForm.sendingSite"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="control-label col-xs-3" translate="participant.specimen_kit.sender">Sender</label>
+      <div class="col-xs-6">
+        <os-users name="sender" ng-model="ctx.kitDetail.sender" exclude-contacts
+          placeholder="{{'participant.specimen_kit.sender' | translate}}" required>
+        </os-users>
+        <div os-field-error field="kitForm.sender"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="control-label col-xs-3" translate="participant.specimen_kit.sending_date">Sending Date</label>
+      <div class="col-xs-6">
+        <os-date-picker name="sendingDate" date="ctx.kitDetail.sendingDate"
+          placeholder="{{'participant.specimen_kit.sending_date' | translate}}" required>
+        </os-date-picker>
+        <div os-field-error field="kitForm.sendingDate"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="control-label col-xs-3" translate="participant.specimen_kit.comments">Comments</label>
+      <div class="col-xs-6">
+        <textarea type="text" name="comments" ng-model="ctx.kitDetail.comments" class="form-control"
+          placeholder="{{'participant.specimen_kit.comments' | translate}}" rows="2">
+        </textarea>
+      </div>
+    </div>
+
+    <div class="os-divider"></div>
+
+    <div class="form-group right-btns">
+      <div class="col-xs-12">
+        <button class="btn os-btn-text" ng-click="back()">
+          <span translate="common.buttons.cancel"> Cancel </span>
+        </button>
+        <button class="btn os-btn-secondary" ng-click="kitWizard.previous(false)">
+          <span translate="common.buttons.previous"> Previous </span>
+        </button>
+        <button type="submit" class="btn btn-primary" os-form-submit="registerParticipants(true)">
+          <span translate="common.buttons.submit"> Submit </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</script>

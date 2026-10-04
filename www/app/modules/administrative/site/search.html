@@ -1,0 +1,23 @@
+<div>
+  <div class="os-search">
+    <div class="os-head">
+      <h3 class="os-title" translate="site.filter.title">Site Filter</h3>
+    </div>
+
+    <div class="os-body">
+      <div class="form-group">
+        <input os-md-input type="text" ng-model="siteFilterOpts.name" class="form-control"
+          placeholder="{{'site.name' | translate}}">
+      </div>
+
+      <div show-if-admin class="form-group">
+        <os-institutes ng-model="siteFilterOpts.institute" md-type="true" placeholder="{{'site.institute' | translate}}">
+        </os-institutes>
+      </div>
+
+      <os-clear-filters opts="siteFilterOpts"></os-clear-filters>
+    </div>
+  </div>
+
+  <os-list-page-size opts="pagerOpts" on-change="pageSizeChanged()"></os-list-page-size>
+</div>

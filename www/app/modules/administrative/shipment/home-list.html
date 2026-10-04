@@ -1,0 +1,13 @@
+<div ng-controller="HomeShipmentListCtrl" ng-init="init(opts)">
+  <table class="os-table">
+    <tbody class="os-table-body">
+      <tr class="row" ng-repeat="shipment in ctx.shipments">
+        <td class="col">
+          <a ui-sref="shipment-detail.overview({shipmentId: shipment.id})">
+            <span>#{{shipment.id}} {{shipment.name}}</span>
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

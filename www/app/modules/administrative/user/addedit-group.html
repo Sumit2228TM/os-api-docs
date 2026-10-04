@@ -1,0 +1,73 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li>
+          <a ui-sref="user-groups">
+            <span translate="user.groups">User Groups</span>
+          </a>
+        </li>
+      </ul>
+      <h3 ng-switch on="!group.id">
+        <span ng-switch-when="true" translate="user.create_group">Create Group</span>
+        <span ng-switch-default translate="user.update_group">Update Group</span>
+      </h3>
+    </div>
+  </div>
+
+  <div class="container">
+    <form name="grpForm" class="form-horizontal" os-form-validator="grpForm" validator="grpFormValidator" novalidate>
+      <div class="form-group">
+        <label class= "col-xs-3 control-label">
+          <span translate="user.group_name">Name</span>
+        </label>
+        <div class="col-xs-6">
+          <input type="text" name="name" ng-model="group.name" class="form-control" 
+            required  placeholder="{{'user.group_name' | translate}}" ng-maxlength="64">
+          <div os-field-error field="grpForm.name"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class= "col-xs-3 control-label">
+          <span translate="user.group_description">Description</span>
+        </label>
+        <div class="col-xs-6">
+          <textarea name="desc" rows="2" ng-model="group.description" class="form-control"
+            required placeholder="{{'user.group_description' | translate}}">
+          </textarea>
+          <div os-field-error field="grpForm.desc"></div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="showInstitute">
+        <label class= "col-xs-3 control-label">
+          <span translate="user.institute">Institute</span>
+        </label>
+        <div class="col-xs-6">
+          <os-institutes name="institute" ng-model="group.institute"
+            placeholder="{{'user.institute' | translate}}" auto-select required>
+          </os-institutes>
+          <div os-field-error field="grpForm.institute"></div>
+        </div>
+      </div>
+
+      <div class="os-divider"></div>
+
+      <div class="form-group">
+        <div class="col-xs-offset-3 col-xs-6">
+          <button class="btn btn-primary" os-form-submit="saveOrUpdate()" ng-switch on="!group.id">
+            <span ng-switch-when="true"  translate="common.buttons.create"> Create </span>
+            <span ng-switch-default translate="common.buttons.update"> Update </span>
+          </button>
+          <button class="btn btn-danger" ng-click="delete()" ng-show="!!group.id">
+            <span translate="common.buttons.delete">Delete</span>
+          </button>
+          <button class="btn os-btn-text" ng-click="back()">
+            <span translate="common.buttons.cancel">Discard</span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

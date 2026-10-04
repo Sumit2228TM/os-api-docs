@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.AutoFreezerProvider" table="OS_AUTO_FREEZER_PROVIDERS"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.AutoFreezerProvider">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_AUTO_FREEZER_PROVIDERS_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="name" column="NAME"/>
+
+    <property name="implClass" column="IMPL_CLASS"/>
+
+    <map name="props" table="OS_AUTO_FREEZER_PROVIDER_PROPS" lazy="false">
+      <key column="PROVIDER_ID"/>
+      <map-key column="NAME" type="string"/>
+      <element column="VALUE" type="string" not-null="true"/>
+    </map>
+
+    <query name="getByName">
+      select
+        p
+      from
+        com.krishagni.catissueplus.core.administrative.domain.AutoFreezerProvider p
+      where
+        p.name = :name
+    </query>
+  </class>
+</hibernate-mapping>

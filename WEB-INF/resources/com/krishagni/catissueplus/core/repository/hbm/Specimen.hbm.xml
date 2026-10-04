@@ -1,0 +1,459 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.Specimen" table="CATISSUE_SPECIMEN" batch-size="100"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.Specimen">
+
+    <id name="id" column="IDENTIFIER" type="long">
+      <generator class="native">
+        <param name="sequence">CATISSUE_SPECIMEN_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="initialQuantity" column="INITIAL_QUANTITY" />
+
+    <many-to-one name="pathologicalStatus" column="PATHOLOGICAL_STATUS_ID" lazy="false" fetch="join"/>
+
+    <property name="lineage" column="LINEAGE" />
+
+    <many-to-one name="specimenClass" column="SPECIMEN_CLASS_ID" lazy="false" fetch="join"/>
+
+    <many-to-one name="specimenType" column="SPECIMEN_TYPE_ID" lazy="false" fetch="join"/>
+
+    <property name="unitKey" column="UNIT_KEY"/>
+
+    <property name="label" column="LABEL" />
+
+    <property name="additionalLabel" column="ADDITIONAL_LABEL" />
+
+    <property name="comment" column="COMMENTS" />
+
+    <property name="activityStatus" column="ACTIVITY_STATUS" />
+
+    <property name="collectionStatus" column="COLLECTION_STATUS" />
+
+    <property name="availabilityStatus" column="AVAILABILITY_STATUS"/>
+
+    <property name="barcode" column="BARCODE" />
+
+    <property name="createdOn" column="CREATED_ON" />
+
+    <property name="availableQuantity" column="AVAILABLE_QUANTITY" />
+    
+    <property name="concentration" column="CONCENTRATION"/>
+
+    <many-to-one name="tissueSide" column="LATERALITY_ID" lazy="false" fetch="join"/>
+		
+    <many-to-one name="tissueSite" column="ANATOMIC_SITE_ID" lazy="false" fetch="join"/>
+
+    <property name="freezeThawCycles" column="FREEZE_THAW_CYCLES"/>
+
+    <property name="imageId" column="IMAGE_ID"/>
+
+    <property name="extensionRev" column="EXTENSION_REV"/>
+
+    <property name="creationTime" column="CREATION_TIME"/>
+
+    <many-to-one name="creator" column="CREATOR"/>
+
+    <property name="updateTime" column="UPDATE_TIME"/>
+
+    <many-to-one name="updater" column="UPDATER"/>
+
+    <set name="biohazards" table="OS_SPECIMEN_BIOHAZARDS" batch-size="25">
+      <key column="SPECIMEN_ID" />
+      <many-to-many class="com.krishagni.catissueplus.core.administrative.domain.PermissibleValue" column="BIOHAZARD_ID"/>
+    </set>
+
+    <one-to-one
+      name="position"
+      class="com.krishagni.catissueplus.core.administrative.domain.StorageContainerPosition"
+      property-ref="occupyingSpecimen"/>
+
+    <one-to-one
+      name="checkoutPosition"
+      class="com.krishagni.catissueplus.core.administrative.domain.StorageContainerPosition"
+      property-ref="checkoutSpecimen"
+      cascade="persist,merge"
+      fetch="join" />
+
+    <many-to-one name="parentSpecimen" column="PARENT_SPECIMEN_ID"/>
+
+    <many-to-one name="primarySpecimen" column="PRIMARY_SPECIMEN_ID"/>
+
+    <set name="childCollection" table="CATISSUE_SPECIMEN" inverse="true" cascade="all" batch-size="25">
+      <key column="PARENT_SPECIMEN_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.Specimen"/>
+      <filter name="activeEntity"/>
+    </set>
+
+    <set name="externalIds" table="OS_SPMN_EXTERNAL_IDS" inverse="true" cascade="all-delete-orphan" batch-size="25">
+      <key column="SPECIMEN_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenExternalIdentifier"/>
+    </set>
+
+    <many-to-one name="collectionProtocol" column="COLLECTION_PROTOCOL_ID"/>
+
+    <many-to-one name="visit" column="SPECIMEN_COLLECTION_GROUP_ID"/>
+
+    <many-to-one name="specimenRequirement" column="REQ_SPECIMEN_ID"/>
+
+    <many-to-one name="collRecvDetails" column="PRIMARY_SPECIMEN_ID"
+      class="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenCollectionReceiveDetail"
+      insert="false" update="false"/>
+
+    <set name="specimenListItems" table="CATISSUE_SPEC_TAG_ITEMS" lazy="true">
+      <key column="OBJ_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenListItem"/>
+    </set>
+
+    <many-to-one name="parentEvent" column="PARENT_EVENT_ID" lazy="false" fetch="join"/>
+
+    <set name="childrenEvents" table="OS_CHILD_SPMN_EVENTS" inverse="true" cascade="all-delete-orphan" order-by="id">
+      <key column="SPECIMEN_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenChildrenEvent"/>
+    </set>
+
+    <set name="deleteEvents" table="OS_DELETE_SPMN_EVENTS" inverse="true" cascade="all-delete-orphan" order-by="id">
+      <key column="SPECIMEN_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenDeleteEvent"/>
+    </set>
+
+    <many-to-one name="reservedEvent" column="RESERVED_EVENT_ID"/>
+
+    <many-to-one name="pooledEvent" column="POOLED_EVENT_ID" />
+
+    <property name="poolItem" column="POOL_ITEM" />
+
+    <set name="poolItemEvents" table="OS_POOLED_SPECIMEN_ITEMS">
+      <key column="SPECIMEN_ID" />
+      <many-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenPooledEvent" column="POOLED_EVENT_ID" />
+    </set>
+
+    <set name="services" table="OS_SPECIMEN_LAB_SERVICES" inverse="true">
+      <key column="SPECIMEN_ID" />
+      <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.LabSpecimenService" />
+    </set>
+
+    <filter name="activeEntity"/>
+
+    <query name="getByLabel">
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen s
+      where
+        s.label = :label
+    </query>
+
+    <query name="getByLabelAndCp">
+      select
+        s
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen s
+        join s.collectionProtocol cp
+      where
+        s.label = :label and
+        cp.shortTitle = :cpShortTitle
+    </query>
+
+    <query name="getByAddlLabel">
+      select
+        s
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen s
+      where
+        s.additionalLabel = :label
+    </query>
+
+    <query name="getByAddlLabelAndCp">
+      select
+        s
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen s
+        join s.collectionProtocol cp
+      where
+        s.additionalLabel = :label and
+        cp.shortTitle = :cpShortTitle
+    </query>
+
+
+    <query name="getByBarcode">
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen s
+      where
+        s.barcode = :barcode
+    </query>
+
+    <query name="getByBarcodeAndCp">
+      select
+        s
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen s
+        join s.collectionProtocol cp
+      where
+        s.barcode = :barcode and
+        cp.shortTitle = :cpShortTitle
+    </query>
+
+    <query name="getByVisitAndReq">
+      select
+        s
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen s
+        join s.visit v
+        join s.specimenRequirement sr
+      where
+        v.id = :visitId and
+        sr.id = :srId
+    </query>
+
+    <query name="getByVisitAndReqCode">
+      select
+        s
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen s
+        join s.visit v
+        join s.specimenRequirement sr
+      where
+        v.id = :visitId and
+        sr.code in (:srCodes)
+    </query>
+
+    <query name="getParentByVisitAndReq">
+      select
+        s
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen s
+        join s.visit v
+        join s.specimenRequirement sr
+        join sr.childSpecimenRequirements csr
+      where
+        v.id = :visitId and
+        csr.id = :srId
+    </query>
+
+    <query name="getByIds">
+      select
+        s
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen s
+      where
+        s.id in (:specimenIds) and
+        s.activityStatus = 'Active'
+    </query>
+
+    <query name="getByVisitId">
+      select
+        s
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen s
+        join s.visit v
+      where
+        v.id = :visitId and
+        v.activityStatus = 'Active' and
+        s.activityStatus = 'Active'
+    </query>
+
+    <query name="getByVisitName">
+      select
+        s
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen s
+        join s.visit v
+      where
+        v.name = :visitName and
+        v.activityStatus = 'Active' and
+        s.activityStatus = 'Active'
+    </query>
+
+    <query name="getDistributedSpecimens">
+      select
+        sp.id
+      from
+        com.krishagni.catissueplus.core.administrative.domain.DistributionOrderItem item
+        join item.specimen sp
+        join item.order o
+      where
+        o.status = 'EXECUTED' and
+        sp.id in (:specimenIds)
+    </query>
+
+    <query name="getLatestDistributionAndReturnDates">
+      select
+        sp.id, max(o.executionDate), max(item.returnDate)
+      from
+        com.krishagni.catissueplus.core.administrative.domain.DistributionOrder o
+        join o.orderItems item
+        join item.specimen sp
+      where
+        o.status = 'EXECUTED' and
+        sp.id in (:specimenIds)
+      group by
+        sp.id
+    </query>
+
+    <query name="getDuplicateLabelCount">
+      select
+        count(id)
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen
+      where
+        label is not null
+      group by
+        label
+      having
+        count(id) > 1
+    </query>
+
+    <query name="getDuplicateBarcodeCount">
+      select
+        count(id)
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen
+      where
+        barcode is not null
+      group by
+        barcode
+      having
+        count(id) > 1
+    </query>
+
+    <query name="getStorageSite">
+      select
+        spmn.id, site.id
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Specimen spmn
+        left join spmn.position as pos
+        left join pos.container as container
+        left join container.site as site
+      where
+        spmn.id in :specimenIds
+    </query>
+
+    <sql-query name="getRootId">
+      <return-scalar column="rootId" type="long"/>
+
+      select
+        s.primary_specimen_id as rootId
+      from
+        catissue_specimen s
+      where
+        s.identifier = :specimenId and
+        s.activity_status != 'Disabled'
+    </sql-query>
+
+    <sql-query name="getDeletedSpecimen">
+      <return-scalar column="spmnId" type="long"/>
+      <return-scalar column="label" type="string"/>
+      <return-scalar column="barcode" type="string"/>
+
+      select
+        s.identifier as spmnId, s.label as label, s.barcode as barcode
+      from
+        catissue_specimen s
+      where
+        s.activity_status = 'Disabled' and
+        s.identifier = :specimenId
+    </sql-query>
+
+    <sql-query name="activateSpecimen">
+      update
+        catissue_specimen
+      set
+        activity_status = 'Active'
+      where
+        identifier = :specimenId
+    </sql-query>
+
+    <sql-query name="activateHierarchy">
+      update
+        catissue_specimen
+      set
+        activity_status = 'Active'
+      where
+        identifier in (
+          select
+            descendent_id
+          from
+            catissue_specimen_hierarchy
+          where
+            ancestor_id = :specimenId
+        ) and
+        identifier in (
+          select
+            identifier
+          from
+            catissue_specimen_aud
+          where
+            rev in (
+              select
+                max(rev)
+              from
+                catissue_specimen_aud
+              where
+                identifier = :specimenId
+            )
+        )
+    </sql-query>
+
+    <sql-query name="getDescendantSpecimenIds">
+      <return-scalar column="ancestor" type="long" />
+      <return-scalar column="descendant" type="long" />
+
+      select
+        p.identifier as ancestor, s.identifier as descendant
+      from
+        catissue_specimen p
+        inner join catissue_specimen_hierarchy h on h.ancestor_id = p.identifier
+        inner join catissue_specimen s on s.identifier = h.descendent_id
+      where
+        p.identifier in (:parentIds) and
+        p.activity_status != 'Disabled' and
+        s.activity_status != 'Disabled' and
+        p.identifier != s.identifier
+    </sql-query>
+
+    <sql-query name="getCustomFieldRecordId">
+      <return-scalar column="recordId" type="long" />
+
+      select
+        record_id as recordId
+      from
+        os_spmn_cust_fields
+      where
+        specimen_id = :specimenId and
+        form_id = :formId and
+        form_ctxt_id = :formCtxtId
+    </sql-query>
+
+    <sql-query name="getCustomFieldRecordIds">
+      <return-scalar column="specimenId" type="long" />
+      <return-scalar column="recordId" type="long" />
+
+      select
+        specimen_id as specimenId, record_id as recordId
+      from
+        os_spmn_cust_fields
+      where
+        specimen_id in (:specimenIds) and
+        form_id = :formId and
+        form_ctxt_id = :formCtxtId
+    </sql-query>
+
+    <sql-query name="insertCustomFieldRecord">
+      insert into
+        os_spmn_cust_fields(specimen_id, form_id, form_ctxt_id, record_id)
+      values
+        (:specimenId, :formId, :formCtxtId, :recordId)
+    </sql-query>
+
+    <sql-query name="insertCustomFieldRecordStatus">
+      insert into
+        os_form_record_statuses (identifier, form_id, record_id, form_status)
+      values
+        (:specimenId, :formId, :recordId, 'COMPLETE')
+    </sql-query>
+  </class>
+</hibernate-mapping>

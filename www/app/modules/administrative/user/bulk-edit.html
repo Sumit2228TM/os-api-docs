@@ -1,0 +1,85 @@
+
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li>
+          <a ui-sref="user-list">
+            <span translate="user.list">Users</span>
+          </a>
+        </li>
+      </ul>
+      <h3>
+        <span translate="user.bulk_update_users">Bulk Update Users</span>
+      </h3> 
+    </div>
+  </div>
+
+  <div class="container">
+    <form name="userForm" class="form-horizontal" os-form-validator="userForm" validator="userFormValidator" novalidate>
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="user.institute">Institute</label>
+        <div class="col-xs-6">
+          <os-institutes ng-model="user.instituteName" on-select="onInstituteSelect(institute)"
+            placeholder="{{'user.institute' | translate}}" auto-select>
+          </os-institutes>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="user.primary_site">Primary Site</label>
+        <div class="col-xs-6">
+          <os-select ng-model="user.primarySite" list="sites" refresh="searchSites($select.search)"
+            name="primarySite" placeholder="{{'user.primary_site' | translate}}">
+          </os-select>
+          <div os-field-error field="userForm.primarySite"></div>
+        </div>
+      </div>
+
+      <div show-if-admin class="form-group">
+        <label class="col-xs-3 control-label" translate="user.type">Type</label>
+        <div class="col-xs-6">
+          <label class="radio-inline">
+            <input type="radio" name="type" ng-model="user.type" ng-value="'SUPER'">
+            <span translate="user.super_admin">Super Administrator</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="type" ng-model="user.type" ng-value="'INSTITUTE'">
+            <span translate="user.inst_admin">Institute Administrator</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="type" ng-model="user.type" ng-value="'NONE'">
+            <span translate="common.none">None</span>
+          </label>
+        </div>
+      </div>
+
+      <div show-if-admin="institute" class="form-group">
+        <label class="col-xs-3 control-label" translate="user.manage_forms">Manage Forms?</label>
+        <div class="col-xs-6">
+          <label class="radio-inline">
+            <input type="radio" name="manageForms" ng-model="user.manageForms" ng-value="true">
+            <span translate="common.yes">Yes</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="manageForms" ng-model="user.manageForms" ng-value="false">
+            <span translate="common.no">No</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="os-divider"></div>
+
+      <div class="form-group">
+        <div class="col-xs-offset-3 col-xs-6">
+          <button class="btn btn-primary" os-form-submit="bulkUpdate()">
+            <span translate="common.buttons.update"> Update </span>
+          </button>
+          <button class="btn os-btn-text" ng-click="back()">
+            <span translate="common.buttons.discard"> Discard </span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

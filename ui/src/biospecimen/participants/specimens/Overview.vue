@@ -1,0 +1,606 @@
+
+<template>
+  <os-grid>
+    <os-grid-column width="8" style="overflow-y: auto;">
+      <os-page-toolbar>
+        <template #default>
+          <span v-if="specimen.id > 0">
+            <os-button-link left-icon="edit" :label="$t('common.buttons.edit')"
+              :url="editUrl" v-if="isAnyUserUpdateAllowed" />
+
+            <os-menu icon="plus" :label="$t('common.buttons.create')"
+              :options="[
+                {icon: 'flask',     caption: $t('specimens.derived'),  onSelect: createDerivatives},
+                {icon: 'share-alt', caption: $t('specimens.aliquots'), onSelect: createAliquots}
+              ]"
+
+              v-if="specimen.availabilityStatus == 'Available' && isCreateChildrenAllowed"
+            />
+
+            <os-button left-icon="print" :label="$t('common.buttons.print')"
+              @click="confirmPrint" v-if="isPrintAllowed" />
+
+            <os-add-to-cart :specimens="[{id: specimen.id}]" />
+
+            <os-menu left-icon="plus" :label="$t('specimens.add_event')" :options="ctx.eventForms"
+              :lazy-load="true" @menu-toggled="loadEventForms"
+              v-if="isEventUpdateAllowed" />
+
+            <os-menu :label="$t('common.buttons.more')" :options="moreOptions" v-if="moreOptions.length > 0"/>
+          </span>
+        </template>
+      </os-page-toolbar>
+
+      <os-overview :schema="ctx.dict" :object="ctx" v-if="ctx.dict.length > 0" />
+
+      <SpecimenTree :cp="ctx.cp" :cpr="cpr" :visit="visit" :specimen="ctx.specimen" :specimens="ctx.children"
+        :ref-date="ctx.specimen.status && ctx.specimen.status != 'Pending' ? ctx.specimen.createdOn : 0"
+        @reload="reloadChildren" v-if="ctx.cp.id > 0" />
+    </os-grid-column>
+
+    <os-grid-column width="4">
+      <os-section v-if="ctx.events && ctx.events.length > 0">
+        <template #title>
+          <span v-t="'specimens.recent_activity'">Recent Activity</span>
+        </template>
+
+        <template #content>
+          <EventsSummaryList :events="ctx.events" :hide-actions="!isUpdateAllowed" :event-url="editEventUrl"
+            @click="showEvent($event)" @delete-event="deleteEvent($event)" />
+        </template>
+      </os-section>
+    </os-grid-column>
+  </os-grid>
+
+  <os-dialog ref="printDialog">
+    <template #header>
+      <span v-t="'specimens.confirm_print'">Confirm Print</span>
+    </template>
+
+    <template #content>
+      <span v-t="'specimens.print_child_labels_q'">Do you want to print child specimen labels as well?</span>
+    </template>
+
+    <template #footer>
+      <os-button text      :label="$t('common.buttons.cancel')"  @click="cancelPrint" />
+      <os-button secondary :label="$t('specimens.no_print_current_specimen')" @click="printLabels(false)" />
+      <os-button primary   :label="$t('common.buttons.yes')" @click="printLabels(true)" />
+    </template>
+  </os-dialog>
+
+  <os-delete-object ref="deleteSpmnDialog" :input="ctx.deleteOpts" />
+
+  <os-close-specimen ref="closeSpmnDialog" :specimens="[ctx.specimen]" />
+
+  <os-dialog ref="eventOverviewDialog">
+    <template #header>
+      <span>
+        <span>{{ctx.event.name}}</span>
+        <span v-if="+ctx.event.id > 0">: #{{ctx.event.id}}</span>
+      </span>
+    </template>
+    <template #content>
+      <os-overview :schema="eventDict" :object="ctx.eventRecord" :columns="1"
+        v-if="ctx.event.id == 'SpecimenCollectionEvent' || ctx.event.id == 'SpecimenReceivedEvent'" />
+      <os-form-record-overview :record="ctx.eventRecord" v-else />
+    </template>
+    <template #footer>
+      <os-button text   :label="$t('common.buttons.close')" @click="closeEventOverview()" />
+      <os-plugin-views page="specimen-detail" view="event-overview" :view-props="eventOverviewPluginProps" />
+      <os-button danger left-icon="trash" :label="$t('common.buttons.delete')" @click="deleteEvent(ctx.event)"
+        v-if="!ctx.event.sysForm && isUpdateAllowed" />
+      <os-button-link primary left-icon="edit" :label="$t('common.buttons.edit')" :url="editEventUrl(ctx.event)"
+        v-if="ctx.event.isEditable && isUpdateAllowed" />
+    </template>
+  </os-dialog>
+
+  <os-confirm ref="eventDeleteConfirmDialog">
+    <template #title>
+      <span v-t="'common.delete_confirmation'">Confirm Delete</span>
+    </template>
+    <template #message>
+      <span v-t="{path: 'specimens.delete_event_q', args: ctx.event}"></span>
+    </template>
+  </os-confirm>
+
+  <os-dialog ref="transferDialog">
+    <template #header>
+      <span v-t="transferCtx.checkout ? 'specimens.checkout_specimen' : 'specimens.checkin_specimen'"></span>
+    </template>
+    <template #content>
+      <os-form ref="transferForm" :schema="transferSchema.layout" :data="transferCtx" />
+    </template>
+    <template #footer>
+      <os-button text :label="$t('common.buttons.cancel')" @click="cancelTransfer" />
+
+      <os-button primary :label="$t(transferCtx.checkout ? 'specimens.checkout' : 'specimens.checkin')"
+        @click="transferSpecimen" />
+    </template>
+  </os-dialog>
+
+  <os-audit-trail ref="auditTrailDialog" :objects="ctx.auditObjs" />
+
+  <os-plugin-views ref="moreMenuPluginViews" page="specimen-detail" view="more-menu" :viewProps="ctx" />
+</template>
+
+<script>
+
+import EventsSummaryList from './EventsSummaryList.vue';
+import SpecimenTree from '@/biospecimen/components/SpecimenTree.vue';
+
+import specimenSvc from '@/biospecimen/services/Specimen.js';
+import wfSvc from '@/biospecimen/services/Workflow.js';
+
+import alertsSvc from '@/common/services/Alerts.js';
+import routerSvc from '@/common/services/Router.js';
+import util  from '@/common/services/Util.js';
+
+import formSvc from '@/forms/services/Form.js';
+
+import transferSchema from '@/biospecimen/schemas/specimens/transfer.js';
+
+
+export default {
+  props: ['cpr', 'visit', 'action'],
+
+  components: {
+    EventsSummaryList,
+    SpecimenTree
+  },
+
+  inject: ['cpViewCtx', 'specimen'],
+
+  data() {
+    const cp = this.cpViewCtx.getCp();
+    return {
+      ctx: {
+        cp,
+
+        cpr: this.cpr,
+
+        visit: this.visit,
+
+        specimen: {},
+
+        dict: [],
+
+        auditObjs: [],
+
+        routeQuery: this.$route.query,
+
+        children: [],
+
+        eventForms: undefined,
+
+        userRole: this.cpViewCtx.getRole(),
+
+        pluginOptions: [],
+
+        event: {}
+      },
+
+      eventOverviewPluginProps: { },
+
+      transferSchema,
+
+      transferCtx: {
+        checkout: false,
+
+        specimen: {}
+      }
+    };
+  },
+
+  async created() {
+    this._setupSpecimen();
+    this.ctx.dict = await this.cpViewCtx.getSpecimenDict();
+    if (typeof this.action == 'string') {
+      const [view, formId, recordId] = this.action.split(',');
+      if (view == 'show_event' && formId > 0 && recordId > 0) {
+        this.showEvent({formId, id: recordId});
+        const {name, params, query: {action, ...otherQuery}} = routerSvc.getCurrentRoute();
+        action == this.action;
+        routerSvc.goto(name, params, otherQuery);
+      }
+    }
+  },
+
+  mounted() {
+    this._loadMoreMenuPluginOptions();
+  },
+
+  watch: {
+    specimen: function(newVal, oldVal) {
+      if (newVal != oldVal) {
+        this._setupSpecimen();
+      }
+    }
+  },
+
+  computed: {
+    moreOptions: function() {
+      const {specimen} = this.ctx;
+      const options = [];
+
+      if (this.isUpdateAllowed) {
+        const {reserved, activityStatus, status, storageLocation, checkoutPosition} = specimen;
+        if (!reserved && activityStatus == 'Active' && status == 'Collected') {
+          options.push({icon: 'times', caption: this.$t('common.buttons.close'), onSelect: this.closeSpecimen});
+        } else if (activityStatus == 'Closed') {
+          options.push({icon: 'check', caption: this.$t('common.buttons.reopen'), onSelect: this.reopenSpecimen});
+        }
+
+        if (activityStatus == 'Active' && storageLocation && storageLocation.id > 0) {
+          options.push({icon: 'sign-out-alt', caption: this.$t('specimens.checkout'), onSelect: this.checkoutSpecimen});
+        }
+
+        if (activityStatus == 'Active' && checkoutPosition && checkoutPosition.id > 0) {
+          options.push({icon: 'sign-in-alt', caption: this.$t('specimens.checkin'), onSelect: this.checkinSpecimen});
+        }
+      }
+
+      if (specimen.id > 0 && this.isDeleteAllowed) {
+        options.push({icon: 'trash', caption: this.$t('common.buttons.delete'), onSelect: this.deleteSpecimen});
+      }
+
+      Array.prototype.push.apply(options, this.ctx.pluginOptions || []);
+      if (specimen.id > 0) {
+        if (options.length > 0) {
+          options.push({divider: true});
+        }
+
+        options.push({icon: 'history', caption: this.$t('audit.trail'), onSelect: this.viewAuditTrail});
+      }
+
+      return options;
+    },
+
+    isCreateChildrenAllowed: function() {
+      return this.cpViewCtx.isCreateAllSpecimenAllowed(this.cpr);
+    },
+
+    isAnyUserUpdateAllowed: function() {
+      const vc = this.cpViewCtx;
+      const {specimen: {lineage}} = this.ctx;
+      return lineage == 'New' ? vc.isUpdateSpecimenAllowed(this.cpr) : vc.isUpdateAllSpecimenAllowed(this.cpr);
+    },
+
+    isUpdateAllowed: function() {
+      return this.isAnyUserUpdateAllowed && this.notCoordinatOrStoreAllowed;
+    },
+
+    isEventUpdateAllowed: function() {
+      const {availabilityStatus} = this.ctx.specimen;
+      return ['Available', 'Reserved'].indexOf(availabilityStatus) >= 0 && this.isUpdateAllowed;
+    },
+
+    isDeleteAllowed: function() {
+      const vc = this.cpViewCtx;
+      const {specimen: {lineage, reserved}} = this.ctx;
+      return !reserved && (lineage == 'New' ? vc.isDeleteSpecimenAllowed(this.cpr) : vc.isDeleteAllSpecimenAllowed(this.cpr));
+    },
+
+    isPrintAllowed: function() {
+      return this.cpViewCtx.isPrintSpecimenAllowed(this.cpr) && this.notCoordinatOrStoreAllowed;
+    },
+
+    notCoordinatOrStoreAllowed: function() {
+      return this.cpViewCtx.notCoordinatOrStoreAllowed(this.specimen || {});
+    },
+
+    eventDict: function() {
+      let dict = [];
+      if (this.ctx.event.id == 'SpecimenCollectionEvent') {
+        dict = specimenSvc.getCollectionEventDict();
+      } else if (this.ctx.event.id == 'SpecimenReceivedEvent') {
+        dict = specimenSvc.getReceivedEventDict();
+      }
+
+      return dict.map(field => ({...field, label: this.$t(field.labelCode)}));
+    },
+
+    editUrl: function() {
+      const {cpId, cprId, visitId, eventId, id} = this.specimen;
+      return routerSvc.getUrl('SpecimenAddEdit', {cpId, cprId, visitId, specimenId: id}, {eventId});
+    }
+  },
+
+  methods: {
+    createAliquots: function() {
+      wfSvc.createAliquots([this.ctx.specimen]);
+    },
+
+    createDerivatives: function() {
+      wfSvc.createDerivedSpecimens([this.ctx.specimen]);
+    },
+
+    confirmPrint: function() {
+      this.$refs.printDialog.open();
+    },
+
+    printLabels: function(includeChildren) {
+      const {specimen, children} = this.ctx;
+      const ids = includeChildren ? this._getChildrenIds(children) : [];
+      ids.unshift(specimen.id);
+
+      const ts = util.formatDate(new Date(), 'yyyyMMdd_HHmmss');
+      const outputFilename = [
+        specimen.cpShortTitle, specimen.ppid,
+        specimen.visitName, specimen.label || specimen.id,
+        ts
+      ].join('_') + '.csv';
+      specimenSvc.printLabels({specimenIds: ids}, outputFilename);
+      this.$refs.printDialog.close();
+    },
+
+    cancelPrint: function() {
+      this.$refs.printDialog.close();
+    },
+
+    loadEventForms: function() {
+      if (this.ctx.eventForms) {
+        return;
+      }
+
+      const userRole = this.cpViewCtx.getRole();
+      const context = {cp: this.ctx.cp, cpr: this.cpr, visit: this.visit, specimen: this.specimen, userRole};
+      this.cpViewCtx.getSpecimenEventForms(context).then(
+        eventForms => {
+          this.ctx.eventForms = eventForms
+            .filter(f => !f.sysForm)
+            .map(eventForm => ({caption: eventForm.formCaption, url: this.addEventUrl(eventForm)}));
+        }
+      );
+    },
+
+    addEventUrl: function(form) {
+      const {cpId, cprId, visitId, eventId, id} = this.specimen;
+      return routerSvc.getUrl('SpecimenEventAddEdit', {cpId, cprId, visitId, specimenId: id}, {eventId, formId: form.formId, formCtxtId: form.formCtxtId});
+    },
+
+    editEventUrl: function(event) {
+      const {cpId, cprId, visitId, eventId, id} = this.specimen;
+      const {formId, formCtxtId, id: recordId} = event;
+      return routerSvc.getUrl('SpecimenEventAddEdit', {cpId, cprId, visitId, specimenId: id}, {eventId, formId, formCtxtId, recordId});
+    },
+
+    showEvent: function(event) {
+      const {formId, id: recordId} = event;
+      const pluginProps = this.eventOverviewPluginProps = {...this.ctx, cpViewCtx: this.cpViewCtx};
+      if (recordId == 'SpecimenCollectionEvent' || recordId == 'SpecimenReceivedEvent') {
+        const msgCode = 'specimens.' + (recordId == 'SpecimenCollectionEvent' ? 'collection_event' : 'received_event');
+        this.ctx.event = {name: this.$t(msgCode), id: recordId, sysForm: true, isEditable: this.isUpdateAllowed};
+        this.ctx.eventRecord = {specimen: this.ctx.specimen};
+        pluginProps.dict = this.eventDict;
+        this.$refs.eventOverviewDialog.open();
+      } else {
+        formSvc.getRecord({formId, recordId}, {includeMetadata: true}).then(
+          record => {
+            const sysForm = record.appData && record.appData.sysForm;
+            this.ctx.event = {
+              name: record.caption,
+              id: record.id,
+              formId: record.containerId,
+              formCtxtId: record.appData && record.appData.formCtxtId,
+              sysForm,
+              isEditable: !sysForm && this.isUpdateAllowed
+            };
+            this.ctx.eventRecord = pluginProps.record = record;
+            this.$refs.eventOverviewDialog.open();
+          }
+        );
+      }
+    },
+
+    deleteEvent: function(event) {
+      this.ctx.event = event;
+      this.$refs.eventDeleteConfirmDialog.open().then(
+        resp => {
+          if (resp != 'proceed') {
+            return;
+          }
+
+          const {formId, id: recordId} = event;
+          formSvc.deleteRecord({formId, recordId}).then(
+            () => {
+              this.closeEventOverview();
+              alertsSvc.success({code: 'specimens.event_deleted', args: {eventName: event.name}});
+              this._loadEvents(this.specimen);
+            }
+          );
+        }
+      );
+    },
+
+    closeEventOverview: function() {
+      this.$refs.eventOverviewDialog.close();
+      this.ctx.event = this.ctx.eventRecord = null;
+    },
+
+    closeSpecimen: function() {
+      this.$refs.closeSpmnDialog.open().then(
+        (resp) => {
+          if (resp) {
+            specimenSvc.clearSpecimens(this.visit);
+            this.specimen.storageLocation = null;
+            this.specimen.initialQty = resp[0].initialQty;
+            this.specimen.availableQty = resp[0].availableQty;
+            this.specimen.availabilityStatus = this.specimen.activityStatus = 'Closed';
+            this._loadEvents(this.specimen);
+          }
+        }
+      );
+    },
+
+    reopenSpecimen: function() {
+      specimenSvc.saveOrUpdate({id: this.specimen.id, activityStatus: 'Active'}).then(
+        (saved) => {
+          specimenSvc.clearSpecimens(this.visit);
+          this.specimen.activityStatus = 'Active';
+          this.specimen.availabilityStatus = saved.availabilityStatus;
+          this._loadEvents(this.specimen);
+        }
+      );
+    },
+
+    deleteSpecimen: function() {
+      this.$refs.deleteSpmnDialog.execute().then(
+        (resp) => {
+          if (resp != 'deleted') {
+            return;
+          }
+
+          const {cp} = this.ctx;
+          if (cp.specimenCentric) {
+            routerSvc.goto('ParticipantsList', {cpId: cp.id, cprId: -1}, {view: 'specimens_list', reload: true});
+          } else {
+            routerSvc.goto('ParticipantsListItemVisitDetail.Overview', this.specimen);
+          }
+
+          specimenSvc.clearSpecimens(this.visit);
+        }
+      );
+    },
+
+    checkoutSpecimen: function() {
+      this.transferCtx = {
+        checkout: true,
+        specimen: {
+          id: this.specimen.id,
+          storageLocation: null,
+          checkout: true,
+          transferUser: this.$ui.currentUser,
+          transferTime: Date.now()
+        }
+      };
+
+      this.$refs.transferDialog.open();
+    },
+
+    checkinSpecimen: function() {
+      this.transferCtx = {
+        specimen: {
+          id: this.specimen.id,                       //
+          specimenClass: this.specimen.specimenClass, // needed for select/load of containers in
+          type: this.specimen.type,                   // positions widget
+          cpId: this.specimen.cpId,                   //
+          storageLocation: {...this.specimen.checkoutPosition},
+          transferUser: this.$ui.currentUser,
+          transferTime: Date.now()
+        }
+      };
+
+      this.$refs.transferDialog.open();
+    },
+
+    transferSpecimen: function() {
+      if (!this.$refs.transferForm.validate()) {
+        return;
+      }
+
+      specimenSvc.saveOrUpdate(this.transferCtx.specimen).then(
+        ({storageLocation, checkedOut, checkoutPosition}) => {
+          Object.assign(this.specimen, {storageLocation, checkedOut, checkoutPosition});
+          this._loadEvents(this.specimen);
+          this.cancelTransfer();
+        }
+      );
+    },
+
+    cancelTransfer: function() {
+      this.$refs.transferDialog.close();
+    },
+
+    reloadChildren: function() {
+      this.ctx.children = [];
+
+      const {specimen} = this.ctx;
+      specimenSvc.getById(specimen.id).then(dbSpmn => this.ctx.children = dbSpmn.children);
+    },
+
+    viewAuditTrail: function() {
+      this.$refs.auditTrailDialog.open();
+    },
+
+    _setupSpecimen: function() {
+      const specimen = this.ctx.specimen = this.specimen;
+      if (specimen.id > 0) {
+        this.ctx.auditObjs = [
+          {objectId: specimen.id, objectName: 'specimen'}
+        ]
+
+        this.ctx.deleteOpts = {
+          type: this.$t('specimens.specimen'),
+          title: specimen.label + (specimen.barcode ? ' (' + specimen.barcode + ')' : ''),
+          dependents: () => specimenSvc.getDependents(specimen),
+          forceDelete: true,
+          askReason: true,
+          deleteObj: (reason) => specimenSvc.deleteSpecimen(specimen.id, true, reason)
+        };
+
+        this._loadEvents(specimen);
+      }
+
+      this.ctx.children = specimen.children || [];
+      this._loadMoreMenuPluginOptions();
+    },
+
+    _getChildrenIds: function(children) {
+      const result = [];
+      for (let child of (children || [])) {
+        result.push(child.id);
+        Array.prototype.push.apply(result, this._getChildrenIds(child.children));
+      }
+
+      return result;
+    },
+
+    _loadEvents: function(specimen) {
+      const {availabilityStatus, lineage} = specimen;
+      if (availabilityStatus && ['Pending', 'Missed Collection', 'Not Collected'].indexOf(availabilityStatus) < 0) {
+        specimenSvc.getEvents(this.specimen).then(
+          events => {
+            if (lineage == 'New') {
+              const {time: receivedTime, user: receivedUser} = specimen.receivedEvent || {};
+              const recvEvent = {id: 'SpecimenReceivedEvent', name: 'Received Event', sysForm: true, isEditable: true};
+              events.push(recvEvent);
+              if (receivedTime) {
+                recvEvent.time = new Date(receivedTime);
+              }
+
+              if (receivedUser) {
+                recvEvent.user = this.$filters.username(receivedUser);
+              }
+
+              const {time: collectionTime, user: collectionUser} = specimen.collectionEvent || {};
+              const collEvent = {id: 'SpecimenCollectionEvent', name: 'Collection Event', sysForm: true, isEditable: true};
+              events.push(collEvent);
+              if (collectionTime) {
+                collEvent.time = new Date(collectionTime);
+              }
+
+              if (collectionUser) {
+                collEvent.user = this.$filters.username(collectionUser);
+              }
+            }
+
+            this.ctx.events = events
+          }
+        );
+      } else {
+        this.ctx.events = [];
+      }
+    },
+
+    _loadMoreMenuPluginOptions: function() {
+      if (!this.$refs.moreMenuPluginViews) {
+        return;
+      }
+
+      const ctxt = {...this.ctx, cpViewCtx: this.cpViewCtx};
+      util.getPluginMenuOptions(this.$refs.moreMenuPluginViews, 'specimen-detail', 'more-menu', ctxt)
+        .then(pluginOptions => this.ctx.pluginOptions = pluginOptions);
+    }
+  }
+}
+</script>

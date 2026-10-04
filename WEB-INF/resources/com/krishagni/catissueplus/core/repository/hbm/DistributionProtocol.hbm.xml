@@ -1,0 +1,199 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.DistributionProtocol" table="CATISSUE_DISTRIBUTION_PROTOCOL"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.DistributionProtocol">
+
+    <id name="id" column="IDENTIFIER" type="long" unsaved-value="null">
+      <generator class="native">
+        <param name="sequence">CATISSUE_DISTRI_PROT_SEQ</param>
+      </generator>	
+    </id>
+    
+    <property name="title" column="TITLE"/>
+
+    <property name="shortTitle"  column="SHORT_TITLE"/>
+
+    <property name="irbId" column="IRB_IDENTIFIER"/>
+
+    <property name="startDate" column="START_DATE"/>
+
+    <property name="endDate" column="END_DATE"/>
+
+    <property name="activityStatus" column="ACTIVITY_STATUS"/>
+
+    <many-to-one name="institute" column="INSTITUTE_ID"/>
+
+    <many-to-one name="defReceivingSite" column="DEF_RECEIVING_SITE_ID"/>
+
+    <many-to-one name="principalInvestigator" column="PRINCIPAL_INVESTIGATOR_ID"/>
+      
+    <set name="coordinators" table="OS_DP_COORDINATORS" cascade="none">
+      <key column="DISTRIBUTION_PROTOCOL_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.administrative.domain.User" column="USER_ID"/>
+    </set>
+    
+    <many-to-one name="report" column="REPORT_ID"/>
+
+    <many-to-one name="orderExtnForm" column="ORDER_EXTN_FORM_ID"/>
+
+    <property name="disableEmailNotifs" column="DISABLE_EMAIL_NOTIFS"/>
+
+    <property name="attachmentType" column="ATTACHMENT_TYPE">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.administrative.domain.DistributionProtocol$NotifAttachmentType</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="orderItemLabelFormat" column="ORDER_ITEM_LABEL_FORMAT"/>
+
+    <set name="distributionOrders" cascade="none">
+      <key column="DISTRIBUTION_PROTOCOL_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.administrative.domain.DistributionOrder"/>
+      <filter name="activeEntity"/>
+    </set>
+
+    <set name="distributingSites" inverse="true" cascade="all-delete-orphan">
+      <key column="DISTRIBUTION_PROTOCOL_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.administrative.domain.DpDistributionSite"/>
+    </set>
+    
+    <set name="requirements" inverse="true" cascade="all-delete-orphan">
+      <key column="DP_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.administrative.domain.DpRequirement"/>
+      <filter name="activeEntity"/>
+    </set>
+
+    <set name="consentTiers" table="OS_DP_CONSENT_TIERS" inverse="true" cascade="all-delete-orphan" order-by="id">
+      <key column="DP_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.administrative.domain.DpConsentTier"/>
+      <filter name="activeEntity"/>
+    </set>
+
+    <set name="distributionContainers" table="OS_STOR_CONTAINER_DPS">
+      <key column="DP_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.administrative.domain.StorageContainer" column="STORAGE_CONTAINER_ID">
+        <filter name="activeEntity" condition="activity_status != 'Disabled'"/>
+      </many-to-many>
+    </set>
+
+    <filter name="activeEntity"/>
+
+    <query name="getDistributionProtocolByTitle">
+      from 
+        com.krishagni.catissueplus.core.administrative.domain.DistributionProtocol 
+      where 
+        title=:title 
+    </query>
+      
+    <query name="getAllDistributionProtocols">
+      from 
+        com.krishagni.catissueplus.core.administrative.domain.DistributionProtocol 
+      where 
+        activityStatus != 'Disabled' 
+      order by 
+        title 
+    </query>
+
+    <query name="getDistributionProtocolsByShortTitle">
+      select
+        dp
+      from
+        com.krishagni.catissueplus.core.administrative.domain.DistributionProtocol dp
+      where
+        dp.shortTitle in (:shortTitles)
+    </query>
+
+    <query name="getSpmnCountByDps">
+      select
+        dp.id, count(orderItem.id)
+      from
+        com.krishagni.catissueplus.core.administrative.domain.DistributionProtocol dp
+        join dp.distributionOrders do
+        join do.orderItems orderItem
+        join orderItem.specimen spmn
+      where
+        dp.id in (:dpIds) and
+        do.status = 'EXECUTED' and
+        spmn.activityStatus != 'Disabled'
+      group by
+        dp.id
+    </query>
+    
+    <query name="getExpiringDps">
+      select 
+        dp
+      from 
+        com.krishagni.catissueplus.core.administrative.domain.DistributionProtocol dp
+      where
+        dp.endDate is not null and
+        dp.endDate between :fromDate and :toDate and
+        dp.activityStatus = 'Active'
+    </query>
+
+    <sql-query name="getNonConsentingSpecimens">
+      <return-scalar column="label" type="string"/>
+
+      select
+        s.label as label
+      from
+        catissue_specimen s
+      where
+        s.identifier in (:specimenIds) and
+        s.identifier not in (
+          select
+            s.identifier
+          from
+            catissue_specimen s
+            inner join catissue_specimen_coll_group v on v.identifier = s.specimen_collection_group_id
+            inner join catissue_coll_prot_reg reg on reg.identifier = v.collection_protocol_reg_id
+            inner join catissue_consent_tier_response resp on resp.coll_prot_reg_id = reg.identifier
+            inner join catissue_consent_tier cp_ct on cp_ct.identifier = resp.consent_tier_id
+            inner join os_dp_consent_tiers dp_ct on dp_ct.consent_stmt_id = cp_ct.consent_stmt_id
+            inner join catissue_permissible_value resp_pv on resp_pv.identifier = resp.response_id
+          where
+            s.identifier in (:specimenIds) and
+            dp_ct.dp_id = :dpId and
+            dp_ct.activity_status = 'Active' and
+            cp_ct.activity_status = 'Active' and
+            resp_pv.value = 'Yes'
+          group by
+            s.identifier
+          having
+            count(resp.identifier) = :respCount
+        )
+    </sql-query>
+
+    <sql-query name="unlinkCustomForm">
+      update catissue_distribution_protocol set order_extn_form_id = null where order_extn_form_id = :formId
+    </sql-query>
+
+    <sql-query name="getDependents">
+      <return-scalar column="dp_id" type="long" />
+      <return-scalar column="specimen" type="int" />
+      <return-scalar column="storage_container" type="int" />
+      <return-scalar column="distribution_order" type="int" />
+
+      select
+        dp.identifier as dp_id,
+        count(distinct sp.identifier) as specimen,
+        count(distinct cont.identifier) as storage_container,
+        count(distinct o.identifier) as distribution_order
+      from
+        catissue_distribution_protocol dp
+        left join os_spmn_reserved_events rs on rs.dp_id = dp.identifier
+        left join catissue_specimen sp on sp.identifier = rs.specimen_id and sp.reserved_event_id = rs.identifier and sp.activity_status != 'Disabled'
+        left join os_stor_container_dps dp_cont on dp_cont.dp_id = dp.identifier
+        left join os_storage_containers cont on cont.identifier = dp_cont.storage_container_id and cont.activity_status != 'Disabled'
+        left join os_orders o on o.distribution_protocol_id = dp.identifier and o.activity_status != 'Disabled'
+      where
+        dp.identifier = :dpId
+      group by
+        dp.identifier
+    </sql-query>
+  </class>
+</hibernate-mapping>

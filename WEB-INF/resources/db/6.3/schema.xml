@@ -1,0 +1,874 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Container maintenance tasks">
+    <createTable tableName="OS_CONTAINER_TASKS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="NAME" type="${text.type}(32)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="DESCRIPTION" type="${text.type}(512)"/>
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container task ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_CONT_TASK_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled container activities">
+    <createTable tableName="OS_SCHED_CONT_ACTIVITIES">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="CONTAINER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="NAME" type="${text.type}(64)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="START_DATE" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CYCLE_INTERVAL" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CYCLE_INTERVAL_UNIT" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="TASK_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="REM_INTERVAL" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="REM_INTERVAL_UNIT" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="REPEAT_CYCLE" type="${boolean.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled container activity ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_SCHED_CONT_ACTIVITY_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on scheduled activity container">
+    <addForeignKeyConstraint constraintName="FK_SCHED_ACTIVITIES_CONT_ID"
+      baseTableName="OS_SCHED_CONT_ACTIVITIES" baseColumnNames="CONTAINER_ID"
+      referencedTableName="OS_STORAGE_CONTAINERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on scheduled container activity task">
+    <addForeignKeyConstraint constraintName="FK_SCHED_ACTIVITIES_TASK_ID"
+      baseTableName="OS_SCHED_CONT_ACTIVITIES" baseColumnNames="TASK_ID"
+      referencedTableName="OS_CONTAINER_TASKS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled activity users">
+    <createTable tableName="OS_SCHED_CONT_ACT_USERS">
+      <column name="ACTIVITY_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on scheduled container activity users activity">
+    <addForeignKeyConstraint constraintName="FK_SCHED_CONT_ACT_USERS_ACT_ID"
+      baseTableName="OS_SCHED_CONT_ACT_USERS" baseColumnNames="ACTIVITY_ID"
+      referencedTableName="OS_SCHED_CONT_ACTIVITIES" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on scheduled container activity user">
+    <addForeignKeyConstraint constraintName="FK_SCHED_CONT_ACT_USER_ID"
+      baseTableName="OS_SCHED_CONT_ACT_USERS" baseColumnNames="USER_ID"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container activities log">
+    <createTable tableName="OS_CONTAINER_ACTIVITY_LOGS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="CONTAINER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ACTIVITY_ID" type="${int.type}"/>
+      <column name="TASK_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="PERFORMED_BY" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ACTIVITY_DATE" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="TIME_TAKEN" type="${int.type}"/>
+      <column name="COMMENTS" type="${text.type}(512)"/>
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container activity log ID sequence generator">
+    <createSequence sequenceName="OS_CONT_ACTIVITY_LOG_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on container activity log - container">
+    <addForeignKeyConstraint constraintName="FK_CONT_ACT_LOG_CONT_ID"
+      baseTableName="OS_CONTAINER_ACTIVITY_LOGS" baseColumnNames="CONTAINER_ID"
+      referencedTableName="OS_STORAGE_CONTAINERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on container activity log - activity">
+    <addForeignKeyConstraint constraintName="FK_CONT_ACT_LOG_ACT_ID"
+      baseTableName="OS_CONTAINER_ACTIVITY_LOGS" baseColumnNames="ACTIVITY_ID"
+      referencedTableName="OS_SCHED_CONT_ACTIVITIES" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on container activity log - task">
+    <addForeignKeyConstraint constraintName="FK_CONT_ACT_LOG_TASK_ID"
+      baseTableName="OS_CONTAINER_ACTIVITY_LOGS" baseColumnNames="TASK_ID"
+      referencedTableName="OS_CONTAINER_TASKS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on container activity log - performed by">
+    <addForeignKeyConstraint constraintName="FK_CONT_ACT_LOG_USER_ID"
+      baseTableName="OS_CONTAINER_ACTIVITY_LOGS" baseColumnNames="PERFORMED_BY"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on form record object ID">
+    <createIndex tableName="CATISSUE_FORM_RECORD_ENTRY" indexName="OS_FORM_RE_OBJ_IDX">
+      <column name="OBJECT_ID"/>
+      <column name="ACTIVITY_STATUS"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop specimen ID FK from the collection events table">
+    <preConditions onFail="MARK_RAN">
+      <foreignKeyConstraintExists foreignKeyTableName="CATISSUE_COLL_EVENT_PARAM" foreignKeyName="FK_SPEC_COLL_EVENT"/>
+    </preConditions>
+
+    <dropForeignKeyConstraint baseTableName="CATISSUE_COLL_EVENT_PARAM" constraintName="FK_SPEC_COLL_EVENT"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop specimen ID from collection events table">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="CATISSUE_COLL_EVENT_PARAM" columnName="SPECIMEN_ID"/>
+    </preConditions>
+
+    <dropColumn tableName="CATISSUE_COLL_EVENT_PARAM" columnName="SPECIMEN_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add collection event specimen ID">
+    <addColumn tableName="CATISSUE_COLL_EVENT_PARAM">
+      <column name="SPECIMEN_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add unique constraint on the collection event specimen ID">
+    <addUniqueConstraint constraintName="COLL_EVENT_SPMN_ID_UQ"
+      tableName="CATISSUE_COLL_EVENT_PARAM"
+      columnNames="SPECIMEN_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop specimen ID FK from the received events table">
+    <preConditions onFail="MARK_RAN">
+      <foreignKeyConstraintExists foreignKeyTableName="CATISSUE_RECEIVED_EVENT_PARAM" foreignKeyName="FK_SPEC_REC_EVENT"/>
+    </preConditions>
+
+    <dropForeignKeyConstraint baseTableName="CATISSUE_RECEIVED_EVENT_PARAM" constraintName="FK_SPEC_REC_EVENT"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop specimen ID from received events table">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="CATISSUE_RECEIVED_EVENT_PARAM" columnName="SPECIMEN_ID"/>
+    </preConditions>
+
+    <dropColumn tableName="CATISSUE_RECEIVED_EVENT_PARAM" columnName="SPECIMEN_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add received event specimen ID">
+    <addColumn tableName="CATISSUE_RECEIVED_EVENT_PARAM">
+      <column name="SPECIMEN_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add unique constraint on the received event specimen ID">
+    <addUniqueConstraint constraintName="RECV_EVENT_SPMN_ID_UQ"
+      tableName="CATISSUE_RECEIVED_EVENT_PARAM"
+      columnNames="SPECIMEN_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to update specimen ID in collection/received event" dbms="mysql" runOnChange="true">
+    <sql>
+      drop trigger if exists os_ins_coll_recv_evt_spmn_id;
+    </sql>
+
+    <sql endDelimiter="//">
+      create trigger os_ins_coll_recv_evt_spmn_id after insert on catissue_form_record_entry
+      for each row
+      begin
+        declare formName varchar(255);
+
+        select
+          f.name into formName
+        from
+          catissue_form_context fc
+          inner join dyextn_containers f on f.identifier = fc.container_id
+        where
+          fc.identifier = new.form_ctxt_id and
+          f.name in ('SpecimenCollectionEvent', 'SpecimenReceivedEvent');
+
+        if (formName = 'SpecimenCollectionEvent') then
+          update catissue_coll_event_param set specimen_id = new.object_id where identifier = new.record_id;
+        end if;
+
+        if (formName = 'SpecimenReceivedEvent') then
+          update catissue_received_event_param set specimen_id = new.object_id where identifier = new.record_id;
+        end if;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to remove specimen ID from collection/received event" dbms="mysql" runOnChange="true">
+    <sql>
+      drop trigger if exists os_upd_coll_recv_evt_spmn_id;
+    </sql>
+
+    <sql endDelimiter="//">
+      create trigger os_upd_coll_recv_evt_spmn_id after update on catissue_form_record_entry
+      for each row
+      begin
+        declare formName varchar(255);
+
+        if (new.activity_status = 'CLOSED' and new.activity_status != old.activity_status) then
+          select
+            f.name into formName
+          from
+            catissue_form_context fc
+            inner join dyextn_containers f on f.identifier = fc.container_id
+          where
+            fc.identifier = new.form_ctxt_id and
+            f.name in ('SpecimenCollectionEvent', 'SpecimenReceivedEvent');
+
+          if (formName ='SpecimenCollectionEvent') then
+            update catissue_coll_event_param set specimen_id = null where identifier = new.record_id;
+          end if;
+
+          if (formName = 'SpecimenReceivedEvent') then
+            update catissue_received_event_param set specimen_id = null where identifier = new.record_id;
+          end if;
+        end if;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to update specimen ID in collection/received event" dbms="oracle" runOnChange="true">
+    <sql splitStatements="false">
+      create or replace trigger os_ins_coll_recv_evt_spmn_id after insert on catissue_form_record_entry
+      for each row
+      declare
+        formName varchar2(255);
+      begin
+        select
+          f.name into formName
+        from
+          catissue_form_context fc
+          inner join dyextn_containers f on f.identifier = fc.container_id
+        where
+          fc.identifier = :new.form_ctxt_id;
+
+        if (formName = 'SpecimenCollectionEvent') then
+          update catissue_coll_event_param set specimen_id = :new.object_id where identifier = :new.record_id;
+        end if;
+
+        if (formName = 'SpecimenReceivedEvent') then
+          update catissue_received_event_param set specimen_id = :new.object_id where identifier = :new.record_id;
+        end if;
+      end;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to remove specimen ID from collection/received event" dbms="oracle" runOnChange="true">
+    <sql splitStatements="false">
+      create or replace trigger os_upd_coll_recv_evt_spmn_id after update on catissue_form_record_entry
+      for each row
+      declare
+        formName varchar2(255);
+      begin
+        if (:new.activity_status = 'CLOSED' and :new.activity_status != :old.activity_status) then
+          select
+            f.name into formName
+          from
+            catissue_form_context fc
+            inner join dyextn_containers f on f.identifier = fc.container_id
+          where
+            fc.identifier = :new.form_ctxt_id;
+
+          if (formName ='SpecimenCollectionEvent') then
+            update catissue_coll_event_param set specimen_id = null where identifier = :new.record_id;
+          end if;
+
+          if (formName = 'SpecimenReceivedEvent') then
+            update catissue_received_event_param set specimen_id = null where identifier = :new.record_id;
+          end if;
+        end if;
+      end;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Mobile upload jobs">
+    <createTable tableName="OS_MOBILE_UPLOAD_JOBS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="CP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="STATUS" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="TOTAL_RECORDS" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="FAILED_RECORDS" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CREATED_BY" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CREATION_TIME" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="END_TIME" type="${nullable.ts.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Mobile upload job ID sequence generator" dbms="oracle">
+    <createSequence sequenceName="OS_MOBILE_UPLOAD_JOBS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on mobile upload CP">
+    <addForeignKeyConstraint constraintName="FK_MOBILE_UPLOADS_CP_ID"
+      baseTableName="OS_MOBILE_UPLOAD_JOBS" baseColumnNames="CP_ID"
+      referencedTableName="CATISSUE_COLLECTION_PROTOCOL" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on mobile upload user">
+    <addForeignKeyConstraint constraintName="FK_MOBILE_UPLOADS_CREATOR_ID"
+      baseTableName="OS_MOBILE_UPLOAD_JOBS" baseColumnNames="CREATED_BY"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Auth credentials">
+    <createTable tableName="OS_AUTH_CREDENTIALS">
+      <column name="TOKEN" type="${text.type}(64)"/>
+
+      <column name="CREDENTIALS" type="${blob.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job shared users">
+    <createTable tableName="OS_SCHEDULED_JOB_SHARED_USERS">
+      <column name="SCHEDULED_JOB_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add FK scheduled job shared users - job ID">
+    <addForeignKeyConstraint
+      constraintName="FK_OS_SCHEDULED_JOB_SU_JOB"
+      baseTableName="OS_SCHEDULED_JOB_SHARED_USERS" baseColumnNames="SCHEDULED_JOB_ID"
+      referencedTableName="OS_SCHEDULED_JOBS" referencedColumnNames="IDENTIFIER" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add FK scheduled job shared users - user ID">
+    <addForeignKeyConstraint
+      constraintName="FK_OS_SCHEDULED_JOB_SU_USR"
+      baseTableName="OS_SCHEDULED_JOB_SHARED_USERS" baseColumnNames="USER_ID"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Starred items">
+    <createTable tableName="OS_STARRED_ITEMS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ITEM_TYPE" type="${text.type}(32)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ITEM_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Starred items identifier generator" dbms="oracle">
+    <createSequence sequenceName="OS_STARRED_ITEMS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Starred item unique key">
+    <addUniqueConstraint
+      constraintName="OS_STARRED_ITEM_UQ"
+      tableName="OS_STARRED_ITEMS" columnNames="USER_ID, ITEM_TYPE, ITEM_ID"/>
+  </changeSet>
+
+  <changeSet author="single" id="Add DND option for email notification to user">
+    <addColumn tableName="CATISSUE_USER">
+      <column name="DND" type="${boolean.type}" defaultValueBoolean="0">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CPR form record IDs">
+    <createTable tableName="OS_CPR_EXTN_RECS">
+      <column name="CPR_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="FORM_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="RECORD_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CPR form record IDs index">
+    <createIndex tableName="OS_CPR_EXTN_RECS" indexName="OS_CPR_EXTN_RECS_IDX">
+      <column name="CPR_ID"/>
+      <column name="FORM_ID"/>
+      <column name="RECORD_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Participant form record IDs">
+    <createTable tableName="OS_PARTICIPANT_EXTN_RECS">
+      <column name="PARTICIPANT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="FORM_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="RECORD_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Participant form record IDs index">
+    <createIndex tableName="OS_PARTICIPANT_EXTN_RECS" indexName="OS_PARTICIPANT_EXTN_RECS_IDX">
+      <column name="PARTICIPANT_ID"/>
+      <column name="FORM_ID"/>
+      <column name="RECORD_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Visit form record IDs">
+    <createTable tableName="OS_VISIT_EXTN_RECS">
+      <column name="VISIT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="FORM_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="RECORD_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Visit form record IDs index">
+    <createIndex tableName="OS_VISIT_EXTN_RECS" indexName="OS_VISIT_EXTN_RECS_IDX">
+      <column name="VISIT_ID"/>
+      <column name="FORM_ID"/>
+      <column name="RECORD_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen form record IDs">
+    <createTable tableName="OS_SPMN_EXTN_RECS">
+      <column name="SPECIMEN_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="FORM_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="RECORD_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen form record IDs index">
+    <createIndex tableName="OS_SPMN_EXTN_RECS" indexName="OS_SPMN_EXTN_RECS_IDX">
+      <column name="SPECIMEN_ID"/>
+      <column name="FORM_ID"/>
+      <column name="RECORD_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP custom fields form record IDs">
+    <createTable tableName="OS_CP_CUST_FIELDS">
+      <column name="CP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="FORM_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="RECORD_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP custom fields form record IDs index">
+    <createIndex tableName="OS_CP_CUST_FIELDS" indexName="OS_CP_CUST_FIELDS_IDX">
+      <column name="CP_ID"/>
+      <column name="FORM_ID"/>
+      <column name="RECORD_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Participant custom fields form record IDs">
+    <createTable tableName="OS_PARTICIPANT_CUST_FIELDS">
+      <column name="PARTICIPANT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="FORM_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="RECORD_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Participant custom fields form record IDs index">
+    <createIndex tableName="OS_PARTICIPANT_CUST_FIELDS" indexName="OS_PARTICIPANT_CUST_FIELDS_IDX">
+      <column name="PARTICIPANT_ID"/>
+      <column name="FORM_ID"/>
+      <column name="RECORD_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Visit custom fields form record IDs">
+    <createTable tableName="OS_VISIT_CUST_FIELDS">
+      <column name="VISIT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="FORM_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="RECORD_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Visit custom fields form record IDs index">
+    <createIndex tableName="OS_VISIT_CUST_FIELDS" indexName="OS_VISIT_CUST_FIELDS_IDX">
+      <column name="VISIT_ID"/>
+      <column name="FORM_ID"/>
+      <column name="RECORD_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen custom fields form record IDs">
+    <createTable tableName="OS_SPMN_CUST_FIELDS">
+      <column name="SPECIMEN_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="FORM_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="RECORD_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen custom fields form record IDs index">
+    <createIndex tableName="OS_SPMN_CUST_FIELDS" indexName="OS_SPMN_CUST_FIELDS_IDX">
+      <column name="SPECIMEN_ID"/>
+      <column name="FORM_ID"/>
+      <column name="RECORD_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Order custom fields form record IDs">
+    <createTable tableName="OS_ORDER_CUST_FIELDS">
+      <column name="ORDER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="FORM_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="RECORD_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Order custom fields form record IDs index">
+    <createIndex tableName="OS_ORDER_CUST_FIELDS" indexName="OS_ORDER_CUST_FIELDS_IDX">
+      <column name="ORDER_ID"/>
+      <column name="FORM_ID"/>
+      <column name="RECORD_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to insert query entity DE form record IDs" dbms="mysql" runOnChange="true">
+    <sql>
+      drop trigger if exists os_ins_entity_form_record_id;
+    </sql>
+
+    <sql endDelimiter="//">
+      create trigger os_ins_entity_form_record_id after insert on catissue_form_record_entry
+      for each row
+      begin
+        declare formId bigint;
+        declare entityType varchar(255);
+
+        select
+          container_id, entity_type into formId, entityType
+        from
+          catissue_form_context
+        where
+          identifier = new.form_ctxt_id;
+
+        if (entityType = 'CollectionProtocolExtension') then
+          insert into os_cp_cust_fields(cp_id, form_id, record_id) values(new.object_id, formId, new.record_id);
+        elseif (entityType = 'Participant') then
+          insert into os_cpr_extn_recs(cpr_id, form_id, record_id) values(new.object_id, formId, new.record_id);
+        elseif (entityType = 'CommonParticipant') then
+          insert into os_participant_extn_recs(participant_id, form_id, record_id) values(new.object_id, formId, new.record_id);
+        elseif (entityType = 'ParticipantExtension') then
+          insert into os_participant_cust_fields(participant_id, form_id, record_id) values(new.object_id, formId, new.record_id);
+        elseif (entityType = 'SpecimenCollectionGroup') then
+          insert into os_visit_extn_recs(visit_id, form_id, record_id) values(new.object_id, formId, new.record_id);
+        elseif (entityType = 'VisitExtension') then
+          insert into os_visit_cust_fields(visit_id, form_id, record_id) values(new.object_id, formId, new.record_id);
+        elseif (entityType = 'Specimen' || entityType = 'SpecimenEvent') then
+          insert into os_spmn_extn_recs(specimen_id, form_id, record_id) values (new.object_id, formId, new.record_id);
+        elseif (entityType = 'SpecimenExtension') then
+          insert into os_spmn_cust_fields(specimen_id, form_id, record_id) values (new.object_id, formId, new.record_id);
+        elseif (entityType = 'OrderExtension') then
+          insert into os_order_cust_fields(order_id, form_id, record_id) values (new.object_id, formId, new.record_id);
+        end if;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to remove query entity DE form record IDs" dbms="mysql" runOnChange="true">
+    <sql>
+      drop trigger if exists os_del_entity_form_record_id;
+    </sql>
+
+    <sql endDelimiter="//">
+      create trigger os_del_entity_form_record_id after update on catissue_form_record_entry
+      for each row
+      begin
+        declare formId bigint;
+        declare entityType varchar(255);
+
+        if (new.activity_status = 'CLOSED') then
+          select
+            container_id, entity_type into formId, entityType
+          from
+            catissue_form_context
+          where
+            identifier = new.form_ctxt_id;
+
+          if (entityType = 'CollectionProtocolExtension') then
+            delete from os_cp_cust_fields where cp_id = new.object_id and form_id = formId and record_id = new.record_id;
+          elseif (entityType = 'Participant') then
+            delete from os_cpr_extn_recs where cpr_id = new.object_id and form_id = formId and record_id = new.record_id;
+          elseif (entityType = 'CommonParticipant') then
+            delete from os_participant_extn_recs where participant_id = new.object_id and form_id = formId and record_id = new.record_id;
+          elseif (entityType = 'ParticipantExtension') then
+            delete from os_participant_cust_fields where participant_id = new.object_id and form_id = formId and record_id = new.record_id;
+          elseif (entityType = 'SpecimenCollectionGroup') then
+            delete from os_visit_extn_recs where visit_id = new.object_id and form_id = formId and record_id = new.record_id;
+          elseif (entityType = 'VisitExtension') then
+            delete from os_visit_cust_fields where visit_id = new.object_id and form_id = formId and record_id = new.record_id;
+          elseif (entityType = 'Specimen' || entityType = 'SpecimenEvent') then
+            delete from os_spmn_extn_recs where specimen_id = new.object_id and form_id = formId and record_id = new.record_id;
+          elseif (entityType = 'SpecimenExtension') then
+            delete from os_spmn_cust_fields where specimen_id = new.object_id and form_id = formId and record_id = new.record_id;
+          elseif (entityType = 'OrderExtension') then
+            delete from os_order_cust_fields where order_id = new.object_id and form_id = formId and record_id = new.record_id;
+          end if;
+        end if;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to insert query entity DE form record IDs" dbms="oracle" runOnChange="true">
+    <sql endDelimiter="//">
+      create or replace trigger os_ins_entity_form_record_id after insert on catissue_form_record_entry
+      for each row
+      declare
+        formId number;
+        entityType varchar2(255);
+      begin
+        select
+          container_id, entity_type into formId, entityType
+        from
+          catissue_form_context
+        where
+          identifier = :new.form_ctxt_id;
+
+        if (entityType = 'CollectionProtocolExtension') then
+          insert into os_cp_cust_fields(cp_id, form_id, record_id) values(:new.object_id, formId, :new.record_id);
+        elsif (entityType = 'Participant') then
+          insert into os_cpr_extn_recs(cpr_id, form_id, record_id) values(:new.object_id, formId, :new.record_id);
+        elsif (entityType = 'CommonParticipant') then
+          insert into os_participant_extn_recs(participant_id, form_id, record_id) values(:new.object_id, formId, :new.record_id);
+        elsif (entityType = 'ParticipantExtension') then
+          insert into os_participant_cust_fields(participant_id, form_id, record_id) values(:new.object_id, formId, :new.record_id);
+        elsif (entityType = 'SpecimenCollectionGroup') then
+          insert into os_visit_extn_recs(visit_id, form_id, record_id) values(:new.object_id, formId, :new.record_id);
+        elsif (entityType = 'VisitExtension') then
+          insert into os_visit_cust_fields(visit_id, form_id, record_id) values(:new.object_id, formId, :new.record_id);
+        elsif (entityType = 'Specimen' or entityType = 'SpecimenEvent') then
+          insert into os_spmn_extn_recs(specimen_id, form_id, record_id) values (:new.object_id, formId, :new.record_id);
+        elsif (entityType = 'SpecimenExtension') then
+          insert into os_spmn_cust_fields(specimen_id, form_id, record_id) values (:new.object_id, formId, :new.record_id);
+        elsif (entityType = 'OrderExtension') then
+          insert into os_order_cust_fields(order_id, form_id, record_id) values (:new.object_id, formId, :new.record_id);
+        end if;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to remove query entity DE form record IDs" dbms="oracle" runOnChange="true">
+    <sql endDelimiter="//">
+      create or replace trigger os_del_entity_form_record_id after update on catissue_form_record_entry
+      for each row
+      declare
+        formId number;
+        entityType varchar2(255);
+      begin
+        if (:new.activity_status = 'CLOSED') then
+          select
+            container_id, entity_type into formId, entityType
+          from
+            catissue_form_context
+          where
+            identifier = :new.form_ctxt_id;
+
+          if (entityType = 'CollectionProtocolExtension') then
+            delete from os_cp_cust_fields where cp_id = :new.object_id and form_id = formId and record_id = :new.record_id;
+          elsif (entityType = 'Participant') then
+            delete from os_cpr_extn_recs where cpr_id = :new.object_id and form_id = formId and record_id = :new.record_id;
+          elsif (entityType = 'CommonParticipant') then
+            delete from os_participant_extn_recs where participant_id = :new.object_id and form_id = formId and record_id = :new.record_id;
+          elsif (entityType = 'ParticipantExtension') then
+            delete from os_participant_cust_fields where participant_id = :new.object_id and form_id = formId and record_id = :new.record_id;
+          elsif (entityType = 'SpecimenCollectionGroup') then
+            delete from os_visit_extn_recs where visit_id = :new.object_id and form_id = formId and record_id = :new.record_id;
+          elsif (entityType = 'VisitExtension') then
+            delete from os_visit_cust_fields where visit_id = :new.object_id and form_id = formId and record_id = :new.record_id;
+          elsif (entityType = 'Specimen' or entityType = 'SpecimenEvent') then
+            delete from os_spmn_extn_recs where specimen_id = :new.object_id and form_id = formId and record_id = :new.record_id;
+          elsif (entityType = 'SpecimenExtension') then
+            delete from os_spmn_cust_fields where specimen_id = :new.object_id and form_id = formId and record_id = :new.record_id;
+          elsif (entityType = 'OrderExtension') then
+            delete from os_order_cust_fields where order_id = :new.object_id and form_id = formId and record_id = :new.record_id;
+          end if;
+        end if;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop defunct CP custom fields rec IDs view">
+    <preConditions onFail="MARK_RAN">
+      <viewExists viewName="OS_CP_CUST_FIELD_EXTNS_VIEW"/>
+    </preConditions>
+    <dropView viewName="OS_CP_CUST_FIELD_EXTNS_VIEW"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop defunct participant forms rec IDs view">
+    <preConditions onFail="MARK_RAN">
+      <viewExists viewName="CPR_EXTENSION_RECORDS_VIEW"/>
+    </preConditions>
+    <dropView viewName="CPR_EXTENSION_RECORDS_VIEW"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop defunct participant custom fields rec IDs view">
+    <preConditions onFail="MARK_RAN">
+      <viewExists viewName="OS_PART_CUST_FIELD_EXTNS_VIEW"/>
+    </preConditions>
+    <dropView viewName="OS_PART_CUST_FIELD_EXTNS_VIEW"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop defunct visit form rec IDs view">
+    <preConditions onFail="MARK_RAN">
+      <viewExists viewName="SCG_EXTN_RECORDS_VIEW"/>
+    </preConditions>
+    <dropView viewName="SCG_EXTN_RECORDS_VIEW"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop defunct visit custom fields rec IDs view">
+    <preConditions onFail="MARK_RAN">
+      <viewExists viewName="OS_VISIT_CUST_FIELD_EXTNS_VIEW"/>
+    </preConditions>
+    <dropView viewName="OS_VISIT_CUST_FIELD_EXTNS_VIEW"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop defunct specimen form rec IDs view">
+    <preConditions onFail="MARK_RAN">
+      <viewExists viewName="SPECIMEN_EXTN_RECORDS_VIEW"/>
+    </preConditions>
+    <dropView viewName="SPECIMEN_EXTN_RECORDS_VIEW"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop defunct specimen custom fields rec IDs view">
+    <preConditions onFail="MARK_RAN">
+      <viewExists viewName="OS_SPEC_CUST_FIELD_EXTNS_VIEW"/>
+    </preConditions>
+    <dropView viewName="OS_SPEC_CUST_FIELD_EXTNS_VIEW"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop defunct order custom fields rec IDs view">
+    <preConditions onFail="MARK_RAN">
+      <viewExists viewName="OS_ORDERS_CUSTOM_FIELDS_VIEW"/>
+    </preConditions>
+    <dropView viewName="OS_ORDERS_CUSTOM_FIELDS_VIEW"/>
+  </changeSet>
+</databaseChangeLog>

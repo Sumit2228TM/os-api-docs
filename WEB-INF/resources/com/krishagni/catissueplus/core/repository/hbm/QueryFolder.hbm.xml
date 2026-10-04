@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="com.krishagni.catissueplus.core.de.domain.QueryFolder" table="CATISSUE_QUERY_FOLDERS"
+    entity-name="com.krishagni.catissueplus.core.de.domain.QueryFolder">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">CATISSUE_QUERY_FOLDERS_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="name" column="NAME"/>
+
+    <property name="sharedWithAll" column="SHARED_WITH_ALL"/>
+
+    <property name="allowEditsBySharedUsers" column="ALLOW_EDITS_BY_SHARED_USERS" />
+
+    <many-to-one name="owner" column="OWNER"/>
+     
+    <set name="sharedWith" table="CATISSUE_QFOLDER_SHARE_SETTING">
+      <key column="FOLDER_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.administrative.domain.User" column="USER_ID">
+        <filter name="activeEntity" condition="activity_status != 'Disabled'"/>
+      </many-to-many>
+    </set>
+
+    <set name="sharedWithGroups" table="OS_QUERY_FOLDER_SHARED_GROUPS">
+      <key column="FOLDER_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.administrative.domain.UserGroup" column="GROUP_ID">
+        <filter name="activeEntity" condition="activity_status != 'Disabled'"/>
+      </many-to-many>
+    </set>
+	
+    <set name="savedQueries" table="CATISSUE_QUERY_FOLDER_QUERIES">
+      <key column="FOLDER_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.de.domain.SavedQuery" column="QUERY_ID" />
+    </set>
+  </class> 
+</hibernate-mapping>

@@ -1,0 +1,94 @@
+
+<div class="os-modal">
+  <div class="os-modal-header">
+     <span translate="orders.dist_details">Distribution Details</span>
+  </div>
+  <form name="dpForm" class="form-horizontal" os-form-validator="dpForm" validator="dpFormValidator" novalidate>
+    <div class="os-modal-body">
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="orders.dp">Distribution Protocol</span>
+        </label>
+        <div class="col-xs-9">
+          <os-select name="dp" ng-model="ctx.dp" list="ctx.dps" display-prop="shortTitle" refresh="loadDps"
+            placeholder="{{'orders.dp' | translate}}" required>
+          </os-select>
+          <div os-field-error field="dpForm.dp"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="orders.comments">Comments</span>
+        </label>
+        <div class="col-xs-9">
+          <textarea name="comments" class="form-control" ng-model="ctx.comments"
+            placeholder="{{'orders.comments' | translate}}" rows="2">
+          </textarea>
+        </div>
+      </div>
+      <div class="form-group" ng-show="ctx.clearListId >= 0 && !ctx.hideDistributeBtn">
+        <label class="col-xs-3 control-label" translate="orders.clear_cart_mode">Remove From Cart</label>
+        <div class="col-xs-9">
+          <label class="radio-inline">
+            <input type="radio" name="clearListMode" ng-model="ctx.clearListMode" ng-value="'DISTRIBUTED'">
+            <span translate="orders.clear_dist_cart_specimens">Distributed</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="clearListMode" ng-model="ctx.clearListMode" ng-value="'ALL'">
+            <span translate="orders.clear_all_cart_specimens">All</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="clearListMode" ng-model="ctx.clearListMode" ng-value="'NONE'">
+            <span translate="orders.clear_no_cart_specimens">None</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group" ng-hide="ctx.hideDistributeBtn || ctx.distList">
+        <div class="col-xs-offset-3 col-xs-6 os-text-checkbox">
+          <div class="checkbox">
+            <os-checkbox ng-model="ctx.printLabels"></os-checkbox>
+          </div>
+          <div class="message os-ctrl-padding-top">
+            <span translate="orders.print_labels">Print de-identified labels when specimens are distributed.</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" ng-hide="ctx.hideDistributeBtn || ctx.distList">
+        <div class="col-xs-offset-3 col-xs-6 os-text-checkbox">
+          <div class="checkbox">
+            <os-checkbox ng-model="ctx.checkoutSpecimens"></os-checkbox>
+          </div>
+          <div class="message os-ctrl-padding-top">
+            <span translate="orders.checkout_specimens">Checkout Specimens</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="os-modal-footer">
+      <button class="btn os-btn-text" ng-click="cancel()">
+        <span translate="common.buttons.cancel">Cancel</span>
+      </button>
+      <button class="btn btn-primary" os-form-submit="reserve()" ng-hide="ctx.distList">
+        <span translate="orders.buttons.reserve">Reserve</span>
+      </button>
+      <div class="os-inline-btn" dropdown>
+        <button class="btn btn-primary dropdown-toggle" ng-hide="ctx.hideDistributeBtn">
+          <span translate="orders.buttons.distribute">Distribute</span>
+          <span class="fa fa-caret-down"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a os-form-submit="distribute()">
+              <span translate="orders.buttons.distribute_now">Distribute Now</span>
+            </a>
+          </li>
+          <li>
+            <a os-form-submit="editOrder()" local-form="true">
+              <span translate="common.buttons.add_more_details">Add More Details</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </form>
+</div>

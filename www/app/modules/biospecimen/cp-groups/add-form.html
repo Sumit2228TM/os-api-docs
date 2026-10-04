@@ -1,0 +1,62 @@
+<form name="addForm" class="form-horizontal os-no-label-form" os-form-validator="addForm">
+  <div class="os-modal">
+    <div class="os-modal-header">
+      <span translate="cp_groups.add_form">Add Form</span>
+    </div>
+    <div class="os-modal-body">
+      <div class="form-group">
+        <div class="col-xs-12">
+          <os-select name="form" ng-model="mctx.form" list="mctx.forms" display-prop="caption"
+            refresh="searchForms" placeholder="{{'cp_groups.select_form' | translate}}" required>
+          </os-select>
+          <div os-field-error field="addForm.form"></div>
+        </div>
+      </div>
+      <div class="form-group" ng-show="mctx.showMultiRecord">
+        <div class="col-xs-9 os-text-checkbox">
+          <div class="checkbox">
+            <os-checkbox ng-model="mctx.allowMultipleRecords" ng-true-value="true" ng-false-value="false"></os-checkbox>
+          </div>
+          <div class="message os-ctrl-padding-top">
+            <span translate="cp_groups.multiple_recs_allowed">Multiple records allowed</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-xs-12 os-text-checkbox">
+          <div class="checkbox">
+            <os-checkbox ng-model="mctx.notifEnabled" ng-true-value="true" ng-false-value="false"></os-checkbox>
+          </div>
+          <div class="message os-ctrl-padding-top">
+            <span translate="cp_groups.form_notifs_enabled">Enable Notifications</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" ng-if="mctx.notifEnabled">
+        <div class="col-xs-12 os-text-checkbox">
+          <div class="checkbox">
+            <os-checkbox ng-model="mctx.dataInNotif" ng-true-value="true" ng-false-value="false"></os-checkbox>
+          </div>
+          <div class="message os-ctrl-padding-top">
+            <span translate="cp_groups.include_form_data_in_notif">Include Form Data in Notification</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" ng-if="mctx.notifEnabled">
+        <div class="col-xs-12">
+          <os-user-groups multiple ng-model="mctx.notifUserGroups"
+            placeholder="{{'cp_groups.form_notif_user_groups' | translate}}" append-to-body="true">
+          </os-user-groups>
+        </div>
+      </div>
+    </div>
+    <div class="os-modal-footer">
+      <button class="btn os-btn-text" ng-click="cancel()">
+        <span translate="common.buttons.cancel"></span>
+      </button>
+      <button class="btn btn-primary" os-form-submit="submit()">
+        <span translate="common.buttons.add"></span>
+      </button>
+    </div>
+  </div>
+</form>

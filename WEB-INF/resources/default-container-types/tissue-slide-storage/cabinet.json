@@ -1,0 +1,15 @@
+{
+  "name": "Tissue Slide Cabinet",
+  "nameFormat": "T%SITE_UID%",
+  "noOfColumns": 14,
+  "noOfRows": 1,
+  "positionLabelingMode": "TWO_D",
+  "columnLabelingScheme": "Numbers",
+  "rowLabelingScheme": "Numbers",
+  "temperature": null,
+  "storeSpecimenEnabled": false,
+  "activityStatus": "Active",
+  "canHold": {
+    "name": "Tissue Slide Drawer"
+  }
+}

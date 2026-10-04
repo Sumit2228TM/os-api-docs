@@ -1,0 +1,13 @@
+{
+  "name": "-20 Box",
+  "nameFormat": "%PCONT_NAME%.B%PCONT_UID%",
+  "noOfColumns": 4,
+  "noOfRows": 17,
+  "positionLabelingMode": "TWO_D",
+  "columnLabelingScheme": "Numbers",
+  "rowLabelingScheme": "Numbers",
+  "temperature": null,
+  "storeSpecimenEnabled": true,
+  "activityStatus": "Active",
+  "canHold": null
+}

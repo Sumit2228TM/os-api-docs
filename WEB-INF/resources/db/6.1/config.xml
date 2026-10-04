@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="IMAP server host">
+    <sql>
+      call add_cfg_prop(
+        'email', 'imap_server_host',
+        'imap_server_host', 'imap_server_host_desc',
+        'STRING', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="IMAP server port">
+    <sql>
+      call add_cfg_prop(
+        'email', 'imap_server_port',
+        'imap_server_port', 'imap_server_port_desc',
+        'INT', '993'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="IMAP polling interval for new messages">
+    <sql>
+      call add_cfg_prop(
+        'email', 'imap_poll_interval',
+        'imap_poll_interval', 'imap_poll_interval_desc',
+        'INT', '5'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update SMTP config key names">
+    <sql>update os_cfg_props set name = 'smtp_auth_enabled' where name = 'auth_enabled';</sql>
+    <sql>update os_cfg_props set name = 'smtp_server_host' where name = 'server_host';</sql>
+    <sql>update os_cfg_props set name = 'smtp_server_port' where name = 'server_port';</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job to change data type of DE date/time field" dbms="mysql">
+    <sql>
+      select identifier into @userId from catissue_user where login_name = '$system';
+
+      insert into os_scheduled_jobs
+        (identifier, name, created_by, start_date, repeat_schedule, scheduled_minute, scheduled_hour, activity_status,
+         type, command, task_impl_fqn, rt_args_provided, rt_args_help_text)
+      values
+        (default, 'Change data type of custom form date field', @userId, now(), 'ONDEMAND', 00, 00, 'Active',
+         'INTERNAL', null, 'com.krishagni.catissueplus.core.de.services.impl.ChangeDateTypeTask',
+         1, 'Input custom form and field names separated by a space')
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Release notes URL setting">
+    <sql>
+      call add_cfg_prop(
+        'training', 'release_notes',
+        'release_notes', 'release_notes_desc',
+        'STRING', 'https://openspecimen.atlassian.net/wiki/x/M4B1'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Enable/disable HTML markup in DE form captions">
+    <sql>
+      call add_cfg_prop(
+        'common', 'de_form_html_markup',
+        'de_form_html_markup', 'de_form_html_markup_desc',
+        'BOOLEAN', 'true'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP label and miscellaneous settings help link">
+    <sql>
+      call add_cfg_prop(
+        'training', 'cp_misc_settings_help',
+        'cp_misc_settings_help', 'cp_misc_settings_help_desc',
+        'STRING', 'https://openspecimen.atlassian.net/wiki/x/TgBvG'
+      );
+    </sql>
+  </changeSet>
+</databaseChangeLog>

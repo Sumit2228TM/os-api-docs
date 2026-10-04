@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="API user fields">
+    <addColumn tableName="CATISSUE_USER_AUD">
+      <column name="API_USER" type="${boolean.type}"/>
+      <column name="apiUser_MOD" type="${boolean.type}"/>
+      <column name="IP_RANGE" type="${text.type}(64)"/>
+      <column name="ipRange_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Form association revisions">
+    <createTable tableName="CATISSUE_FORM_CONTEXT_AUD">
+      <column name="REV" type="${int.type}"/>
+      <column name="REVTYPE" type="${smallint.type}"/>
+      <column name="IDENTIFIER" type="${int.type}"/>
+      <column name="CONTAINER_ID" type="${int.type}"/>
+      <column name="containerId_MOD" type="${boolean.type}"/>
+      <column name="ENTITY_TYPE" type="${text.type}(32)"/>
+      <column name="entityType_MOD" type="${boolean.type}"/>
+      <column name="CP_ID" type="${int.type}"/>
+      <column name="cpId_MOD" type="${boolean.type}"/>
+      <column name="SORT_ORDER" type="${smallint.type}"/>
+      <column name="sortOrder_MOD" type="${boolean.type}"/>
+      <column name="IS_MULTIRECORD" type="${boolean.type}"/>
+      <column name="multiRecord_MOD" type="${boolean.type}"/>
+      <column name="IS_SYS_FORM" type="${boolean.type}"/>
+      <column name="sysForm_MOD" type="${boolean.type}"/>
+      <column name="DELETED_ON" type="${nullable.ts.type}"/>
+      <column name="deletedOn_MOD" type="${boolean.type}"/>
+      <column name="ENTITY_ID" type="${int.type}"/>
+      <column name="entityId_MOD" type="${boolean.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Distribution protocol - order attachment type">
+    <addColumn tableName="CAT_DISTRIBUTION_PROTOCOL_AUD">
+      <column name="ATTACHMENT_TYPE" type="${text.type}(16)"/>
+      <column name="attachmentType_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen availability status">
+    <addColumn tableName="CATISSUE_SPECIMEN_AUD">
+      <column name="AVAILABILITY_STATUS" type="${text.type}(32)"/>
+      <column name="availabilityStatus_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP setting to zero out quantity of disposed specimens">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="SET_QTY_TO_ZERO" type="${boolean.type}"/>
+      <column name="setQtyToZero_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

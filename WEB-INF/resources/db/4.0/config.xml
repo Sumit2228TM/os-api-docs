@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Default system level specimen centric CP report settings">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'sys_spmn_cp_rpt_settings',
+        'sys_spmn_cp_rpt_settings', 'sys_spmn_cp_rpt_settings_desc',
+        'FILE', 'classpath:/com/krishagni/catissueplus/core/biospecimen/spmn-cp-report-settings.json'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="ID of saved query to use as default catalog for specimen centric CPs">
+    <sql>
+      call add_cfg_prop(
+        'catalog', 'default_spmn_centric_query',
+        'default_spmn_centric_query', 'default_spmn_centric_query_desc',
+        'INT', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to impose limit on cart size for sorting by specimen relationship">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'rel_sorting_max_spmns',
+        'rel_sorting_max_spmns', 'rel_sorting_max_spmns_desc',
+        'INT', '250'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Deployment site logo to display on OpenSpecimen navigation bar">
+    <sql>
+      call add_cfg_prop(
+        'common', 'deployment_site_logo',
+        'deployment_site_logo', 'deployment_site_logo_desc',
+        'FILE', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Site URL to navigate on clicking deployment site logo">
+    <sql>
+      call add_cfg_prop(
+        'common', 'deployment_site_url',
+        'deployment_site_url', 'deployment_site_url_desc',
+        'STRING', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container store list executor" dbms="mysql">
+    <sql>
+      select identifier into @userId from catissue_user where login_name = '$system';
+
+      insert into os_scheduled_jobs
+        (identifier, name, created_by, start_date, end_date, scheduled_minute, scheduled_hour, scheduled_day_of_week,
+         scheduled_day_of_month, activity_status, repeat_schedule, type, command,
+         task_impl_fqn, rt_args_provided, rt_args_help_text)
+      values
+        (default, "Create automated container's store list", @userId, now(), null, 0, null, null,
+         null, 'Active', 'MINUTELY', 'INTERNAL', null,
+         'com.krishagni.catissueplus.core.administrative.services.impl.ContainerStoreListExecutor', 0, null);
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container store list executor" dbms="oracle">
+    <sql endDelimiter="//">
+      declare
+        userId number;
+      begin
+        select identifier into userId from catissue_user where login_name like '$system';
+
+        insert into os_scheduled_jobs
+          (identifier, name, created_by, start_date, end_date, scheduled_minute, scheduled_hour, scheduled_day_of_week,
+           scheduled_day_of_month, activity_status, repeat_schedule, type, command,
+           task_impl_fqn, rt_args_provided, rt_args_help_text)
+        values
+          (OS_SCHEDULED_JOBS_SEQ.nextVal, 'Create automated containers store list', userId, SYSDATE, null, 0, null, null,
+           null, 'Active', 'MINUTELY', 'INTERNAL', null,
+           'com.krishagni.catissueplus.core.administrative.services.impl.ContainerStoreListExecutor', 0, null);
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Config setting to specify interval in days for cleaning of staged participants">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'staged_part_cleanup_int',
+        'staged_part_cleanup_int', 'staged_part_cleanup_int_desc',
+        'INT', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job to cleanup staged participants" dbms="mysql">
+    <sql>
+      select identifier into @userId from catissue_user where login_name = '$system';
+
+      insert into os_scheduled_jobs (
+        identifier, name, created_by, start_date, end_date, scheduled_minute, scheduled_hour, scheduled_day_of_week,
+        scheduled_day_of_month, activity_status, repeat_schedule, type, command,
+        task_impl_fqn, rt_args_provided, rt_args_help_text)
+      values (
+        default, 'Staged participants cleaner', @userId, now(), null, 30, 23, null,
+        null, 'Active', 'DAILY', 'INTERNAL', null,
+        'com.krishagni.catissueplus.core.biospecimen.services.impl.StagedParticipantsCleanupTask', 0, null)
+    </sql>
+  </changeSet>
+
+  <changeSet author="nmarwaha" id="Scheduled job to cleanup staged participants" dbms="oracle">
+    <sql endDelimiter="//">
+      declare
+        userId number;
+      begin
+        select identifier into userId from catissue_user where login_name like '$system';
+
+        insert into os_scheduled_jobs (
+          identifier, name, created_by, start_date, end_date, scheduled_minute, scheduled_hour, scheduled_day_of_week,
+          scheduled_day_of_month, activity_status, repeat_schedule, type, command,
+          task_impl_fqn, rt_args_provided, rt_args_help_text)
+        values (
+          OS_SCHEDULED_JOBS_SEQ.nextVal, 'Staged participants cleaner', userId, SYSDATE, null, 30, 23, null,
+          null, 'Active', 'DAILY', 'INTERNAL', null,
+          'com.krishagni.catissueplus.core.biospecimen.services.impl.StagedParticipantsCleanupTask', 0, null);
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="ID of saved query to use for container specimens report">
+    <sql>
+      call add_cfg_prop(
+        'common', 'cont_spmns_report_query',
+        'cont_spmns_report_query', 'cont_spmns_report_query_desc',
+        'INT', ''
+      );
+    </sql>
+  </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,88 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3>
+        <span translate="queries.audit_logs.title">Query Audit Logs</span>
+      </h3>
+    </div>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left">
+      <button class="default" ui-sref="export-query-audit-logs" show-if-admin>
+        <span class="fa fa-download"></span>
+        <span translate="common.buttons.export">Export</span>
+      </button>
+    </div>
+    <div class="right">
+      <button os-right-drawer-toggle class="default">
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th class="col os-desc-column">
+            <span translate="queries.audit_logs.query">Query</span>
+          </th>
+          <th class="col">
+            <span translate="queries.audit_logs.executed_by">Executed by</span>
+          </th>
+          <th class="col">
+            <span translate="queries.audit_logs.type">Type</span>
+          </th>
+          <th class="col">
+            <span translate="queries.audit_logs.time_of_exec">Time of Execution</span>
+          </th>
+          <th class="col">
+            <span translate="queries.audit_logs.time_to_finish">Time to Finish (seconds)</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-if="ctx.loading">
+          <td class="col">
+            <span translate="queries.audit_logs.loading">Loading audit logs. Please wait for a moment ...</span>
+          </td>
+        </tr>
+
+        <tr class="row" ng-if="!ctx.loading && ctx.logs.length == 0">
+          <td class="col">
+            <span translate="queries.audit_logs.no_logs">No audit logs to show</span>
+          </td>
+        </tr>
+
+        <tr class="row" ng-if="!ctx.loading" ng-repeat="log in ctx.logs" os-row-click="viewSql(log)">
+          <td class="col os-desc-column" ng-switch on="!!log.queryId">
+            <a ui-sref="query-addedit({queryId: log.queryId})" ng-switch-when="true">
+              <span>#{{log.queryId}}</span>
+              <span>{{log.queryTitle}}</span>
+            </a>
+            <span ng-switch-when="false" translate="queries.audit_logs.unsaved_query">Unsaved query</span>
+          </td>
+          <td class="col">
+            <span>{{log.runBy | osUserDisplayName}}</span>
+          </td>
+          <td class="col">
+            <span>{{log.runType}}</span>
+          </td>
+          <td class="col">
+            <span>{{log.timeOfExecution | date: global.dateTimeFmt}}</span>
+          </td>
+          <td class="col">
+            <span>{{(log.timeToFinish || 0) / 1000}}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <pager total-items="ctx.pageOpts.totalLogs" items-per-page="ctx.pageOpts.pageSize" ng-model="ctx.pageOpts.currPage">
+    </pager>
+  </div>
+
+  <div os-right-drawer ng-include="'modules/query/audit-logs-search.html'"></div>
+</div>

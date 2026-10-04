@@ -1,0 +1,53 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li>
+          <a ui-sref="consent-statement-list">
+            <span translate="consent_statement.list">Consent Statements</span>
+          </a>
+        </li>
+      </ul>
+      <h3 ng-switch on="!consentStatement.id">
+        <span ng-switch-when="true" translate="consent_statement.create_stmt">Create Statement</span>
+        <span ng-switch-when="false">{{consentStatement.statement}} ({{consentStatement.code}})</span>
+      </h3>
+    </div>
+  </div>
+
+  <div class="container">
+    <form name="csform" class="form-horizontal" os-form-validator="csform" novalidate>
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="consent_statement.code">Code</label>
+        <div class="col-xs-6">
+          <input type="text" name="code" ng-model="consentStatement.code" class="form-control"
+            required placeholder="{{'consent_statement.code' | translate}}" ng-maxlength="32">
+          <div os-field-error field="csform.code"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="consent_statement.statement">Statement</label>
+        <div class="col-xs-6">
+          <input type="text" name="statement" ng-model="consentStatement.statement" class="form-control"
+            required placeholder="{{'consent_statement.statement' | translate}}" ng-maxlength="255">
+          <div os-field-error field="csform.statement"></div>
+        </div>
+      </div>
+
+      <div class="os-divider"></div>
+
+      <div class="form-group">
+        <div class="col-xs-offset-3 col-xs-6">
+          <button class="btn btn-primary" os-form-submit="save()" ng-switch on="!consentStatement.id">
+            <span ng-switch-when="true"  translate="common.buttons.create"> Create </span>
+            <span ng-switch-when="false" translate="common.buttons.update"> Update </span>
+          </button>
+          <button class="btn os-btn-text" ng-click="back()">
+            <span translate="common.buttons.discard">Discard</span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+<div class="os-search">
+  <div class="os-head">
+    <h3 class="os-title">
+      <span translate="common.filters.title">Filters</span>
+    </h3>
+  </div>
+
+  <div class="os-body">
+    <div class="form-group">
+      <input os-md-input type="text" ng-model="ctx.filterOpts.name" class="form-control"
+        placeholder="{{'container_task.name' | translate}}">
+    </div>
+
+    <os-clear-filters opts="ctx.filterOpts"></os-clear-filters>
+  </div>
+</div>

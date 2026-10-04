@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="com.krishagni.rbac.domain.ResourceInstanceOp" table="RBAC_ROLE_ACCESS_LIST_OPS"
+    entity-name="com.krishagni.rbac.domain.ResourceInstanceOp">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">RBAC_ACL_OPS_SEQ</param>
+      </generator>
+    </id>
+    
+    <many-to-one name="operation" column="OPERATION_ID" cascade="none"/>
+    
+    <many-to-one name="accessControl" column="ACL_ID" cascade="none"/>
+  </class>
+</hibernate-mapping> 
+ 

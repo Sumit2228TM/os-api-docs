@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="CP close parent specimens on children creation">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="CLOSE_PARENT_SPMNS" type="${boolean.type}"/>
+      <column name="closeParentSpecimens_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Registration custom fields revision">
+    <addColumn tableName="CATISSUE_COLL_PROT_REG_AUD">
+      <column name="EXTENSION_REV" type="${int.type}"/>
+      <column name="extensionRev_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Visit custom fields revision">
+    <addColumn tableName="CAT_SPECIMEN_COLL_GROUP_AUD">
+      <column name="EXTENSION_REV" type="${int.type}"/>
+      <column name="extensionRev_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen custom fields revision">
+    <addColumn tableName="CATISSUE_SPECIMEN_AUD">
+      <column name="EXTENSION_REV" type="${int.type}"/>
+      <column name="extensionRev_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Procedure to update record creation and update audit data" runOnChange="true" dbms="mysql">
+    <sql>
+      drop procedure if exists update_records_audit_info;
+    </sql>
+
+    <sql endDelimiter="//">
+      create procedure update_records_audit_info(in data_table text, in audit_table text)
+      begin
+
+        set @set_creation_info = concat(
+          'update ',
+             data_table, ' dt ',
+          '  inner join ', audit_table, ' at on at.identifier = dt.identifier and at.revtype = 0 ',
+          '  inner join os_revisions rev on rev.rev = at.rev ',
+          'set ',
+          '  dt.creator = rev.user_id, ',
+          '  dt.creation_time = rev.revtstmp'
+        );
+
+        prepare set_creation_info_stmt from @set_creation_info;
+        execute set_creation_info_stmt;
+        deallocate prepare set_creation_info_stmt;
+
+        set @set_update_info = concat(
+          'update ',
+            data_table, ' dt ',
+          ' inner join (
+              select
+                t1.*
+              from (
+                select
+                  dt1.identifier, rev1.revtstmp, rev1.user_id
+                from
+                  os_revisions rev1
+                  inner join ', audit_table, ' dt1 on dt1.rev = rev1.rev and dt1.revtype = 1
+                ) t1 left join (
+                select
+                  dt2.identifier, rev2.revtstmp, rev2.user_id
+                from
+                  os_revisions rev2
+                  inner join ', audit_table, ' dt2 on dt2.rev = rev2.rev and dt2.revtype = 1
+                ) t2 on t1.identifier = t2.identifier and t1.revtstmp &lt; t2.revtstmp
+              where
+                t2.identifier is null
+            ) audit on audit.identifier = dt.identifier
+          set
+            dt.updater = audit.user_id,
+            dt.update_time = audit.revtstmp'
+        );
+
+        prepare set_update_info_stmt from @set_update_info;
+        execute set_update_info_stmt;
+        deallocate prepare set_update_info_stmt;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Procedure to update record creation and update audit data" runOnChange="true" dbms="oracle">
+    <sql endDelimiter="//">
+      create or replace procedure update_records_audit_info(data_table in varchar2, audit_table in varchar2) AUTHID CURRENT_USER is
+      begin
+
+        execute immediate
+          'merge into ' ||
+            data_table || ' dt ' ||
+          'using (
+            select
+              atab.identifier, rev.user_id, rev.revtstmp
+            from ' ||
+              audit_table || ' atab
+              inner join os_revisions rev on rev.rev = atab.rev
+            where
+              atab.revtype = 0
+           ) aud on (aud.identifier = dt.identifier)
+           when matched then
+             update set dt.creator = aud.user_id, dt.creation_time = aud.revtstmp';
+
+        execute immediate
+          'merge into ' ||
+            data_table || ' dt ' ||
+          'using (
+            select
+              t1.*
+            from (
+              select
+                atab.identifier, rev.user_id, rev.revtstmp
+              from ' ||
+                audit_table || ' atab
+                inner join os_revisions rev on rev.rev = atab.rev
+              where
+                atab.revtype = 1
+            ) t1 left join (
+              select
+                atab.identifier, rev.user_id, rev.revtstmp
+              from ' ||
+                audit_table || ' atab
+                inner join os_revisions rev on rev.rev = atab.rev
+              where
+                atab.revtype = 1
+            ) t2 on t1.identifier = t2.identifier and t1.revtstmp &lt; t2.revtstmp
+            where
+              t2.identifier is null
+          ) aud on (aud.identifier = dt.identifier)
+          when matched then
+            update set dt.updater = aud.user_id, dt.update_time = aud.revtstmp';
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update registration create/update audit data">
+    <sql>call update_records_audit_info('catissue_coll_prot_reg', 'catissue_coll_prot_reg_aud')</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update participant create/update audit data">
+    <sql>call update_records_audit_info('catissue_participant', 'catissue_participant_aud')</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update visit create/update audit data">
+    <sql>call update_records_audit_info('catissue_specimen_coll_group', 'cat_specimen_coll_group_aud')</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update specimen create/update audit data">
+    <sql>call update_records_audit_info('catissue_specimen', 'catissue_specimen_aud')</sql>
+  </changeSet>
+</databaseChangeLog>

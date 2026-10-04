@@ -1,0 +1,158 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<form>
+  <view>
+    <name>ContainerTransferEvent</name>
+    <caption>#getMessage("container_transfer_event")</caption>
+    <table>OS_CONT_TRAF_SPMN_EVENTS_VIEW</table>
+    <primaryKey>IDENTIFIER</primaryKey>
+
+    <row>
+      <storageContainer>
+        <name>container</name>
+        <udn>container</udn>
+        <caption>#getMessage("transfer_event_container")</caption>
+        <column>CONTAINER_ID</column>
+        <recordUrl>#/object-state-params-resolver?stateName=ContainerDetail.Overview&amp;objectName=storage_container&amp;key=name&amp;value={{$value}}</recordUrl>
+      </storageContainer>
+    </row>
+
+    <row>
+      <siteField>
+        <name>fromSite</name>
+        <udn>fromSite</udn>
+        <caption>#getMessage("transfer_event_from_site")</caption>
+        <column>FROM_SITE_ID</column>
+        <mandatory>true</mandatory>
+      </siteField>
+
+      <storageContainer>
+        <name>fromContainer</name>
+        <udn>fromContainer</udn>
+        <caption>#getMessage("transfer_event_from_parent_container")</caption>
+        <column>FROM_CONTAINER_ID</column>
+        <recordUrl>#/object-state-params-resolver?stateName=ContainerDetail.Overview&amp;objectName=storage_container&amp;key=name&amp;value={{$value}}</recordUrl>
+      </storageContainer>
+
+      <textField>
+        <name>fromRow</name>
+        <udn>fromRow</udn>
+        <caption>#getMessage("transfer_event_from_row")</caption>
+        <column>FROM_ROW</column>
+      </textField>
+
+      <textField>
+        <name>fromColumn</name>
+        <udn>fromColumn</udn>
+        <caption>#getMessage("transfer_event_from_col")</caption>
+        <column>FROM_COLUMN</column>
+      </textField>
+
+      <numberField>
+        <name>fromRowOrdinal</name>
+        <udn>fromRowOrdinal</udn>
+        <caption>#getMessage("transfer_event_from_dim_two")</caption>
+        <column>FROM_ROW_ORDINAL</column>
+      </numberField>
+
+      <numberField>
+        <name>fromColumnOrdinal</name>
+        <udn>fromColumnOrdinal</udn>
+        <caption>#getMessage("transfer_event_from_dim_one")</caption>
+        <column>FROM_COLUMN_ORDINAL</column>
+      </numberField>
+
+      <numberField>
+        <name>fromPosition</name>
+        <udn>fromPosition</udn>
+        <caption>#getMessage("transfer_event_from_position")</caption>
+        <column>FROM_POSITION</column>
+      </numberField>
+    </row>
+
+    <row>
+      <siteField>
+        <name>toSite</name>
+        <udn>toSite</udn>
+        <caption>#getMessage("transfer_event_to_site")</caption>
+        <column>TO_SITE_ID</column>
+        <mandatory>true</mandatory>
+      </siteField>
+
+      <storageContainer>
+        <name>toContainer</name>
+        <udn>toContainer</udn>
+        <caption>#getMessage("transfer_event_to_parent_container")</caption>
+        <column>TO_CONTAINER_ID</column>
+        <recordUrl>#/object-state-params-resolver?stateName=ContainerDetail.Overview&amp;objectName=storage_container&amp;key=name&amp;value={{$value}}</recordUrl>
+      </storageContainer>
+
+      <textField>
+        <name>toRow</name>
+        <udn>toRow</udn>
+        <caption>#getMessage("transfer_event_to_row")</caption>
+        <column>TO_ROW</column>
+      </textField>
+
+      <textField>
+        <name>toColumn</name>
+        <udn>toColumn</udn>
+        <caption>#getMessage("transfer_event_to_col")</caption>
+        <column>TO_COLUMN</column>
+      </textField>
+
+      <numberField>
+        <name>toRowOrdinal</name>
+        <udn>toRowOrdinal</udn>
+        <caption>#getMessage("transfer_event_to_dim_two")</caption>
+        <column>TO_ROW_ORDINAL</column>
+      </numberField>
+
+      <numberField>
+        <name>toColumnOrdinal</name>
+        <udn>toColumnOrdinal</udn>
+        <caption>#getMessage("transfer_event_to_dim_one")</caption>
+        <column>TO_COLUMN_ORDINAL</column>
+      </numberField>
+
+      <numberField>
+        <name>toPosition</name>
+        <udn>toPosition</udn>
+        <caption>#getMessage("transfer_event_to_position")</caption>
+        <column>TO_POSITION</column>
+      </numberField>
+    </row>
+
+    <row>
+      <userField>
+        <name>user</name>
+        <udn>user</udn>
+        <caption>#getMessage("specimen_event_user")</caption>
+        <column>USER_ID</column>
+        <showInGrid>true</showInGrid>
+      </userField>
+    </row>
+
+    <row>
+      <datePicker>
+        <name>time</name>
+        <udn>time</udn>
+        <caption>#getMessage("specimen_event_date_time")</caption>
+        <column>TRANSFER_TIME</column>
+        <format>MM-dd-yyyy HH:mm</format>
+        <showInGrid>true</showInGrid>
+        <default>current_date</default>
+        <mandatory>true</mandatory>
+      </datePicker>
+    </row>
+
+    <row>
+      <textField>
+        <name>reason</name>
+        <udn>reason</udn>
+        <caption>#getMessage("specimen_event_reason")</caption>
+        <column>REASON</column>
+      </textField>
+    </row>
+  </view>
+</form>

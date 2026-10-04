@@ -1,0 +1,71 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<object-schema>
+  <name>shipment</name>
+  <record> 
+    <name>com.krishagni.catissueplus.core.administrative.events.ShipmentDetail</name>
+
+    #parse( 'com/krishagni/catissueplus/core/administrative/schema/shipment-common.xml' )
+
+    <record>
+      <attribute>shipmentSpecimen</attribute>
+      <caption>#getMessage("shipment_specimen")</caption>
+      
+      <record>
+        <attribute>specimen</attribute>
+        <multiple>false</multiple>
+        <caption>#getMessage("specimen")</caption>
+
+        <field>
+          <caption>#getMessage("specimen_identifier")</caption>
+          <attribute>id</attribute>
+        </field>
+
+        <field>
+          <caption>#getMessage("specimen_cp_short")</caption>
+          <attribute>cpShortTitle</attribute>
+        </field>
+
+        <field>
+          <caption>#getMessage("specimen_label")</caption>
+          <attribute>label</attribute>
+        </field>
+
+        <field>
+          <caption>#getMessage("specimen_barcode")</caption>
+          <attribute>barcode</attribute>
+        </field>
+
+        <field>
+          <caption>#getMessage("specimen_available_quantity")</caption>
+          <attribute>availableQty</attribute>
+        </field>
+
+        <record>
+          <caption>#getMessage("specimen_location")</caption>
+          <attribute>storageLocation</attribute>
+    
+          <field>
+            <caption>#getMessage("specimen_location_container")</caption>
+            <attribute>name</attribute>
+          </field>
+    
+          <field>
+            <caption>#getMessage("specimen_location_row")</caption>
+            <attribute>positionY</attribute>
+          </field>
+    
+          <field>
+            <caption>#getMessage("specimen_location_column")</caption>
+            <attribute>positionX</attribute>
+          </field>
+        </record>
+      </record>
+
+      <field>
+        <caption>#getMessage("shipment_item_recv_quality")</caption>
+        <attribute>receivedQuality</attribute>
+      </field>
+    </record>
+  </record>
+</object-schema>

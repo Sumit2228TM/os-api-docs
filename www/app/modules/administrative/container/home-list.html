@@ -1,0 +1,20 @@
+<div ng-controller="HomeContainersListCtrl" ng-init="init(opts)">
+  <table class="os-table">
+    <tbody class="os-table-body">
+      <tr class="row" ng-repeat="container in ctx.containers">
+        <td class="col" style="width: 40px;">
+          <span class="os-starred-item fa"
+            ng-class="{true: 'fa-star starred', false: 'fa-star-o'}[container.starred == true]"
+            ng-click="toggleStar(container)">
+          </span>
+        </td>
+        <td class="col">
+          <a href="{{overviewUrl(container)}}">
+            <span ng-show="!!container.displayName">{{container.displayName}} ({{container.name}})</span>
+            <span ng-show="!container.displayName">{{container.name}}</span>
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

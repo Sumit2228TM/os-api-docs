@@ -1,0 +1,177 @@
+<div>
+  <div class="os-page-commands">
+    <div class="left">
+      <span ng-if="visitCtx.showEdit && (!!visit.id || cpr.hasConsented)">
+        <button show-if-allowed="visitResource.updateOpts" class="default"
+          ng-switch on="!!visit.id" ui-sref="visit-addedit">
+          <span ng-switch-when="true">
+            <span class="fa fa-pencil"></span>
+            <span translate="common.buttons.edit">Edit</span>
+          </span>
+          <span ng-switch-default>
+            <span class="fa fa-plus"></span>
+            <span translate="common.buttons.add">Add</span>
+          </span>
+        </button>
+      </span>
+      <span ng-if="visit.status == 'Complete'" show-if-allowed="specimenResource.updateOpts">
+        <div class="os-inline-btn" dropdown>
+          <button class="default dropdown-toggle">
+            <span class="fa fa-plus"></span>
+            <span translate="specimens.buttons.add_specimen">Add Specimen</span>
+          </button>
+          <ul class="dropdown-menu">
+            <li ng-repeat="req in visitCtx.spmnReqs">
+              <a ui-sref="specimen-addedit({cpId: cp.id, visitId: visit.id, cprId: cpr.id, reqName: req.name})">
+                <span>{{req.title}}</span>
+              </a>
+            </li>
+            <li class="divider"></li>
+            <li>
+              <a ui-sref="specimen-addedit({cpId: cp.id, visitId: visit.id, cprId: cpr.id})">
+                <span translate="specimens.regular">Other</span>
+              </a>
+            </li>
+            <li>
+              <a ui-sref="specimen-create-pooled({cpId: cp.id, visitId: visit.id, cprId: cpr.id})">
+                <span translate="specimens.pooled">Pooled</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </span>
+      <button ng-if="!cpViewCtx.isCoordinator && !!visit.id && visit.status != 'Missed Collection' &&
+        visit.status != 'Not Collected' && specimens.length  > 0"
+        show-if-allowed="specimenResource.updateOpts" class="default"
+        ng-click="printSpecimenLabels()" title="{{'specimens.tooltip.print' | translate}}">
+        <span class="fa fa-print"></span>
+        <span translate="common.buttons.print">Print</span>
+      </button>
+      <button ng-if="!!visit.id" show-if-allowed="visitResource.deleteOpts" class="default"
+        ng-click="deleteVisit()">
+        <span class="fa fa-trash"></span>
+        <span translate="common.buttons.delete">Delete</span>
+      </button>
+
+      <os-plugin-hooks view-name="'visit-overview'" sec-name="'more-menu'"></os-plugin-hooks>
+    </div>
+    <div class="right">
+      <button class="default" os-right-drawer-toggle ng-switch on="visitCtx.showActivity" ng-click="toggleShowActivity()">
+        <span ng-switch-when="true" translate="common.buttons.hide_activity">Hide Events</span>
+        <span ng-switch-when="false" translate="common.buttons.show_activity">Show Events</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="os-container-wrapper clearfix">
+    <div class="container os-col" style="width: 100%;">
+      <div ng-switch on="fieldsCtx.hasDict">
+        <div ng-switch-when="true">
+          <sde-fields-overview base-fields="fieldsCtx.sysDict" fields="fieldsCtx.cpDict"
+            obj="visitCtx.obj" in-objs="visitCtx.inObjs">
+          </sde-fields-overview>
+        </div>
+        <div ng-switch-default>
+          <div ng-include="'modules/biospecimen/participant/visit/static-fields.html'"></div>
+        </div>
+      </div>
+
+      <div ng-if="cpViewCtx.spmnReadAllowed">
+        <os-specimen-tree cp="cp" cpr="cpr" visit="visit" specimens="specimens"
+          allowed-ops="specimenAllowedOps" reload="reload()"
+          pending-spmns-disp-interval="pendingSpmnsDispInterval">
+        </os-specimen-tree>
+      </div>
+    </div>
+
+    <div class="os-col os-no-border" os-right-drawer open-width="34" style="position: static;">
+      <div ng-if="!!visit.id">
+        <os-audit-overview class="os-no-top-margin" object-name="'visit'" object-id="visit.id"></os-audit-overview>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/visit/static-fields.html">
+  <ul class="os-key-values os-two-cols">
+    <li class="item">
+      <strong class="key key-sm" translate="visits.name">Name</strong>
+      <span class="value value-md">{{visit.name | osNoValue}}</span>
+    </li>
+
+    <li class="item">
+      <strong class="key key-sm" translate="visits.visit_status">Status</strong>
+      <ng-switch on="visit.status">
+        <span class="value value-md os-status-collected" ng-switch-when="Complete">
+          {{'visits.status.complete' | translate}}
+        </span>
+        <span class="value value-md os-status-missed" ng-switch-when="Missed Collection">
+          {{'visits.status.missed' | translate}}
+        </span>
+        <span class="value value-md os-status-missed" ng-switch-when="Not Collected">
+          {{'visits.status.not_collected' | translate}}
+        </span>
+        <span class="value value-md os-status-pending" ng-switch-default>
+          {{'visits.status.pending' | translate}}
+        </span>
+      </ng-switch>
+    </li>
+
+    <li class="item" ng-if="visit.id">
+      <strong class="key key-sm" translate="visits.visit_date">Visit Date</strong>
+      <span class="value value-md">{{visit.visitDate | date: global.dateFmt}}</span>
+    </li>
+
+    <li class="item" ng-if="!visit.id">
+      <strong class="key key-sm" translate="visits.anticipated_visit_date">Anticipated Visit Date</strong>
+      <span class="value value-md">{{visit.anticipatedVisitDate | date: global.dateFmt | osNoValue}}</span>
+    </li>
+
+    <li class="item">
+      <strong class="key key-sm" translate="visits.visit_site">Site</strong>
+      <span class="value value-md">{{visit.site | osNoValue}}</span>
+    </li>
+
+    <li class="item">
+      <strong class="key key-sm" translate="visits.clinical_diagnosis">Clinical Diagnosis</strong>
+      <span class="value value-md">{{visit.diagnosisList | osArrayJoin: joinCd | osNoValue}}</span>
+    </li>
+
+    <li class="item">
+      <strong class="key key-sm" translate="visits.clinical_status">Clinical Status</strong>
+      <span class="value value-md">{{visit.clinicalStatus | osNoValue}}</span>
+    </li>
+
+    <li class="item" ng-if="visit.status != 'Missed Collection' && visit.status != 'Not Collected' && !!visit.cohort">
+      <strong class="key key-sm" translate="visits.cohort">Cohort</strong>
+      <span class="value value-md">{{visit.cohort | osNoValue}}</span>
+    </li>
+
+    <li class="item">
+      <strong class="key key-sm" translate="visits.surgical_path_no">Surg Path Number</strong>
+      <span class="value value-md">{{visit.surgicalPathologyNumber | osNoValue}}</span>
+    </li>
+
+    <li class="item" ng-if="visit.status == 'Missed Collection' || visit.status == 'Not Collected'">
+      <strong class="key key-sm" translate="visits.missed_by">Missed By</strong>
+      <span class="value value-md">{{visit.missedBy.firstName}} {{visit.missedBy.lastName}}</span>
+    </li>
+
+    <li class="item" ng-if="visit.status == 'Missed Collection' || visit.status == 'Not Collected'">
+      <strong class="key key-sm" translate="visits.reason_for_missed_visit">Missed Reason</strong>
+      <span class="value value-md">{{visit.missedReason}}</span>
+    </li>
+  </ul>
+
+  <div ng-if="!!visit.extensionDetail">
+    <div os-extension-overview ext-object="visit.extensionDetail" show-column="2"></div>
+  </div>
+
+  <div class="os-section os-line-section" ng-if="!!visit.comments">
+    <strong class="key key-sm">
+      <span translate="visits.comments">Comments</span>
+      <span>&nbsp;</span>
+    </strong>
+    <span class="value value-md">{{visit.comments}}</span>
+  </div>
+</script>

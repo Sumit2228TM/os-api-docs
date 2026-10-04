@@ -1,0 +1,15 @@
+{
+  "name": "-80 Drawer",
+  "nameFormat": "%PCONT_NAME%.D%SITE_UID%",
+  "noOfColumns": 5,
+  "noOfRows": 1,
+  "positionLabelingMode": "TWO_D",
+  "columnLabelingScheme": "Numbers",
+  "rowLabelingScheme": "Numbers",
+  "temperature": null,
+  "storeSpecimenEnabled": false,
+  "activityStatus": "Active",
+  "canHold": {
+    "name": "-80 Box"
+  }
+}

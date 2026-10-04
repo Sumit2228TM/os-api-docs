@@ -1,0 +1,24 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li>
+          <a ui-sref="form-list">
+            <span translate="form.list">Forms</span>
+          </a>
+        </li>
+      </ul>
+      <h3>
+        <span>{{'form.preview_form' | translate: ctx.formDef}}</span>
+      </h3>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="clearfix">
+      <div class="col-xs-12">
+        <div class="os-extn-form" os-de-form opts="ctx.formOpts"> </div>
+      </div>
+    </div>
+  </div>
+</div>

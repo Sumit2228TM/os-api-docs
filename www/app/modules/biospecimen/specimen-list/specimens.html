@@ -1,0 +1,94 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li ng-repeat="breadcrumb in ctx.breadcrumbs">
+          <a ui-sref="{{breadcrumb.state}}({{breadcrumb.params}})">
+            <span ng-if="!!breadcrumb.captionKey" translate="{{breadcrumb.captionKey}}"></span>
+            <span ng-if="!!breadcrumb.caption">{{breadcrumb.caption}}</span>
+          </a>
+        </li>
+      </ul>
+
+      <h3>
+        <os-spmn-list-name list="ctx.list"></os-spmn-list-name>
+        <button class="btn btn-default os-btn-info"
+          title="{{'specimen_list.cart_info' | translate}}"
+          data-placement="bottom" data-container="body" data-trigger="hover"
+          content-template="modules/biospecimen/specimen-list/detail-po.html" bs-popover>
+          <span class="fa fa-info-circle"></span>
+        </button>
+      </h3>
+    </div>
+
+    <div class="os-page-header-actions">
+      <os-list-pager opts="ctx.listCtrl.pagerOpts"></os-list-pager>
+    </div>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left" ng-if="ctx.list.id > 0">
+      <os-specimen-ops specimens="getSelectedSpecimens()" init-list="loadSpecimens()" cart="ctx.list">
+      </os-specimen-ops>
+
+      <os-plugin-hooks view-name="'specimen-list'" sec-name="'page-header'"></os-plugin-hooks>
+
+      <div dropdown os-show-if-menu-items-present class="os-inline-btn">
+        <button class="default dropdown-toggle">
+          <span translate="common.buttons.more">More</span>
+          <span class="fa fa-caret-down"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a ui-sref="specimen-list-addedit({listId: ctx.list.id})">
+              <span class="fa fa-pencil"></span>
+              <span translate="specimen_list.edit_or_delete">Edit or Delete Cart</span>
+            </a>
+          </li>
+          <li>
+            <a ng-click="addChildSpecimens()">
+              <span class="fa fa-plus"></span>
+              <span translate="specimen_list.inc_child_spmns">Include Child Specimens</span>
+            </a>
+          </li>
+          <li ng-if="ctx.rptTmplConfigured">
+            <a ng-click="downloadReport()">
+              <span class="fa fa-download"></span>
+              <span translate="specimen_list.export">Export Cart</span>
+            </a>
+          </li>
+          <li class="divider"></li>
+          <li>
+            <a ng-click="confirmRemoveSpecimens()">
+              <span class="fa fa-trash"></span>
+              <span translate="specimen_list.remove_spmns">Remove from Cart</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="right">
+      <button class="default" os-right-drawer-toggle ng-if="ctx.showSearch">
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="os-container-wrapper" ng-if="ctx.list.id > 0">
+    <div>
+      <os-list params="ctx.params" item-sref="specimen({specimenId: row.hidden.specimenId})"
+        enable-selection="true" show-item="showSpecimen(row)" init-ctrl="setListCtrl($list)"
+        empty-state="ctx.emptyState">
+      </os-list>
+    </div>
+  </div>
+
+  <div class="container" ng-if="!ctx.list.id">
+    <div class="os-alert-container show inline">
+      <div class="alert alert-info">
+        <span translate="specimen_list.no_default_cart"></span>
+      </div>
+    </div>
+  </div>
+</div>

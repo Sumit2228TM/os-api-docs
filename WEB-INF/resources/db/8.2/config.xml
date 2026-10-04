@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="System display date format">
+    <sql>
+      call add_cfg_prop(
+        'common', 'date_format',
+        'date_format', 'date_format_desc',
+        'STRING', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="System data entry date format">
+    <sql>
+      call add_cfg_prop(
+        'common', 'de_date_format',
+        'de_date_format', 'de_date_format_desc',
+        'STRING', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="System time format">
+    <sql>
+      call add_cfg_prop(
+        'common', 'time_format',
+        'time_format', 'time_format_desc',
+        'STRING', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Removed the defunct print labels on receipt config">
+    <sql>
+      delete from
+        os_cfg_settings
+      where
+        property_id in (
+          select
+            p.identifier
+          from
+            os_cfg_props p
+            inner join os_modules m on m.identifier = p.module_id
+          where
+            m.name = 'biospecimen' and
+            p.name = 'print_labels_on_receipt'
+        )
+    </sql>
+
+    <sql>
+      delete from
+        os_cfg_props p
+      where
+        name = 'print_labels_on_receipt' and
+        module_id in (select identifier from os_modules where name = 'biospecimen')
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Shipment received quality regex for pre-printing child specimen labels">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'pre_print_ship_recv_quality',
+        'pre_print_ship_recv_quality', 'pre_print_ship_recv_quality_desc',
+        'STRING', ''
+      );
+    </sql>
+  </changeSet>
+</databaseChangeLog>

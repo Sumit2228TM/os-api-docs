@@ -1,0 +1,293 @@
+package com.krishagni.catissueplus.core.init;
+
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.InitializingBean;
+
+import com.krishagni.catissueplus.core.administrative.repository.FormListCriteria;
+import com.krishagni.catissueplus.core.common.PlusTransactional;
+import com.krishagni.catissueplus.core.common.util.LogUtil;
+import com.krishagni.catissueplus.core.de.domain.Form;
+import com.krishagni.catissueplus.core.de.repository.DaoFactory;
+
+import edu.common.dynamicextensions.domain.nui.ColumnDef;
+import edu.common.dynamicextensions.domain.nui.Container;
+import edu.common.dynamicextensions.domain.nui.Control;
+import edu.common.dynamicextensions.domain.nui.FileUploadControl;
+import edu.common.dynamicextensions.domain.nui.SignatureControl;
+import edu.common.dynamicextensions.domain.nui.SubFormControl;
+import edu.common.dynamicextensions.napi.FileControlValue;
+
+public class MigrateFormFiles implements InitializingBean {
+
+	private static final LogUtil logger = LogUtil.getLogger(MigrateFormFiles.class);
+
+	private DaoFactory deDaoFactory;
+
+	private SessionFactory sessionFactory;
+
+	public void setDeDaoFactory(DaoFactory deDaoFactory) {
+		this.deDaoFactory = deDaoFactory;
+	}
+
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		this.sessionFactory = sessionFactory;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		if (areFormFilesMigrated()) {
+			return;
+		}
+
+		logger.info("Migrating form files...");
+		migrateFormFiles();
+
+		logger.info("Associating form files with their objects...");
+		associateFormFilesWithObjects();
+	}
+
+	private void migrateFormFiles() {
+		int startAt = 0;
+		while (true) {
+			List<Form> forms = getForms(startAt, 25);
+			if (forms.isEmpty()) {
+				break;
+			}
+
+			startAt += forms.size();
+			for (Form form : forms) {
+				try {
+					logger.info("Migrating files of the form " + form.getCaption() + " (" + form.getName() + "), if any");
+					migrateFormFiles(form);
+				} catch (Throwable e) {
+					logger.error("Error migrating the files of the form: " + form.getCaption() + " (" + form.getName() + "), if any", e);
+				}
+			}
+		}
+
+		logger.info("Congratulations! Form files migrated.");
+	}
+
+	@PlusTransactional
+	private void associateFormFilesWithObjects() {
+		sessionFactory.getCurrentSession().doWork(
+			connection -> {
+				String dbProductName = connection.getMetaData().getDatabaseProductName();
+				boolean isOracle = dbProductName.toLowerCase().contains("oracle");
+				try (Statement stmt = connection.createStatement()) {
+					stmt.executeUpdate(isOracle ? ORACLE_ASSOCIATE_FILES_SQL : MYSQL_ASSOCIATE_FILES_SQL);
+				}
+			}
+		);
+	}
+
+	@PlusTransactional
+	private boolean areFormFilesMigrated() {
+		Number count = sessionFactory.getCurrentSession()
+			.createNativeQuery(GET_MIGRATED_FILES_COUNT, Long.class)
+			.uniqueResult();
+		return count != null && count.longValue() > 0L;
+	}
+
+	private void migrateFormFiles(Form form) {
+		Container formDef = getFormDef(form.getName());
+		if (formDef != null) {
+			migrateFormFiles(formDef, form.getId(), "IDENTIFIER");
+		}
+	}
+
+	@PlusTransactional
+	private void migrateFormFiles(Container formDef, Long formId, String recordIdColumn) {
+		if (!hasFileOrSignature(formDef)) {
+			return;
+		}
+
+		for (Control ctrl : formDef.getOrderedControlList()) {
+			if (ctrl instanceof FileUploadControl || ctrl instanceof SignatureControl) {
+				migrateFormFiles(formDef, ctrl, formId, recordIdColumn);
+			} else if (ctrl instanceof SubFormControl) {
+				migrateFormFiles(((SubFormControl) ctrl).getSubContainer(), formId, "PARENT_RECORD_ID");
+			}
+		}
+	}
+
+	private void migrateFormFiles(Container formDef, Control ctrl, Long formId, String recordIdColumn) {
+		List<String> columns = new ArrayList<>(ctrl.getColumnDefs().stream().map(ColumnDef::getColumnName).toList());
+		columns.add(0, recordIdColumn);
+
+		int startAt = 0;
+		String sql = String.format(GET_FILES_SQL, String.join(", ", columns), formDef.getDbTableName(), recordIdColumn);
+		while (true) {
+			List<Object[]> result = getFileIds(sql, startAt, 100);
+			if (result.isEmpty()) {
+				break;
+			}
+
+			startAt += result.size();
+
+			List<FileControlValue> files = new ArrayList<>();
+			for (Object[] row : result) {
+				FileControlValue file = new FileControlValue();
+				file.setRecordId(((Number) row[0]).longValue());
+				if (ctrl instanceof SignatureControl) {
+					file.setFileName((String) row[1]);
+					file.setFileId((String) row[1]);
+					if (StringUtils.isNotBlank(file.getFileId())) {
+						String type = file.getFileId().substring(file.getFileId().lastIndexOf(".") + 1);
+						if (StringUtils.isNotBlank(type)) {
+							type = "image/" + type;
+						}
+
+						file.setContentType(type);
+					}
+				} else {
+					file.setFileName((String) row[1]);
+					file.setContentType((String) row[2]);
+					file.setFileId((String) row[3]);
+				}
+
+				if (StringUtils.isNotBlank(file.getFileId())) {
+					file.setFormId(formId);
+					files.add(file);
+				}
+			}
+
+			if (!files.isEmpty()) {
+				insertFileIds(files);
+			}
+		}
+	}
+
+	@PlusTransactional
+	private Container getFormDef(String name) {
+		return Container.getContainer(name);
+	}
+
+	@PlusTransactional
+	private List<Form> getForms(int startAt, int maxResults) {
+		return deDaoFactory.getFormDao().getForms(new FormListCriteria().startAt(startAt).maxResults(maxResults));
+	}
+
+	@PlusTransactional
+	private List<Object[]> getFileIds(String sql, int startAt, int maxResults) {
+		return sessionFactory.getCurrentSession().createNativeQuery(sql, Object[].class)
+			.setFirstResult(startAt)
+			.setMaxResults(maxResults)
+			.list();
+	}
+
+	@PlusTransactional
+	private void insertFileIds(List<FileControlValue> files) {
+		sessionFactory.getCurrentSession().doWork(
+			connection -> {
+				try (PreparedStatement pstmt = connection.prepareStatement(INSERT_FILE_SQL)) {
+					for (FileControlValue file : files) {
+						pstmt.setLong(1, file.getFormId());
+						pstmt.setLong(2, file.getRecordId());
+						pstmt.setString(3, file.getFileId());
+						pstmt.setString(4, file.getContentType());
+						pstmt.setString(5, file.getFilename());
+						pstmt.addBatch();
+					}
+
+					pstmt.executeBatch();
+				}
+			}
+		);
+	}
+
+	private boolean hasFileOrSignature(Container formDef) {
+		for (Control ctrl : formDef.getOrderedControlList()) {
+			if (ctrl instanceof FileUploadControl || ctrl instanceof SignatureControl) {
+				return true;
+			} else if (ctrl instanceof SubFormControl) {
+				if (hasFileOrSignature(((SubFormControl) ctrl).getSubContainer())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private static final String GET_MIGRATED_FILES_COUNT = "select count(*) from dyextn_form_files";
+
+	private static final String GET_FILES_SQL = "select %s from %s order by %s";
+
+	private static final String INSERT_FILE_SQL =
+		"insert into " +
+		"  dyextn_form_files (form_id, record_id, file_id, file_type, filename) " +
+		"values " +
+		"  (?, ?, ?, ?, ?)";
+
+	private static final String FILE_RECORDS_SQL =
+		"select " +
+		"  fc.container_id as form_id, re.record_id, fc.entity_type as object_type, re.object_id " +
+		"from " +
+		"  catissue_form_record_entry re " +
+		"  inner join catissue_form_context fc on fc.identifier = re.form_ctxt_id " +
+
+		"union all " +
+
+		"select " +
+		"  form_id, record_id, 'CollectionProtocolExtension', cp_id " +
+		"from " +
+		"  os_cp_cust_fields " +
+
+		"union all " +
+
+		"select " +
+		"  form_id, record_id, 'ParticipantExtension', cpr_id " +
+		"from " +
+		"  os_cpr_cust_fields " +
+
+		"union all " +
+
+		"select " +
+		"  form_id, record_id, 'VisitExtension', visit_id " +
+		"from " +
+		"  os_visit_cust_fields " +
+
+		"union all " +
+
+		"select " +
+		"  form_id, record_id, 'SpecimenExtension', specimen_id " +
+		"from " +
+		"  os_spmn_cust_fields " +
+
+		"union all " +
+
+		"select " +
+		"  form_id, record_id, 'OrderExtension', order_id " +
+		"from " +
+		"  os_order_cust_fields";
+
+	private static final String MYSQL_ASSOCIATE_FILES_SQL =
+		"update " +
+		"  dyextn_form_files dfile " +
+		"  inner join (" + FILE_RECORDS_SQL + ") rec " +
+		"    on rec.form_id = dfile.form_id and rec.record_id = dfile.record_id " +
+		"set " +
+		"  dfile.object_type = rec.object_type, " +
+		"  dfile.object_id = rec.object_id " +
+		"where " +
+		"  dfile.object_id is null";
+
+	private static final String ORACLE_ASSOCIATE_FILES_SQL =
+		"merge into " +
+		"  dyextn_form_files dfile " +
+		"using (" + FILE_RECORDS_SQL + ") rec " +
+		"  on (rec.form_id = dfile.form_id and rec.record_id = dfile.record_id) " +
+		"when matched then " +
+		"  update set " +
+		"    dfile.object_type = rec.object_type, " +
+		"    dfile.object_id = rec.object_id " +
+		"where " +
+		"  dfile.object_id is null";
+}

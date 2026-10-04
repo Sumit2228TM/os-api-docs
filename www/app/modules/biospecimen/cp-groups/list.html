@@ -1,0 +1,60 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3 translate="cp_groups.list">Collection Protocol Groups</h3>
+    </div>
+    <div class="os-page-header-actions">
+      <os-list-pager opts="ctx.pagerOpts"> </os-list-pager>
+    </div>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left" show-if-allowed="ctx.updateOpts">
+      <button class="default" ui-sref="cp-group-addedit({groupId: -1})">
+        <span class="fa fa-plus"></span>
+        <span translate="common.buttons.create">Create</span>
+      </button>
+    </div>
+    <div class="right">
+      <button class="default" os-right-drawer-toggle>
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+   
+  <div class="container">
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th class="col os-desc-column">
+            <span translate="cp_groups.name">Name</span>
+          </th>
+          <th class="col">
+            <span translate="cp_groups.cps">Collection Protocols</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-if="ctx.emptyState.empty || ctx.emptyState.loading">
+          <td class="col" colspan="100%">
+            <os-empty-list state="ctx.emptyState"></os-empty-list>
+          </td>
+        </tr>
+
+        <tr class="row" ng-repeat="group in ctx.groupsList" os-row-click="showGroupSummary(group)">
+          <td class="col os-desc-column">
+            <a class="os-click-esc" ui-sref="cp-group-detail.overview({groupId: group.id})">
+              <span>{{group.name}}</span>
+            </a>
+          </td>
+          <td class="col">
+            <span>{{group.cpsCount}}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div os-right-drawer ng-include="'modules/biospecimen/cp-groups/search.html'"></div>
+</div>

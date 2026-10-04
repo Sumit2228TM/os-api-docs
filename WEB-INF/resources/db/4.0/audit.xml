@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vgaikwad" id="Audit and track changes to bulk participant registration setting">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="BULK_PART_REG_ALLOWED" type="${boolean.type}"/>
+      <column name="bulkPartRegEnabled_MOD" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Audit specimen kits">
+    <createTable tableName="OS_SPECIMEN_KITS_AUD">
+      <column name="IDENTIFIER" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="REV" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="REVTYPE" type="${smallint.type}"/>
+
+      <column name="CP_ID" type="${int.type}"/>
+      <column name="collectionProtocol_MOD" type="${bit.type}"/>
+
+      <column name="SENDING_SITE_ID" type="${int.type}"/>
+      <column name="sendingSite_MOD" type="${bit.type}"/>
+
+      <column name="RECEIVING_SITE_ID" type="${int.type}"/>
+      <column name="receivingSite_MOD" type="${bit.type}"/>
+
+      <column name="SENDER_ID" type="${int.type}"/>
+      <column name="sender_MOD" type="${bit.type}"/>
+
+      <column name="SENDING_DATE" type="${timestamp.type}"/>
+      <column name="sendingDate_MOD" type="${bit.type}"/>
+
+      <column name="COMMENTS" type="${text.type}(255)"/>
+      <column name="comments_MOD" type="${bit.type}"/>
+
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)"/>
+      <column name="activityStatus_MOD" type="${bit.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Audit and track changes to coded consent statements">
+    <createTable tableName="OS_CONSENT_STATEMENTS_AUD">
+      <column name="IDENTIFIER" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="REV" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="REVTYPE" type="${smallint.type}"/>
+
+      <column name="CODE" type="${text.type}(32)"/>
+
+      <column name="code_MOD" type="${bit.type}"/>
+
+      <column name="STATEMENT" type="${text.type}(255)"/>
+
+      <column name="statement_MOD" type="${bit.type}"/>
+
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)"/>
+
+      <column name="activityStatus_MOD" type="${bit.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Audit and track changes to CP consent tier statements">
+    <addColumn tableName="CATISSUE_CONSENT_TIER_AUD">
+      <column name="CONSENT_STMT_ID" type="${int.type}"/>
+      <column name="consentStmt_MOD" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit and track changes to CP specimen centric setting">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="SPECIMEN_CENTRIC" type="${boolean.type}"/>
+      <column name="specimenCentric_MOD" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="Audit and track changes to container automated settings">
+    <addColumn tableName="OS_STORAGE_CONTAINERS_AUD">
+      <column name="AUTOMATED" type="${boolean.type}"/>
+      <column name="automated_MOD" type="${bit.type}"/>
+
+      <column name="AUTO_FREEZER_PROVIDER_ID" type="${int.type}"/>
+      <column name="autoFreezerProvider_MOD" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Track and audit changes to participant ethnicities">
+    <createTable tableName="OS_PARTICIPANT_ETHNICITIES_AUD">
+      <column name="REV" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="REVTYPE" type="${smallint.type}"/>
+      <column name="PARTICIPANT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ETHNICITY" type="${text.type}(50)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Move audit data of ethnicity field from participant table to 1:m ethnicities audit table">
+    <sql>
+      insert into os_participant_ethnicities_aud
+        (rev, revtype, participant_id, ethnicity)
+      select
+        rev, revtype, identifier, ethnicity
+      from
+        catissue_participant_aud
+      where
+        ethnicity is not null
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Drop participant ethnicity audit column">
+    <dropColumn tableName="CATISSUE_PARTICIPANT_AUD" columnName="ETHNICITY"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Rename ethnicity change tracking column name to match collection name used in app">
+    <renameColumn tableName="CATISSUE_PARTICIPANT_AUD"
+      oldColumnName="ethnicity_MOD" newColumnName="ethnicities_MOD" columnDataType="${bit.type}"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Track and audit changes to visit clinical diagnoses">
+    <createTable tableName="OS_VISIT_CLIN_DIAGNOSES_AUD">
+      <column name="REV" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="REVTYPE" type="${smallint.type}"/>
+      <column name="VISIT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CLINICAL_DIAGNOSIS" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Move audit data of clinical diagnosis field from visit table to 1:m clinical diagnoses audit table">
+    <sql>
+      insert into os_visit_clin_diagnoses_aud
+        (rev, revtype, visit_id, clinical_diagnosis)
+      select
+        rev, revtype, identifier, clinical_diagnosis
+      from
+        cat_specimen_coll_group_aud
+      where
+        clinical_diagnosis is not null
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Drop visit clinical diagnosis audit column">
+    <dropColumn tableName="CAT_SPECIMEN_COLL_GROUP_AUD" columnName="CLINICAL_DIAGNOSIS"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Rename clinical diagnosis change tracking column name to match collection name used in app">
+    <renameColumn tableName="CAT_SPECIMEN_COLL_GROUP_AUD"
+      oldColumnName="clinicalDiagnosis_MOD" newColumnName="clinicalDiagnoses_MOD" columnDataType="${bit.type}"/>
+  </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,21 @@
+<div>
+  <form action="{{uploadUrl}}" ng-repeat="inputFile in inputFiles">
+    <div class="form-group" ng-show="!inputFile.fileId">
+      <div os-file-upload caption="{{'common.select_upload_file' | translate}}" ctrl="fileImporter"
+        upload-on-select="true" on-upload="onUpload(filename, result, inputFile)">
+      </div>
+    </div>
+    <div class="form-group os-uploaded-files" ng-show="!!inputFile.fileId">
+      <div class="clearfix file">
+        <div class="col-xs-11">
+          <span>{{inputFile.name}}</span>
+        </div>
+        <div class="col-xs-1">
+          <button class="btn btn-xs btn-default" ng-click="removeFile($index)">
+            <span class="fa fa-remove"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+<div>

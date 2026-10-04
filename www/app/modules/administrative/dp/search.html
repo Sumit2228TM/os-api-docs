@@ -1,0 +1,52 @@
+<form name="dpSearch" os-form-validator="dpSearch" validator="dpSearchValidator" novalidate>
+  <div class="os-search">
+    <div class="os-head">
+      <h3 class="os-title" translate="dp.filter.filter_title">Distribution Protocol Filter</h3>
+    </div>
+
+    <div class="os-body">
+      <div class="form-group">
+        <input os-md-input type="text" ng-model="dpFilterOpts.title" class="form-control"
+          placeholder="{{'dp.title' | translate}}">
+      </div>
+
+      <div class="form-group">
+        <input os-md-input type="text" ng-model="dpFilterOpts.irbId" class="form-control"
+          placeholder="{{'dp.irb_id' | translate}}">
+      </div>
+
+      <div show-if-admin class="form-group">
+        <os-institutes md-type="true" ng-model="dpFilterOpts.receivingInstitute"
+          placeholder="{{'dp.receiving_institute' | translate}}">
+        </os-institutes>
+      </div>
+
+      <div class="form-group">
+        <os-sites md-type="true" ng-model="dpFilterOpts.receivingSite" institute="dpFilterOpts.receivingInstitute"
+          placeholder="{{'dp.receiving_site' | translate}}">
+        </os-sites>
+      </div>
+
+      <div class="form-group">
+        <div os-md-input ng-model="dpFilterOpts.piId" placeholder="{{'dp.filter.pi' | translate}}">
+          <os-users ng-model="dpFilterOpts.piId" include-archived
+            placeholder="{{'dp.filter.pi' | translate}}" select-prop="id">
+          </os-users>
+        </div>
+      </div>
+    
+      <div class="form-group">
+        <div os-md-input ng-model="dpFilterOpts.activityStatus"
+          placeholder="{{'dp.filter.activity_status' | translate}}">
+          <os-select ng-model="dpFilterOpts.activityStatus" list="activityStatuses"
+            placeholder="{{'dp.filter.activity_status' | translate}}">
+          </os-select>
+        </div>
+      </div>
+
+      <os-clear-filters opts="dpFilterOpts"></os-clear-filters>
+    </div>
+  </div>
+
+  <os-list-page-size opts="pagerOpts" on-change="pageSizeChanged()"></os-list-page-size>
+</form>

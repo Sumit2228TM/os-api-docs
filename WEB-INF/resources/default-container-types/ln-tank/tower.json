@@ -1,0 +1,15 @@
+{
+  "name": "LN Tower",
+  "nameFormat": "%PCONT_NAME%.T%PCONT_UID%",
+  "noOfColumns": 1,
+  "noOfRows": 13,
+  "positionLabelingMode": "TWO_D",
+  "columnLabelingScheme": "Numbers",
+  "rowLabelingScheme": "Numbers",
+  "temperature": null,
+  "storeSpecimenEnabled": false,
+  "activityStatus": "Active",
+  "canHold": {
+    "name": "LN Cryo Box"
+  }
+}

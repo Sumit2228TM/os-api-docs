@@ -1,0 +1,75 @@
+<div class="os-detail-sublist">
+  <div class="os-page-commands">
+    <div class="left">
+      <span ng-show="mctx.allowEdits" class="os-btns">
+        <button class="default" ng-click="addEditSchedActivity()">
+          <span class="fa fa-plus"></span>
+          <span translate="common.buttons.create">Create</span>
+        </button>
+      </span>
+    </div>
+  </div>
+
+  <div class="os-list-container clearfix">
+    <div class="col-xs-12">
+      <table class="os-table os-table-hover">
+        <thead class="os-table-head">
+          <tr class="row">
+            <th class="col">
+              <span translate="container.maintenance.activity">Activity</span>
+            </th>
+            <th class="col">
+              <span translate="container.maintenance.start_date">Start Date</span>
+            </th>
+            <th class="col">
+              <span translate="container.maintenance.cycle_interval">Cycle Interval</span>
+            </th>
+            <th class="col">
+              <span translate="container.maintenance.rem_interval">Reminder Interval</span>
+            </th>
+            <th class="col">
+              <span translate="container.maintenance.assigned_users">Assigned Users</span>
+            </th>
+            <th class="col" ng-show="mctx.allowEdits">
+              <span>&nbsp;</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="os-table-body">
+          <tr class="row" ng-if="mctx.schedActivitiesState.loading || mctx.schedActivitiesState.empty">
+            <td class="col" colspan="100%">
+              <os-empty-list state="mctx.schedActivitiesState"></os-empty-list>
+            </td>
+          </tr>
+          <tr class="row" ng-repeat="activity in mctx.schedActivities">
+            <td class="col">
+              <span>{{activity.name}}</span>
+            </td>
+            <td class="col">
+              <span>{{activity.startDate | date: global.dateFmt}}</span>
+            </td>
+            <td class="col">
+              <span>{{activity.cycleInterval}} {{activity.$$uiProps.cycleUnit}}</span>
+            </td>
+            <td class="col">
+              <span>{{activity.reminderInterval}} {{activity.$$uiProps.remUnit}}</span>
+            </td>
+            <td class="col">
+              <span>{{activity.assignedUsers | osUserDisplayName}}</span>
+            </td>
+            <td class="col" ng-show="mctx.allowEdits">
+              <div class="btn-group">
+                <button class="btn btn-default btn-xs" ng-click="addEditSchedActivity(activity)">
+                  <span class="fa fa-pencil"></span>
+                </button>
+                <button class="btn btn-default btn-xs" ng-click="archiveSchedActivity(activity)">
+                  <span class="fa fa-archive"></span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

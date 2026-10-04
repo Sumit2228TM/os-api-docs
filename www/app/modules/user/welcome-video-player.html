@@ -1,0 +1,11 @@
+<div>
+  <iframe ng-src="{{iframeUrl}}" ng-if="videoSettings.welcome_video_source == 'vimeo'"
+    width="500" height="281" frameborder="0"
+    webkitallowfullscreen mozallowfullscreen allowfullscreen
+    style="margin: 10px auto; display: block;">
+  </iframe>
+  <iframe ng-src="{{iframeUrl}}" ng-if="videoSettings.welcome_video_source == 'youtube'"
+    width="500" height="281" frameborder="0" allowfullscreen
+    style="margin: 10px auto; display: block;">
+  </iframe>
+</div>

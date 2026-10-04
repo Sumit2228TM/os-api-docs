@@ -1,0 +1,217 @@
+
+<template>
+  <div class="os-file-upload" v-show="!inputValue">
+    <FileUpload ref="uploader" mode="basic" name="file" :auto="auto != false" :url="uploadUrl" :tabindex="tabOrder"
+      :disabled="disabled" @before-send="addHeaders" @upload="onUpload" @error="onError" @select="onFileSelect" />
+
+    <div v-if="selectedFile">
+      <os-button class="clear" :left-icon="'times'" :label="'Clear Selection'" @click="clear" />
+    </div>
+  </div>
+  <div class="os-selected-file" v-if="inputValue">
+    <span class="filename">
+      <a :href="fileUrl" target="_blank" v-if="fileUrl">
+        <span>{{inputValue.filename}}</span>
+      </a>
+      <span v-else>{{inputValue.filename || inputValue}}</span>
+    </span>
+    <Button left-icon="times" :disabled="disabled" @click="removeFile"/>
+  </div>
+</template>
+
+<script>
+import FileUpload from 'primevue/fileupload';
+
+import Button from '@/common/components/Button.vue';
+
+import alertSvc from '@/common/services/Alerts.js';
+import http from '@/common/services/HttpClient.js';
+
+export default {
+  props: ['url', 'href', 'modelValue', 'headers', 'auto', 'tabOrder', 'disabled'],
+
+  components: {
+    Button,
+    FileUpload
+  },
+
+  data() {
+    return {
+      selectedFile: null
+    }
+  },
+
+  computed: {
+    inputValue: {
+      get() {
+        return this.modelValue;
+      },
+
+      set(value) {
+        this.$emit('update:modelValue', value);
+      }
+    },
+
+    uploadUrl: function() {
+      if (typeof this.url == 'function') {
+        return this.url();
+      }
+
+      return this.url;
+    },
+
+    fileUrl: function() {
+      if (this.selectedFile) {
+        /* a new file was selected in this session */
+        /* therefore no URL is rendered */
+        return null;
+      }
+
+      if (typeof this.href == 'function') {
+        return this.href(this.inputValue);
+      } else if (this.inputValue && this.inputValue.fileId) {
+        return http.getUrl('form-files/' + this.inputValue.fileId);
+      }
+
+      return null;
+    }
+  },
+
+  methods: {
+    upload: function() {
+      if (!this.$refs.uploader.hasFiles) {
+        alertSvc.error({code: 'common.file_not_selected'});
+        return new Promise(() => null);
+      }
+
+      return new Promise((resolve, reject) => {
+        this.$refs.uploader.upload();
+        this.resolve = resolve;
+        this.reject = reject;
+      });
+    },
+
+    clear: function() {
+      this.$refs.uploader.clear();
+      this.selectedFile = null;
+    },
+
+    hasFiles: function() {
+      return this.$refs.uploader && this.$refs.uploader.hasFiles;
+    },
+
+    onFileSelect: function({files}) {
+      this.selectedFile = files;
+    },
+
+    addHeaders: function({xhr}) {
+      const headers = typeof this.headers == 'function' ? this.headers() : (this.headers || {});
+      if (headers) {
+        Object.keys(headers).forEach((name) => xhr.setRequestHeader(name, headers[name]));
+      }
+    },
+
+    onUpload: function({xhr}) {
+      const response = JSON.parse(xhr.responseText);
+      this.$emit('update:modelValue', response);
+
+      if (this.resolve) {
+        this.resolve(response);
+        this.resolve = undefined;
+      }
+
+      if (this.auto != false) {
+        alertSvc.success({code: 'common.file_uploaded'});
+      }
+    },
+
+    onError: function({xhr}) {
+      try {
+        this.selectedFile = null;
+
+        const errors = JSON.parse(xhr.responseText);
+        this.reject = undefined;
+        /* if (this.reject) {
+          this.reject(errors);
+          this.reject = undefined;
+        }*/
+
+        if (errors instanceof Array) {
+          let msg = errors.map(err => err.message + ' (' + err.code + ')').join(',');
+          alertSvc.error(msg);
+        } else if (errors) {
+          alertSvc.error(errors);
+        } else {
+          alertSvc.error({code: 'common.file_upload_error'});
+        }
+      } catch {
+        alertSvc.error(xhr.status + ': ' + xhr.responseText);
+      }
+    },
+
+    removeFile: function() {
+      this.selectedFile = null;
+      this.$emit('update:modelValue', null);
+    },
+
+    getDisplayValue: function() {
+      if (this.inputValue) {
+        return this.inputValue.filename;
+      }
+
+      return null;
+    }
+  }
+}
+</script>
+
+<style scoped>
+.os-file-upload {
+  display: flex;
+}
+
+.os-file-upload .clear {
+  margin-left: 0.5rem;
+}
+
+.os-file-upload :deep(.p-fileupload .p-button) {
+  border-radius: 1.125rem;
+}
+
+.os-selected-file {
+  display: flex;
+}
+
+.os-selected-file .filename {
+  flex: 1 1 auto;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid;
+  border-color: #ced4da;
+  border-radius: 4px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+
+.os-selected-file button.btn {
+  width: 2.357rem;
+  display: inline-flex;
+  padding: 0.5rem 0;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0px!important;
+  border: 1px solid;
+  border-color: #007bff;
+  border-radius: 4px;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+  background: #fff;
+  height: 38px;
+}
+
+.os-selected-file button.btn:hover {
+  background: #0069d9;
+  color: #ffffff;
+  border-color: #0069d9;
+}
+
+</style>

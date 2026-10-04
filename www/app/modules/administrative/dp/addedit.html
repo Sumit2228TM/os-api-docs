@@ -1,0 +1,238 @@
+
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li>
+          <a ui-sref="dp-list">
+            <span translate="dp.list">Distribution Protocols</span>
+          </a>
+        </li>
+      </ul>
+      <h3>
+        <span ng-if="!distributionProtocol.id" translate="dp.create_dp_title">
+          Create Distribution Protocol
+        </span>
+        <span ng-if="!!distributionProtocol.id">
+          {{distributionProtocol.shortTitle}}
+        </span>
+      </h3>
+    </div>
+  </div>
+  
+  <div class="container">
+    <form name="dpForm" class="form-horizontal" os-form-validator="dpForm" validator="dpFormValidator" novalidate>
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="dp.title">Title</label>
+        <div class="col-xs-6">
+          <input type="text" name="title" ng-model="distributionProtocol.title"
+            class="form-control" placeholder="{{'dp.title' | translate}}" ng-maxlength="255" required/>
+          <div os-field-error field="dpForm.title"></div>
+        </div>
+      </div>
+     
+      <div class="form-group">
+        <label class="control-label col-xs-3" translate="dp.short_title">Short Title</label>
+        <div class="col-xs-6">
+          <input type="text" name="shortTitle" ng-model="distributionProtocol.shortTitle" 
+            class="form-control" placeholder="{{'dp.short_title' | translate}}" ng-maxlength="50" required/>
+          <div os-field-error field="dpForm.shortTitle"></div>
+        </div>
+      </div>
+       
+      <div class="form-group">
+        <label class="control-label col-xs-3" translate="dp.receiving_institute">Receiving Institute</label>
+        <div class="col-xs-6">
+          <os-institutes name="institute" ng-model="distributionProtocol.instituteName"
+            on-select="onInstituteSelect(institute)" placeholder="{{'dp.receiving_institute' | translate}}"
+            required></os-institutes>
+          <div os-field-error field="dpForm.institute"></div>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="control-label col-xs-3" translate="dp.receiving_site">Receiving Site</label>
+        <div class="col-xs-6">
+          <os-sites name="defReceivingSite" ng-model="distributionProtocol.defReceivingSiteName"
+            institute="distributionProtocol.instituteName" list-all="true"
+            placeholder="{{'dp.receiving_site' | translate}}">
+          </os-sites>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label class="control-label col-xs-3" translate="dp.pi">Principle Investigator</label>
+        <div class="col-xs-6">
+          <os-users name="pi" ng-model="distributionProtocol.principalInvestigator" filter-opts="userFilterOpts"
+            placeholder="{{'dp.pi' | translate}}" required></os-users>
+          <div os-field-error field="dpForm.pi"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="control-label col-xs-3" translate="dp.coordinators">Protocol Coordinators</label>
+        <div class="col-xs-6">
+          <os-users multiple ng-model="distributionProtocol.coordinators" filter-opts="userFilterOpts"
+            placeholder="{{'dp.coordinators' | translate}}"></os-users>
+        </div>
+      </div>
+     
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="dp.irb_id">IRB Id</label>
+        <div class="col-xs-6">
+          <input type="text" class="form-control" ng-model="distributionProtocol.irbId" 
+            placeholder="{{'dp.irb_id' | translate}}" ng-maxlength="255"/>
+        </div>
+      </div>
+    
+      <div class="form-group os-multi-parts-control">
+        <label class="control-label col-xs-3" translate="dp.date">Date</label>
+        <div class="col-xs-3">
+          <label class="part-label" translate="dp.start_date"></label>
+          <os-date-picker name="startDate" date="distributionProtocol.startDate"
+            placeholder="{{'dp.start_date' | translate}}">
+          </os-date-picker>
+        </div>  
+        <div class="col-xs-3">
+          <label class="part-label" translate="dp.end_date"></label>
+          <os-date-picker name="endDate" date="distributionProtocol.endDate"
+            placeholder="{{'dp.end_date' | translate}}">
+          </os-date-picker>
+        </div>  
+      </div>
+
+      <div class="form-group">
+        <label class="control-label col-xs-3" translate="dp.label_fmt">Label Format</label>
+        <div class="col-xs-6">
+          <input type="text" name="labelFmt" ng-model="distributionProtocol.orderItemLabelFormat"
+            class="form-control" placeholder="{{'dp.label_fmt' | translate}}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="control-label col-xs-3" translate="dp.custom_fields_form">Custom Fields Form</label>
+        <div class="col-xs-6">
+          <os-select name="extnForm" ng-model="distributionProtocol.orderExtnForm"
+            list="formsList" display-prop="caption" refresh="searchForms"
+            placeholder="{{'dp.custom_fields_form' | translate}}">
+          </os-select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="control-label col-xs-3" translate="dp.order_report_query">Order Report Query</label>
+        <div class="col-xs-6">
+          <os-select name="report" ng-model="distributionProtocol.report" 
+            list="queryList.queries" display-prop="title" refresh="loadQueries"
+            placeholder="{{'dp.order_report_query' | translate}}">
+          </os-select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="control-label col-xs-3" translate="dp.order_attachment">Order Attachment</label>
+        <div class="col-xs-6">
+          <os-select name="attachmentType" ng-model="distributionProtocol.attachmentType"
+            list="attachmentTypes" display-prop="caption" select-prop="name"
+            placeholder="{{'dp.order_attachment' | translate}}">
+          </os-select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-xs-offset-3 col-xs-6 os-text-checkbox">
+          <div class="checkbox">
+            <os-checkbox ng-model="distributionProtocol.disableEmailNotifs"></os-checkbox>
+          </div>
+          <div class="message os-ctrl-padding-top">
+            <span translate="dp.disable_email_notifs">Disable e-mail notifications. No e-mails will be sent when orders are processed.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="os-divider"></div>
+      
+      <div ng-if="currentUser.admin">
+        <div class="form-group clearfix">
+          <label class="control-label col-xs-3" translate="dp.distributing_sites">Distributing Sites</label>
+          <div class="col-xs-3">
+            <label class="control-label" translate="dp.institute">Institute</label>
+          </div>
+          <div class="col-xs-3">
+            <label class="control-label" translate="dp.sites">Sites</label>
+          </div>
+        </div>
+      
+        <div class="form-group clearfix" ng-repeat="site in distributionProtocol.distributingSites">
+          <ng-form name="dpSitesForm" os-form-validator="dpSitesForm" parent-validator="dpFormValidator">
+            <div class="col-xs-3 col-xs-offset-3">
+              <os-institutes name="distInstituteName" ng-model="site.instituteName"
+                placeholder="{{'dp.institute' | translate}}" required
+                on-select="onDistInstSelect($index, institute)">
+              </os-institutes>
+              <div os-field-error field="dpSitesForm.distInstituteName"></div>
+            </div>
+          
+            <div class="col-xs-3">
+              <os-sites multiple name="distSites" ng-model="site.sites" placeholder="{{'dp.sites' | translate}}"
+                institute="site.instituteName" on-select="onDistSiteSelect($index)" show-all-sites="true"
+                list-all="true" required>
+              </os-sites>
+              <div os-field-error field="dpSitesForm.distSites"></div>
+            </div>
+
+            <div class="col-xs-1">
+              <button class="btn btn-default pull-right" ng-click="removeDistSite($index)">
+                <span class="glyphicon glyphicon-trash"></span>
+              </button>
+            </div>
+          </ng-form>
+        </div>
+
+        <div class="form-group clearfix">
+          <div class="col-xs-offset-3 col-xs-3">
+            <a translate="common.buttons.add_new" ng-click="addDistSite()">
+              Add New
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div ng-if="!currentUser.admin">
+        <div class="form-group clearfix">
+          <label class="control-label col-xs-3" translate="dp.distributing_sites">Distributing Sites</label>
+          
+          <div class="col-xs-6">
+            <os-sites multiple name="distSites" ng-model="distributionProtocol.distributingSites[0].sites"
+              resource="DistributionProtocol" operation="{{op}}" placeholder="{{'dp.sites' | translate}}"
+              on-select="onDistSiteSelect(0)" on-remove="onDistSiteRemove(0)" ng-required="!currentUser.instituteAdmin">
+            </os-sites>
+            <div os-field-error field="dpSitesForm.distSites"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="os-entity-extn-form-fields" ng-if="!!extnOpts">
+        <div class="os-divider"></div>
+
+        <div id="de-form" class="os-extn-form" os-de-form opts="extnOpts"
+          ctrl="deFormCtrl" extended-obj="distributionProtocol">
+        </div>
+      </div>
+      
+      <div class="os-divider"></div>
+
+      <div class="form-group">
+        <div class="col-xs-offset-3 col-xs-6">
+          <button class="btn btn-primary" os-form-submit="createDp()">
+            <span ng-if="!distributionProtocol.id"  translate="common.buttons.create"> Create </span>
+            <span ng-if="!!distributionProtocol.id" translate="common.buttons.update"> Update </span>
+          </button>
+          <button class="btn os-btn-text" ng-click="back()">
+            <span translate="common.buttons.discard">Discard</span>
+          </button>
+        </div>
+      </div>  
+    </form>
+  </div>
+</div>

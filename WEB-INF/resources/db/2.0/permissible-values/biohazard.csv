@@ -1,0 +1,6 @@
+"IDENTIFIER","CONCEPT_CODE","DEFINITION","value","PUBLIC_ID"
+"getNextPvId()","","","HIV","specimen_biohazard"
+"getNextPvId()","","","Hepatitis A","specimen_biohazard"
+"getNextPvId()","","","Hepatitis B","specimen_biohazard"
+"getNextPvId()","","","Hepatitis C","specimen_biohazard"
+"getNextPvId()","","","Tuberculosis","specimen_biohazard"

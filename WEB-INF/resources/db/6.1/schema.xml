@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Undo deletion of user accounts that are used as specimen collectors">
+    <sql>
+      update
+        catissue_user
+      set
+        activity_status = 'Locked',
+        first_name = concat('Z-DNU-', first_name)
+      where
+        identifier in (
+          select
+            t.user_id
+          from (
+            select
+              distinct ce.user_id
+            from
+              catissue_specimen s
+              inner join catissue_form_record_entry re on re.object_id = s.identifier
+              inner join catissue_form_context fc on fc.identifier = re.form_ctxt_id
+              inner join dyextn_containers c on c.identifier = fc.container_id
+              inner join catissue_coll_event_param ce on ce.identifier = re.record_id
+              inner join catissue_user u on u.identifier = ce.user_id
+            where
+              c.name = 'SpecimenCollectionEvent' and
+              u.activity_status = 'Disabled' and
+              s.activity_status != 'Disabled' and
+              re.activity_status = 'ACTIVE'
+          ) t
+        );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Undo deletion of user accounts that are used as specimen receivers">
+    <sql>
+      update
+        catissue_user
+      set
+        activity_status = 'Locked',
+        first_name = concat('Z-DNU-', first_name)
+      where
+        identifier in (
+          select
+            t.user_id
+          from (
+            select
+              distinct rv.user_id
+            from
+              catissue_specimen s
+              inner join catissue_form_record_entry re on re.object_id = s.identifier
+              inner join catissue_form_context fc on fc.identifier = re.form_ctxt_id
+              inner join dyextn_containers r on r.identifier = fc.container_id
+              inner join catissue_received_event_param rv on rv.identifier = re.record_id
+              inner join catissue_user u on u.identifier = rv.user_id
+            where
+              r.name = 'SpecimenReceivedEvent' and
+              u.activity_status = 'Disabled' and
+              s.activity_status != 'Disabled' and
+              re.activity_status = 'ACTIVE'
+          ) t
+        );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Visit query form fixes">
+    <sql>
+      update
+        catissue_saved_queries
+      set
+        query_def = replace(query_def, 'SpecimenCollectionGroup.site.name', 'SpecimenCollectionGroup.site');
+    </sql>
+    <sql>
+      update
+        catissue_saved_queries
+      set
+        query_def = replace(query_def, 'SpecimenCollectionGroup.missedBy.missedByName', 'SpecimenCollectionGroup.missedBy');
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="External app ID props">
+    <createTable tableName="OS_EXT_APP_ID_PROPS">
+      <column name="EXTERNAL_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="NAME" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="VALUE" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on external app ID in props table">
+    <addForeignKeyConstraint constraintName="FK_EXT_APP_PROPS_ID"
+      baseTableName="OS_EXT_APP_ID_PROPS" baseColumnNames="EXTERNAL_ID"
+      referencedTableName="OS_EXTERNAL_APP_IDS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Import job field separator">
+    <addColumn tableName="OS_BULK_IMPORT_JOBS">
+      <column name="FIELD_SEPARATOR" type="${text.type}(1)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="User UI states">
+    <createTable tableName="OS_USER_UI_STATES">
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="STATE" type="${clob.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on UI states user">
+    <addForeignKeyConstraint constraintName="FK_UI_STATE_USER"
+      baseTableName="OS_USER_UI_STATES" baseColumnNames="USER_ID"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP setting whether to close parent specimens after children creation">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="CLOSE_PARENT_SPMNS" type="${boolean.type}" defaultValueBoolean="false"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Registration custom fields revision">
+    <addColumn tableName="CATISSUE_COLL_PROT_REG">
+      <column name="EXTENSION_REV" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Visit custom fields revision">
+    <addColumn tableName="CATISSUE_SPECIMEN_COLL_GROUP">
+      <column name="EXTENSION_REV" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen custom fields revision">
+    <addColumn tableName="CATISSUE_SPECIMEN">
+      <column name="EXTENSION_REV" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Registration create/update audit info">
+    <addColumn tableName="CATISSUE_COLL_PROT_REG">
+      <column name="CREATION_TIME" type="${nullable.ts.type}"/>
+      <column name="CREATOR" type="${int.type}"/>
+      <column name="UPDATE_TIME" type="${nullable.ts.type}"/>
+      <column name="UPDATER" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Participant create/update audit info">
+    <addColumn tableName="CATISSUE_PARTICIPANT">
+      <column name="CREATION_TIME" type="${nullable.ts.type}"/>
+      <column name="CREATOR" type="${int.type}"/>
+      <column name="UPDATE_TIME" type="${nullable.ts.type}"/>
+      <column name="UPDATER" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Visit create/update audit info">
+    <addColumn tableName="CATISSUE_SPECIMEN_COLL_GROUP">
+      <column name="CREATION_TIME" type="${nullable.ts.type}"/>
+      <column name="CREATOR" type="${int.type}"/>
+      <column name="UPDATE_TIME" type="${nullable.ts.type}"/>
+      <column name="UPDATER" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen create/update audit info">
+    <addColumn tableName="CATISSUE_SPECIMEN">
+      <column name="CREATION_TIME" type="${nullable.ts.type}"/>
+      <column name="CREATOR" type="${int.type}"/>
+      <column name="UPDATE_TIME" type="${nullable.ts.type}"/>
+      <column name="UPDATER" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Recreating CPR view to creation/update time and user" runOnChange="true">
+    <createView viewName="cpr_view" replaceIfExists="true">
+      select
+        cpr.identifier as cpr_id, cpr.collection_protocol_id as cp_id,
+        cpr.participant_id as participant_id, p.first_name as first_name,
+        p.middle_name as middle_name, p.last_name as last_name,
+        p.birth_date as dob, p.social_security_number as ssn,
+        cpr.activity_status as activity_status, p.gender as gender,
+        p.genotype as genotype, cpr.registration_date as registration_date,
+        cpr.protocol_participant_id as ppid, p.vital_status as vital_status,
+        p.death_date as death_date, p.empi_id as empi_id, cpr.barcode as barcode,
+        cpr.consent_sign_date as consent_sign_date, cpr.consent_witness as consent_witness,
+        cpr.consent_comments as consent_comments, cpr.external_subject_id as external_subject_id,
+        cpr.site_id as site_id,  cpr.creation_time as creation_time, cpr.creator as creator,
+        case
+          when cpr.update_time is null then p.update_time
+          when p.update_time is null then cpr.update_time
+          when cpr.update_time &lt; p.update_time then p.update_time
+          else cpr.update_time
+        end as update_time,
+        case
+          when cpr.update_time is null then p.updater
+          when p.update_time is null then cpr.updater
+          when cpr.update_time &lt; p.update_time then p.updater
+          else cpr.updater
+        end as updater
+      from
+        catissue_coll_prot_reg cpr
+        inner join catissue_participant p on cpr.participant_id = p.identifier
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Use auth provider ID as FK in the auth domains table">
+    <addColumn tableName="OS_AUTH_DOMAINS">
+      <column name="PROVIDER_ID" type="${int.type}"/>
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)" defaultValue="Active">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update the auth provider ID" dbms="mysql">
+    <sql>
+      update
+        os_auth_domains d
+        inner join os_auth_providers p on p.auth_type = d.auth_type
+      set
+        d.provider_id = p.identifier
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update the auth provider ID" dbms="oracle">
+    <sql>
+      merge into
+        os_auth_domains d
+      using (
+        select
+          *
+        from
+          os_auth_providers
+        ) p on (p.auth_type = d.auth_type)
+      when matched then
+        update set d.provider_id = p.identifier
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add FK on provider of the auth domains">
+    <addForeignKeyConstraint constraintName="FK_DOMAIN_PROVIDER_FK"
+      baseTableName="OS_AUTH_DOMAINS" baseColumnNames="PROVIDER_ID"
+       referencedTableName="OS_AUTH_PROVIDERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Auth provider ID cannot be null">
+    <addNotNullConstraint tableName="OS_AUTH_DOMAINS" columnName="PROVIDER_ID" columnDataType="${int.type}"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Remove the now redundant auth type from the domains table - 1">
+    <dropForeignKeyConstraint baseTableName="OS_AUTH_DOMAINS" constraintName="FK_AUTH_DOMAINS_AUTH_TYPE"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Remove the now redundant auth type from the domains table - 2">
+    <dropColumn tableName="OS_AUTH_DOMAINS" columnName="AUTH_TYPE"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop unique constraint on auth type" dbms="mysql">
+    <dropUniqueConstraint tableName="OS_AUTH_PROVIDERS" constraintName="AUTH_TYPE" uniqueColumns="AUTH_TYPE"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop unique constraint on auth type if it exists" dbms="oracle">
+    <sql>call os_drop_unique_constraint('OS_AUTH_PROVIDERS', 'AUTH_TYPE')</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Use domain ID as FK in the users table">
+    <addColumn tableName="CATISSUE_USER">
+      <column name="DOMAIN_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update the users domain ID" dbms="mysql">
+    <sql>
+      update
+        catissue_user u
+        inner join os_auth_domains d on d.domain_name = u.domain_name
+      set
+        u.domain_id = d.identifier
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update the users domain ID" dbms="oracle">
+    <sql>
+      merge into
+        catissue_user u
+      using (
+        select
+          *
+        from
+          os_auth_domains
+      ) d on (d.domain_name = u.domain_name)
+      when matched then
+        update set u.domain_id = d.identifier
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="User domain ID cannot be null">
+    <addNotNullConstraint tableName="CATISSUE_USER" columnName="DOMAIN_ID" columnDataType="${int.type}"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Remove the now redundant domain name from the users table - 1" dbms="mysql">
+    <dropUniqueConstraint tableName="CATISSUE_USER" constraintName="CAT_USER_LNAME_DOMAIN_UQ"
+      uniqueColumns="LOGIN_NAME,DOMAIN_NAME"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Remove the now redundant domain name from the users table - 1" runOnChange="true" dbms="oracle">
+    <sql>call os_drop_unique_constraint('CATISSUE_USER', 'LOGIN_NAME DOMAIN_NAME')</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Remove the now redundant domain name from the users table - 2">
+    <dropForeignKeyConstraint baseTableName="CATISSUE_USER" constraintName="FK_USER_DOMAIN_NAME"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Remove the now redundant domain name from the users table - 3">
+    <dropColumn tableName="CATISSUE_USER" columnName="DOMAIN_NAME"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add unique constraint on login name and domain ID of users table">
+    <addUniqueConstraint constraintName="USER_DOMAIN_LOGIN_UQ"
+      tableName="CATISSUE_USER" columnNames="LOGIN_NAME,DOMAIN_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add FK on the user domain">
+    <addForeignKeyConstraint constraintName="FK_USER_DOMAIN_ID"
+      baseTableName="CATISSUE_USER" baseColumnNames="DOMAIN_ID"
+      referencedTableName="OS_AUTH_DOMAINS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+</databaseChangeLog>

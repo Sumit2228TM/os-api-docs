@@ -1,0 +1,51 @@
+<table cellspacing="0" cellpadding="0" border="0" width="100%" style="border-spacing:0;border-collapse:separate">
+  <tbody>
+    <tr>
+      <td style="border-collapse:collapse;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px;line-height:20px">
+          <tbody>
+            <tr>
+              <td style="padding:0px;border-collapse:collapse;padding:0px;padding-bottom:10px">
+                <p style="margin:10px 0 0 0">
+                  Hello $rcpt.firstName $rcpt.lastName,
+                  <br><br>
+                  Errors were encountered when deleting the following participants:
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <table cellspacing="0" cellpadding="8" border="1" style="border-collapse:collapse;color:#333;border:#ddd;">
+                  <thead>
+                    <tr>
+                      <th>Participant Protocol ID</th>
+                      <th>Registration Date</th>
+                      <th>Error</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    #foreach ($error in $errors.entrySet())
+                      <tr>
+                        <td>$error.key.ppid</td>
+                        <td>$dateFmt.format($error.key.registrationDate)</td>
+                        <td><pre style="color: red;word-break: break-all;">$error.value</pre></td>
+                      </tr>
+                    #end
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="height:5px;line-height:5px;">&nbsp;</td>
+    </tr>
+    <tr>
+      <td>
+        #parse( $footer )
+      </td>
+    </tr>
+  </tbody>
+</table>

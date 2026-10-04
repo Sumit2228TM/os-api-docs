@@ -1,0 +1,301 @@
+
+<div ng-if="!ctx.old">
+  <div style="position: absolute; top: 40px; height: calc(100% - 40px); width: 100%">
+    <iframe name="vueapp" src="{{ctx.vueUrl}}"
+      style="border: 0px;"
+      width="100%" height="100%"
+      margin-height="0" margin-width="0">
+    </iframe>
+  </div>
+</div>
+
+<div ng-if="ctx.old">
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs ng-if="!!ctx.group">
+        <li>
+          <a ui-sref="user-groups">
+            <span translate="user.groups">User Groups</span>
+          </a>
+        </li>
+      </ul>
+
+      <h3>
+        <span ng-show="!!ctx.group">{{ctx.group.name}}</span>
+        <span ng-show="!ctx.group" translate="user.list">Users</span>
+      </h3>
+    </div>
+    <div class="os-page-header-actions">
+      <os-list-pager opts="pagerOpts"> </os-list-pager>
+    </div>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left">
+      <div ng-if="!ctx.checkList.anySelected && !ctx.group">
+        <div ng-include="'modules/administrative/user/single-user-ops.html'"></div>
+      </div>
+
+      <div ng-if="ctx.checkList.anySelected">
+        <div ng-include="'modules/administrative/user/bulk-user-ops.html'"></div>
+      </div>
+    </div>
+   
+    <div class="right">
+      <button class="default" os-right-drawer-toggle title="{{'user.tooltip.search' | translate}}">
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+    
+  <div class="container">
+    <div class="alert alert-info os-lean-box" ng-show="ctx.checkList.count > 0">
+      <span> {{'common.items_selected_info' | translate: ctx.checkList}} </span>
+    </div>
+
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th class="col os-click-esc" show-if-allowed="userResource.updateOpts">
+            <div class="os-select-specimen-cb">
+              <os-checkbox ng-change="ctx.checkList.toggleSelectAll()" ng-model="ctx.checkList.allSelected">
+              </os-checkbox>
+            </div>
+          </th>
+          <th class="col">
+            <span translate="user.name">Name</span>
+          </th>
+          <th class="col">
+            <span translate="user.email_address">Email Address</span>
+          </th>
+          <th class="col">
+            <span translate="user.login_name">Login Name</span>
+          </th>
+          <th class="col">
+            <span translate="user.institute">Institute</span>
+          </th>
+          <th class="col">
+            <span translate="user.primary_site">Primary Site</span>
+          </th>
+          <th class="col">
+            <span translate="user.user_since">User Since</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-if="ctx.emptyState.empty || ctx.emptyState.loading">
+          <td class="col" colspan="100%">
+            <os-empty-list state="ctx.emptyState"></os-empty-list>
+          </td>
+        </tr>
+
+        <tr class="row" ng-repeat="user in users" os-row-click="showUserOverview(user)">
+          <td class="col os-click-esc" show-if-allowed="userResource.updateOpts">
+            <div class="os-select-specimen-cb">
+              <os-checkbox ng-change="ctx.checkList.toggleSelectItem($index)"
+                ng-model="ctx.checkList.items[$index].selected">
+              </os-checkbox>
+            </div>
+          </td>
+          <td class="col os-click-esc">
+            <a ui-sref="user-detail.overview({userId: user.id})">
+              <span>{{user | osUserDisplayName}}</span>
+            </a>
+          </td>
+          <td class="col">
+            <span>{{user.emailAddress}}</span>
+          </td>
+          <td class="col">
+            <span ng-show="user.type != 'CONTACT'">{{user.loginName}}</span>
+            <span ng-show="user.type == 'CONTACT'">{{'' | osNoValue}}</span>
+          </td>
+          <td class="col">
+            <span>{{user.instituteName | osNoValue}}</span>
+          </td>
+          <td class="col">
+            <span>{{user.primarySite | osNoValue}}</span>
+          </td>
+          <td class="col" ng-switch on="!!user.creationDate">
+            <span ng-switch-when="true"> {{user.creationDate | date: global.dateFmt}} </span>
+            <span ng-switch-when="false"> {{'' | osNoValue}} </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div os-right-drawer ng-include="'modules/administrative/user/search.html'"></div>
+</div>
+
+<script type="text/ng-template" id="modules/administrative/user/single-user-ops.html">
+  <div>
+    <button show-if-allowed="userResource.createOpts" class="default" title="{{'user.tooltip.add' | translate}}"
+      ui-sref="user-addedit({userId: ''})">
+      <span class="fa fa-plus"></span>
+      <span translate="common.buttons.create">Create</span>
+    </button>
+
+    <button class="default" ui-sref="user-groups">
+      <span class="fa fa-group"></span>
+      <span translate="user.groups">View Groups</span>
+    </button>
+
+    <div show-if-allowed="userResource.importOpts" dropdown class="os-inline-btn">
+      <button class="default dropdown-toggle">
+        <span translate="common.buttons.import">Import</span>
+        <span class="fa fa-caret-down"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li>
+          <a ui-sref="user-import({objectType: 'user'})">
+            <span class="fa fa-user"></span>
+            <span translate="user.list">Users</span>
+          </a>
+        </li>
+        <li>
+          <a ui-sref="user-import({objectType: 'userRoles'})">
+            <span class="fa fa-lock"></span>
+            <span translate="user.user_roles">User Roles</span>
+          </a>
+        </li>
+        <li>
+          <a ui-sref="user-import({objectType: 'extensions'})">
+            <span class="fa fa-files-o"></span>
+            <span translate="user.menu.forms">Forms</span>
+          </a>
+        </li>
+        <li>
+          <a ui-sref="user-import-jobs">
+            <span class="fa fa-list-alt"></span>
+            <span translate="bulk_imports.view_jobs">View Jobs</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div show-if-allowed="userResource.importOpts" dropdown class="os-inline-btn">
+      <button class="default dropdown-toggle">
+        <span translate="common.buttons.export">Export</span>
+        <span class="fa fa-caret-down"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li>
+          <a ng-click="exportUsers()">
+            <span class="fa fa-user"></span>
+            <span translate="user.list">Users</span>
+          </a>
+        </li>
+        <li>
+          <a ng-click="exportUserRoles()">
+            <span class="fa fa-lock"></span>
+            <span translate="user.user_roles">User Roles</span>
+          </a>
+        </li>
+        <li>
+          <a ui-sref="user-export-forms">
+            <span class="fa fa-files-o"></span>
+            <span translate="user.menu.forms">Forms</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <os-plugin-hooks view-name="'user-list'" sec-name="'page-header'"></os-plugin-hooks>
+
+    <div show-if-admin="institute" dropdown class="os-inline-btn">
+      <button class="default dropdown-toggle">
+        <span translate="common.buttons.more">More</span>
+        <span class="fa fa-caret-down"></span>
+      </button>
+
+      <ul class="dropdown-menu">
+        <li show-if-admin>
+          <a title="{{'user.announcement.tooltip' | translate}}"
+             ng-click="broadcastAnnouncement()">
+            <span class="fa fa-bullhorn"></span>
+            <span translate="user.announcement.new">New Announcement</span>
+          </a>
+        </li>
+
+        <os-plugin-hooks view-name="'user-list'" sec-name="'more-menu'"></os-plugin-hooks>
+      </ul>
+    </div>
+
+    <os-help class="os-btns btn default" link="user_help_link"></os-help>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/administrative/user/bulk-user-ops.html">
+  <div>
+    <button class="default" ng-click="editUsers()">
+      <span class="fa fa-pencil"></span>
+      <span translate="common.buttons.edit">Edit</span>
+    </button>
+
+    <os-assign-to-user-group on-add-to-group="addToGroup(group)" menu-align="left" ng-show="!ctx.group">
+    </os-assign-to-user-group>
+
+    <button class="default" ng-click="removeFromGroup(ctx.group)" ng-show="!!ctx.group">
+      <span class="fa fa-times"></span>
+      <span translate="user.remove_from_group">Remove from Group</span>
+    </button>
+
+    <button class="default" ng-click="archiveUsers()">
+      <span class="fa fa-archive"></span>
+      <span translate="common.buttons.archive">Archive</span>
+    </button>
+
+    <button class="default" ng-click="reactivateUsers()">
+      <span class="fa fa-check"></span>
+      <span translate="common.buttons.reactivate">Reactivate</span>
+    </button>
+
+    <button class="default" ng-click="deleteUsers()">
+      <span class="fa fa-trash"></span>
+      <span translate="common.buttons.delete">Delete</span>
+    </button>
+
+    <button class="default" ng-click="lockUsers()">
+      <span class="fa fa-lock"></span>
+      <span translate="user.lock_users">Lock</span>
+    </button>
+
+    <button class="default" ng-click="unlockUsers()">
+      <span class="fa fa-unlock"></span>
+      <span translate="user.unlock_users">Unlock</span>
+    </button>
+
+    <button class="default" ng-click="approveUsers()">
+      <span class="fa fa-check"></span>
+      <span translate="user.approve_users">Approve</span>
+    </button>
+
+    <div show-if-allowed="userResource.importOpts" dropdown class="os-inline-btn">
+      <button class="default dropdown-toggle">
+        <span translate="common.buttons.export">Export</span>
+        <span class="fa fa-caret-down"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li>
+          <a ng-click="exportUsers()">
+            <span class="fa fa-user"></span>
+            <span translate="user.list">Users</span>
+          </a>
+        </li>
+        <li>
+          <a ng-click="exportUserRoles()">
+            <span class="fa fa-lock"></span>
+            <span translate="user.user_roles">User Roles</span>
+          </a>
+        </li>
+        <li>
+          <a ng-click="exportUserForms()">
+            <span class="fa fa-files-o"></span>
+            <span translate="user.menu.forms">Forms</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</script>

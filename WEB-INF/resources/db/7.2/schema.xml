@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Track the cluster node that is working on the job">
+    <addColumn tableName="OS_SCHEDULED_JOBS">
+      <column name="RUN_BY_NODE" type="${text.type}(32)" defaultValue="none"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track the cluster node that worked on the import job">
+    <addColumn tableName="OS_BULK_IMPORT_JOBS">
+      <column name="RUN_BY_NODE" type="${text.type}(32)" defaultValue="none"/>
+      <column name="STOP_RUNNING" type="${boolean.type}" defaultValueBoolean="false"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track the cluster node that is running some import job">
+    <createTable tableName="OS_IMPORT_RUNNER">
+      <column name="ACTIVE_NODE" type="${text.type}(32)"/>
+      <column name="LOCK_TIME" type="${timestamp.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="The default import runner - none">
+    <sql>insert into os_import_runner (active_node, lock_time) values ('none', ${now})</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update the DND status of all contact users to true">
+    <sql>update catissue_user set dnd = 1 where type = 'CONTACT'</sql>
+  </changeSet>
+</databaseChangeLog>

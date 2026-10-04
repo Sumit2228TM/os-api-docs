@@ -1,0 +1,12 @@
+<div>
+  <os-list params="ctx.params" item-sref="specimen({specimenId: row.hidden.specimenId})"
+    enable-selection="true" show-item="showSpecimen(row)" init-ctrl="setListCtrl($list)"
+    empty-state="ctx.emptyState">
+  </os-list>
+</div>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimens-list-pager.html">
+  <div>
+    <os-list-pager opts="listViewCtx.pagerOpts"></os-list-pager>
+  </div>
+</script>

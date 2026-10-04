@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="single" id="Modify length of key_value column in key_seq_generator table">
+    <modifyDataType tableName="KEY_SEQ_GENERATOR" columnName="KEY_VALUE" newDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Form data entry tokens">
+    <createTable tableName="OS_FORM_DATA_ENTRY_TOKENS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false" />
+      </column>
+      <column name="FORM_CTXT_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_FDE_TOKENS_FORM_CTXT_ID"
+          referencedTableName="CATISSUE_FORM_CONTEXT" referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="OBJECT_ID" type="${int.type}">
+        <constraints nullable="false" />
+      </column>
+      <column name="TOKEN" type="${text.type}(255)">
+        <constraints nullable="false" unique="true" uniqueConstraintName="OS_FDE_TOKEN_UQ"/>
+      </column>
+      <column name="CREATED_BY" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_FDE_TK_CREATOR"
+          referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+      </column>
+      <column name="CREATION_TIME" type="${nullable.ts.type}"/>
+      <column name="EXPIRY_TIME" type="${nullable.ts.type}"/>
+      <column name="COMPLETION_TIME" type="${nullable.ts.type}"/>
+      <column name="STATUS" type="${text.type}(32)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Form data entry token ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_FORM_DATA_ENTRY_TOKENS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container utilisation">
+    <addColumn tableName="OS_STORAGE_CONTAINERS">
+      <column name="UTILISATION" type="${int.type}" defaultValueNumeric="0"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to increment container utilisation when a position is occupied" dbms="mysql" runOnChange="true">
+    <sql>
+      drop trigger if exists os_incr_container_utilisation;
+    </sql>
+
+    <sql endDelimiter="//">
+      create trigger os_incr_container_utilisation after insert on os_container_positions
+      for each row
+      begin
+        update
+          os_storage_containers
+        set
+          utilisation = utilisation + 1
+        where
+          identifier = new.storage_container_id;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to decrement container utilisation when a position is vacated" dbms="mysql" runOnChange="true">
+    <sql>
+      drop trigger if exists os_decr_container_utilisation;
+    </sql>
+
+    <sql endDelimiter="//">
+      create trigger os_decr_container_utilisation after delete on os_container_positions
+      for each row
+      begin
+        update
+          os_storage_containers
+        set
+          utilisation = utilisation - 1
+        where
+          identifier = old.storage_container_id;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to update container utilisation when a position is updated" dbms="mysql" runOnChange="true">
+    <sql>
+      drop trigger if exists os_chg_container_utilisation;
+    </sql>
+
+    <sql endDelimiter="//">
+      create trigger os_chg_container_utilisation after update on os_container_positions
+      for each row
+      begin
+        update
+          os_storage_containers
+        set
+          utilisation = utilisation - 1
+        where
+          identifier = old.storage_container_id;
+
+        update
+          os_storage_containers
+        set
+          utilisation = utilisation + 1
+        where
+          identifier = new.storage_container_id;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to increment container utilisation when a position is occupied" dbms="oracle" runOnChange="true">
+    <sql splitStatements="false">
+      create or replace trigger os_incr_container_utilisation after insert on os_container_positions
+      for each row
+      begin
+        update
+          os_storage_containers
+        set
+          utilisation = utilisation + 1
+        where
+          identifier = :new.storage_container_id;
+      end;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to decrement container utilisation when a position is vacated" dbms="oracle" runOnChange="true">
+    <sql splitStatements="false">
+      create or replace trigger os_decr_container_utilisation after delete on os_container_positions
+      for each row
+      begin
+        update
+          os_storage_containers
+        set
+          utilisation = utilisation - 1
+        where
+          identifier = :old.storage_container_id;
+      end;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to update container utilisation when a position is updated" dbms="oracle" runOnChange="true">
+    <sql splitStatements="false">
+      create or replace trigger os_chg_container_utilisation after update on os_container_positions
+      for each row
+      begin
+        update
+          os_storage_containers
+        set
+          utilisation = utilisation - 1
+        where
+          identifier = :old.storage_container_id;
+
+        update
+          os_storage_containers
+        set
+          utilisation = utilisation + 1
+        where
+          identifier = :new.storage_container_id;
+      end;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Participant email address">
+    <addColumn tableName="CATISSUE_PARTICIPANT">
+      <column name="EMAIL_ADDRESS" type="${text.type}(255)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Email addresses are unique">
+    <addUniqueConstraint constraintName="PART_EMAIL_ADDR_UQ"
+      tableName="CATISSUE_PARTICIPANT" columnNames="EMAIL_ADDRESS"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Patient data entry notifications">
+    <createTable tableName="OS_PDE_NOTIFS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="CPR_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_PDE_NOTIF_CPR_ID"
+          referencedTableName="CATISSUE_COLL_PROT_REG" referencedColumnNames="IDENTIFIER"/>
+      </column>
+      <column name="CREATED_BY" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_PDE_NOTIF_USER_ID"
+          referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+      </column>
+      <column name="CREATION_TIME" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="EXPIRY_TIME" type="${nullable.ts.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Patient data entry notification ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_PDE_NOTIF_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Patient data entry notification link">
+    <createTable tableName="OS_PDE_NOTIF_LINKS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="NOTIF_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_PDE_NOTIF_LINKS_NOTIF_ID"
+          referencedTableName="OS_PDE_NOTIFS" referencedColumnNames="IDENTIFIER"/>
+      </column>
+      <column name="FORM_TYPE" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="TOKEN_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="STATUS" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Patient data entry notification link ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_PDE_NOTIF_LINKS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Collection protocol group activity status">
+    <addColumn tableName="OS_CP_GROUPS">
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)" defaultValue="Active">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Ensure there is at least one index on the container ID of positions table" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <indexExists indexName="FK_OS_POS_ST_CONTS_CONT_ID"
+          tableName="OS_CONTAINER_POSITIONS" columnNames="STORAGE_CONTAINER_ID"/>
+      </not>
+    </preConditions>
+    <createIndex tableName="OS_CONTAINER_POSITIONS" indexName="FK_OS_POS_ST_CONTS_CONT_ID">
+      <column name="STORAGE_CONTAINER_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop unique constraint on container position as the order of DMLs cannot be controlled by the app" runOnChange="true" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <indexExists indexName="CONTAINER_POS_UQ"
+        tableName="OS_CONTAINER_POSITIONS"
+        columnNames="STORAGE_CONTAINER_ID,POS_ONE_STR,POS_TWO_STR"/>
+    </preConditions>
+    <dropUniqueConstraint constraintName="CONTAINER_POS_UQ"
+      tableName="OS_CONTAINER_POSITIONS"
+      uniqueColumns="STORAGE_CONTAINER_ID,POS_ONE_STR,POS_TWO_STR"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop unique index on container position as the order of DMLs cannot be controlled by the app" runOnChange="true" dbms="oracle">
+    <preConditions onFail="MARK_RAN">
+      <indexExists indexName="CONTAINER_POS_UQ"
+        tableName="OS_CONTAINER_POSITIONS"
+        columnNames="STORAGE_CONTAINER_ID,POS_ONE_STR,POS_TWO_STR"/>
+    </preConditions>
+    <dropIndex indexName="CONTAINER_POS_UQ" tableName="OS_CONTAINER_POSITIONS"/>
+  </changeSet>
+</databaseChangeLog>

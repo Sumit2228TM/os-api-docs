@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.common.domain.UserNotification" table="OS_USER_NOTIFICATIONS"
+    entity-name="com.krishagni.catissueplus.core.common.domain.UserNotification">
+	
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_USER_NOTIFS_SEQ</param>
+      </generator>
+    </id>
+
+    <many-to-one name="user" column="USER_ID"/>
+    
+    <many-to-one name="notification" column="NOTIFICATION_ID"/>
+
+    <property name="urlKey" column="URL_KEY"/>
+
+    <property name="status" column="STATUS" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.common.domain.UserNotification$Status</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <sql-query name="markNotifsAsRead">
+      update
+        os_user_notifications
+      set
+        status = 'READ'
+      where
+        user_id = :userId and
+        notification_id in (
+          select
+            identifier
+          from
+            os_notifications
+          where
+            creation_time &lt;= :notifsBefore
+        )
+    </sql-query>
+  </class>
+</hibernate-mapping>

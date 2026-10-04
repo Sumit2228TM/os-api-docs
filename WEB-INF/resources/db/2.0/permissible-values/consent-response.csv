@@ -1,0 +1,6 @@
+"IDENTIFIER","CONCEPT_CODE","DEFINITION","value","PUBLIC_ID","SORTORDER"
+"getNextPvId()","","","Yes","consent_response","1"
+"getNextPvId()","","","No","consent_response","2"
+"getNextPvId()","","","Not Specified","consent_response","3"
+"getNextPvId()","","","Withdrawn","consent_response","4"
+"getNextPvId()","","","None","consent_response","5"

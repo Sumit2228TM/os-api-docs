@@ -1,0 +1,185 @@
+
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3>
+        <span translate="specimens.bulk_update">Bulk Update Specimens</span>
+      </h3>
+    </div>
+  </div>
+
+  <div class="container">
+    <form name="sform" class="form-horizontal" os-form-validator="sform" validator="sformValidator" novalidate>
+      <div ng-if="ctx.fields.length > 0">
+        <div ng-include="'modules/biospecimen/participant/specimen/dyna-bulk-edit.html'"></div>
+      </div>
+
+      <div ng-if="ctx.fields.length == 0">
+        <div ng-include="'modules/biospecimen/participant/specimen/static-bulk-edit.html'"></div>
+      </div>
+
+      <div class="os-divider"></div>
+
+      <div class="form-group">
+        <div class="col-xs-offset-3 col-xs-6">
+          <button class="btn btn-primary" os-form-submit="bulkUpdate()">
+            <span translate="common.buttons.update"> Update </span>
+          </button>
+          <button class="btn os-btn-text" ng-click="back()">
+            <span translate="common.buttons.discard"> Discard </span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimen/static-bulk-edit.html">
+  <div>
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.collection_status">Collection Status</label>
+      <div class="col-xs-6">
+        <os-select name="collectionStatus" ng-model="specimen.status" list="specimenStatuses"
+          placeholder="{{'specimens.collection_status' | translate}}">
+        </os-select>
+      </div>
+    </div>
+
+    <div>
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="specimens.type">Specimen Type</label>
+        <div class="col-xs-6">
+          <os-specimen-types name="type" specimen="specimen" placeholder="{{'specimens.type' | translate}}">
+          </os-specimen-types>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.initial_qty">Initial Quantity</label>
+      <div class="col-xs-6">
+        <os-spmn-measure name="qty" specimen="specimen" quantity="specimen.initialQty"
+          placeholder="{{'specimens.initial_qty' | translate}}">
+        </os-spmn-measure>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.available_qty">Available Quantity</label>
+      <div class="col-xs-6">
+        <os-spmn-measure name="aqty" specimen="specimen" quantity="specimen.availableQty"
+          placeholder="{{'specimens.available_qty' | translate}}">
+        </os-spmn-measure>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.created_on">Created On</label>
+      <div class="col-xs-6">
+        <div class="os-date-time clearfix">
+          <div class="os-col-65 input os-no-padding">
+            <os-date-picker name="createdOn" date="specimen.createdOn"
+              placeholder="{{'specimens.created_on' | translate}}">
+            </os-date-picker>
+          </div>
+          <div class="os-col-35">
+            <timepicker ng-model="specimen.createdOn" class="os-time-no-wheels" show-meridian="false">
+            </timepicker>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.concentration">Concentration</label>
+      <div class="col-xs-6">
+        <os-spmn-measure name="concentration" specimen="specimen" quantity="specimen.concentration"
+          measure="concentration" placeholder="{{'specimens.concentration' | translate}}">
+        </os-spmn-measure>
+      </div>
+    </div>
+
+    <div class="form-group" ng-if="biohazards.length > 0">
+      <label class="col-xs-3 control-label" translate="specimens.biohazards">Biohazards</label>
+      <div class="col-xs-6">
+        <os-pvs name="biohazards" ng-model="specimen.biohazards" attribute="specimen-biohazard"
+          multiple placeholder="{{'specimens.biohazards' | translate}}">
+        </os-pvs>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.freeze_thaw_cycles">Freeze/Thaw Cycles</label>
+      <div class="col-xs-6">
+        <input name="freezeThawCycles" ng-model="specimen.freezeThawCycles"
+          class="form-control" type="text" placeholder="{{'specimens.freeze_thaw_cycles' | translate}}"
+          ng-pattern="/^[0-9]*$/">
+        <div os-field-error field="sform.freezeThawCycles"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.pathology_status">Pathology Status</label>
+      <div class="col-xs-6">
+        <os-pvs name="pathology" ng-model="specimen.pathology" attribute="pathology-status"
+          placeholder="{{'specimens.pathology_status' | translate}}">
+        </os-pvs>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.anatomic_site">Anatomic Site</label>
+      <div class="col-xs-6">
+        <os-pvs name="anatomicSite" ng-model="specimen.anatomicSite" attribute="anatomic-site"
+          show-only-leaf-values="true" placeholder="{{'specimens.anatomic_site' | translate}}">
+        </os-pvs>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.laterality">Laterality</label>
+      <div class="col-xs-6">
+        <os-pvs name="laterality" ng-model="specimen.laterality" attribute="laterality"
+          placeholder="{{'specimens.laterality' | translate}}">
+        </os-pvs>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label">
+        <span translate="specimens.comments">Comments</span>
+      </label>
+      <div class="col-xs-6">
+        <textarea ng-model="specimen.comments" class="form-control"
+          placeholder="{{'specimens.comments' | translate}}" rows="2">
+        </textarea>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimen/dyna-bulk-edit.html">
+  <div ng-repeat="editedField in ctx.editedFields"
+    ng-style="!$last && {'border-bottom': '1px solid #ddd', 'margin-bottom': '20px'}">
+    <div class="form-group">
+      <label class="col-xs-3 control-label">
+        <span translate="common.select_field">Field</span>
+      </label>
+      <div class="col-xs-6">
+        <os-select ng-model="editedField.field" list="ctx.fields" display-prop="caption"
+          on-select="onFieldSelect($index, $item)" on-remove="removeField($index)">
+        </os-select>
+      </div>
+    </div>
+    <div class="form-group" ng-if="!!editedField.field.name">
+      <label class="col-xs-3 control-label">
+        <span>{{editedField.field.caption}}</span>
+      </label>
+      <div class="col-xs-6">
+        <sde-form-field form-name="sform" name="{{$index}}" field="editedField.field"
+          obj="editedField.obj" opts="editedField.opts">
+        </sde-form-field>
+      </div>
+    </div>
+  </div>
+</script>

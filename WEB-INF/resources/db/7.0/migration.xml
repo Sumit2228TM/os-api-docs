@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="single" id="Disable external subject id for deleted registration">
+    <sql>
+      update 
+        catissue_coll_prot_reg 
+      set 
+        external_subject_id = concat(external_subject_id, concat('_deleted_', identifier)) 
+      where 
+        external_subject_id is not null and 
+        activity_status = 'Disabled';
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update container utilisation" dbms="mysql">
+    <sql>
+      update
+        os_storage_containers c
+        inner join (
+          select
+            storage_container_id, count(*) as utilisation
+          from
+            os_container_positions
+          group by
+            storage_container_id
+        ) p on p.storage_container_id = c.identifier
+      set
+        c.utilisation = p.utilisation
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update container utilisation" dbms="oracle">
+    <sql>
+      merge into
+        os_storage_containers c
+      using (
+        select
+          storage_container_id, count(*) as utilisation
+        from
+          os_container_positions
+        group by
+          storage_container_id
+      ) p on (p.storage_container_id = c.identifier)
+      when matched then
+        update set c.utilisation = p.utilisation
+    </sql>
+  </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vgaikwad" id="Add bulk import operation" dbms="mysql">
+    <sql>
+      insert into rbac_operations(name) values ('Bulk Import');
+    </sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Add bulk import operation" dbms="oracle">
+    <sql>
+      insert into rbac_operations(identifier, name) values (rbac_operations_seq.nextval, 'Bulk Import');
+    </sql>
+  </changeSet>
+
+  <changeSet id="vgaikwad" author="Add import rights to all roles having create, update and delete rights on resource" dbms="mysql">
+    <sql>
+      select identifier into @opId from rbac_operations where name = 'Bulk Import';
+
+      insert into
+        rbac_role_access_list_ops(operation_id, acl_id)
+      select
+        @opId, t.identifier
+      from (
+        select
+          acl.identifier
+        from
+          rbac_role_access_list acl
+          inner join rbac_role_access_list_ops acl_op on acl_op.acl_id = acl.identifier
+          inner join rbac_operations op on op.identifier = acl_op.operation_id
+        where
+          op.name in ('Create', 'Update', 'Delete')
+        group by
+          acl.identifier
+        having
+          count(op.name) = 3
+      ) t;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Add import rights to all roles having create, update and delete rights on resource" dbms="oracle">
+    <sql endDelimiter="//">
+      declare
+        opId number;
+      begin
+        select identifier into opId from rbac_operations where name = 'Bulk Import';
+
+        insert into
+          rbac_role_access_list_ops(identifier, operation_id, acl_id)
+        select
+          rbac_acl_ops_seq.nextVal, opId, t.identifier
+        from (
+          select
+            acl.identifier
+          from
+            rbac_role_access_list acl
+            inner join rbac_role_access_list_ops acl_op on acl_op.acl_id = acl.identifier
+            inner join rbac_operations op on op.identifier = acl_op.operation_id
+          where
+            op.name in ('Create', 'Update', 'Delete')
+          group by
+            acl.identifier
+          having
+            count(op.name) = 3
+        ) t;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Add resources for distribution protocol" dbms="mysql">
+    <sql>
+      insert into RBAC_RESOURCES(NAME) values('DistributionProtocol');
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Add resources for distribution protocol" dbms="oracle">
+    <sql>
+      insert into RBAC_RESOURCES(IDENTIFIER, NAME) values(RBAC_RESOURCES_SEQ.nextval, 'DistributionProtocol');
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Give permissions on distribution protocol">
+    <sql>call assign_to_role('Administrator', 'DistributionProtocol', 'Read,Create,Update,Delete');</sql>
+    <sql>call assign_to_role('Coordinator', 'DistributionProtocol', 'Read');</sql>
+    <sql>call assign_to_role('Principal Investigator', 'DistributionProtocol', 'Read');</sql>
+    <sql>call assign_to_role('Researcher', 'DistributionProtocol', 'Read');</sql>
+    <sql>call assign_to_role('Technician', 'DistributionProtocol', 'Read');</sql>
+    <sql>call assign_to_role('Tissue Banker', 'DistributionProtocol', 'Read');</sql>
+  </changeSet>
+</databaseChangeLog>

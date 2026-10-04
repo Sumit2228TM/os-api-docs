@@ -1,0 +1,107 @@
+<form name="saform" class="form-horizontal" os-form-validator="saform" novalidate>
+  <div class="os-modal">
+    <div class="os-modal-header">
+      <span ng-show="!actx.activityLog.id">{{'container.maintenance.log_activity' | translate}}</span>
+      <span ng-show="!!actx.activityLog.id">{{'container.maintenance.update_activity_log' | translate}}</span>
+    </div>
+
+    <div class="os-modal-body">
+      <div class="form-group" ng-if="!actx.activityLog.id">
+        <label class="col-xs-3 control-label">
+          <span translate="container.maintenance.type">Type</span>
+        </label>
+        <div class="col-xs-9">
+          <label class="radio-inline">
+            <input type="radio" name="type" ng-model="actx.activityLog.$$uiProps.adHoc" ng-value="true"
+              ng-change="onTypeChange()">
+            <span translate="container.maintenance.ad_hoc">Ad hoc</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="type" ng-model="actx.activityLog.$$uiProps.adHoc" ng-value="false"
+              ng-change="onTypeChange()">
+            <span translate="container.maintenance.scheduled">Scheduled</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="actx.activityLog.$$uiProps.adHoc">
+        <label class="col-xs-3 control-label">
+          <span translate="container.maintenance.activity">Task</span>
+        </label>
+        <div class="col-xs-9">
+          <os-select name="task" ng-model="actx.activityLog.$$uiProps.task" list="actx.tasks"
+            display-prop="name" refresh="searchTask" required ng-disabled="!!actx.activityLog.id">
+          </os-select>
+          <div os-field-error field="saform.task"></div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="!actx.activityLog.$$uiProps.adHoc">
+        <label class="col-xs-3 control-label">
+          <span translate="container.maintenance.activity">Activity</span>
+        </label>
+        <div class="col-xs-9">
+          <os-select name="activity" ng-model="actx.activityLog.$$uiProps.activity" list="actx.activities"
+            display-prop="name" refresh="searchActivities" required ng-disabled="!!actx.activityLog.id">
+          </os-select>
+          <div os-field-error field="saform.activity"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.maintenance.performed_by">Performed By</span>
+        </label>
+        <div class="col-xs-9">
+          <os-users name="performedBy" ng-model="actx.activityLog.performedBy" default-current-user required>
+          </os-users>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.maintenance.activity_date">Activity Date</label>
+        </label>
+        <div class="col-xs-9">
+          <os-date-picker name="activityDate" date="actx.activityLog.activityDate" required>
+          </os-date-picker>
+          <div os-field-error field="saform.activityDate"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.maintenance.time_taken">Time Taken</label>
+        </label>
+        <div class="col-xs-9">
+          <div class="input-group">
+            <input name="timeTaken" type="text" class="form-control" ng-model="actx.activityLog.timeTaken"
+              ng-pattern="/^[0-9]*$/">
+            <span class="input-group-addon" translate="container.maintenance.minutes">Minutes</span>
+          </div>
+          <div os-field-error field="saform.timeTaken"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.maintenance.comments">Comments</span>
+        </label>
+        <div class="col-xs-9">
+          <textarea class="form-control" ng-model="actx.activityLog.comments" rows="5">
+          </textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="os-modal-footer">
+      <button class="btn os-btn-text" ng-click="cancel()">
+        <span translate="common.buttons.discard">Cancel</span>
+      </button>
+      <button class="btn btn-primary" os-form-submit="saveOrUpdate()">
+        <span ng-show="!actx.activityLog.id" translate="common.buttons.create">Create</span>
+        <span ng-show="!!actx.activityLog.id" translate="common.buttons.update">Update</span>
+      </button>
+    </div>
+  </div>
+</form>

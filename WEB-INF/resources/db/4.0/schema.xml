@@ -1,0 +1,661 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vgaikwad" id="Flag to specify whether bulk registration of participants is allowed">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="BULK_PART_REG_ALLOWED" type="${boolean.type}" defaultValueBoolean="0">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Specimen kits">
+    <createTable tableName="OS_SPECIMEN_KITS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+
+      <column name="CP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="SENDING_SITE_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="RECEIVING_SITE_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="SENDER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="SENDING_DATE" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="COMMENTS" type="${text.type}(255)"/>
+
+      <column name="ACTIVITY_STATUS" type="${text.type}(64)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Specimen kits identifier sequence" dbms="oracle">
+    <createSequence sequenceName="OS_SPECIMEN_KITS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Add FK on specimen kit's collection protocol">
+    <addForeignKeyConstraint constraintName="FK_SPMN_KIT_CP_ID"
+      baseTableName="OS_SPECIMEN_KITS" baseColumnNames="CP_ID"
+      referencedTableName="CATISSUE_COLLECTION_PROTOCOL" referencedColumnNames="IDENTIFIER" />
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Add FK on specimen kit's sending site">
+    <addForeignKeyConstraint constraintName="FK_SPMN_KIT_SENDING_SITE_ID"
+      baseTableName="OS_SPECIMEN_KITS" baseColumnNames="SENDING_SITE_ID"
+      referencedTableName="CATISSUE_SITE" referencedColumnNames="IDENTIFIER" />
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Add FK on specimen kit's receiving site">
+    <addForeignKeyConstraint constraintName="FK_SPMN_KIT_RECEIVING_SITE_ID"
+      baseTableName="OS_SPECIMEN_KITS" baseColumnNames="RECEIVING_SITE_ID"
+      referencedTableName="CATISSUE_SITE" referencedColumnNames="IDENTIFIER" />
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Add FK on specimen kit's sender">
+    <addForeignKeyConstraint constraintName="FK_SPMN_KIT_SENDER_ID"
+      baseTableName="OS_SPECIMEN_KITS" baseColumnNames="SENDER_ID"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Kit specimens">
+    <createTable tableName="OS_KIT_SPECIMENS">
+      <column name="KIT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="SPECIMEN_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Add FK on kit of specimen">
+    <addForeignKeyConstraint constraintName="FK_KIT_SPECIMENS_KIT_ID"
+      baseTableName="OS_KIT_SPECIMENS" baseColumnNames="KIT_ID"
+      referencedTableName="OS_SPECIMEN_KITS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Add FK on specimens in a kit">
+    <addForeignKeyConstraint constraintName="FK_KIT_SPECIMENS_SPECIMEN_ID"
+      baseTableName="OS_KIT_SPECIMENS" baseColumnNames="SPECIMEN_ID"
+      referencedTableName="CATISSUE_SPECIMEN" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Unique specimen in a kit">
+    <addUniqueConstraint
+      constraintName="OS_KIT_SPECIMENS_UQ"
+      tableName="OS_KIT_SPECIMENS"
+      columnNames="KIT_ID, SPECIMEN_ID"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Coded consent statements">
+    <createTable tableName="OS_CONSENT_STATEMENTS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+
+      <column name="CODE" type="${text.type}(32)">
+        <constraints unique="true" nullable="false"/>
+      </column>
+
+      <column name="STATEMENT" type="${text.type}(255)">
+        <constraints unique="true" nullable="false"/>
+      </column>
+
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Identifier sequence for coded consent statements" dbms="oracle">
+    <createSequence sequenceName="OS_CONSENT_STMTS_SEQ" startValue="1" incrementBy="1" ordered="true" />
+  </changeSet>
+
+  <changeSet author="mdnasim" id="DP consent tiers">
+    <createTable tableName="OS_DP_CONSENT_TIERS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+
+      <column name="DP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="CONSENT_STMT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)" defaultValue="Active">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Identifier sequence for DP consent tiers" dbms="oracle">
+    <createSequence sequenceName="OS_DP_CONSENT_TIER_SEQ" startValue="1" incrementBy="1" ordered="true" />
+  </changeSet>
+
+  <changeSet author="mdnasim" id="FK on DP ID of DP coded consent statements">
+    <addForeignKeyConstraint
+      constraintName="FK_DP_CONSENT_STMTS_DP_ID"
+      baseTableName="OS_DP_CONSENT_TIERS" baseColumnNames="DP_ID"
+      referencedTableName="CATISSUE_DISTRIBUTION_PROTOCOL" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="FK on consent ID of DP consent statements">
+    <addForeignKeyConstraint
+      constraintName="FK_DP_CONSENT_TIERS_CONSENT_ID"
+      baseTableName="OS_DP_CONSENT_TIERS" baseColumnNames="CONSENT_STMT_ID"
+      referencedTableName="OS_CONSENT_STATEMENTS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="CP consent tier statement">
+    <addColumn tableName="CATISSUE_CONSENT_TIER">
+      <column name="CONSENT_STMT_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="FK on CP consent tier statement">
+    <addForeignKeyConstraint
+      constraintName="FK_CP_CONSENT_TIERS_CONSENT_ID"
+      baseTableName="CATISSUE_CONSENT_TIER" baseColumnNames="CONSENT_STMT_ID"
+      referencedTableName="OS_CONSENT_STATEMENTS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Move existing CP consent tier statement text to coded consent statement table" dbms="oracle">
+    <sql>
+      insert into os_consent_statements
+        (identifier, code, statement, activity_status)
+      select
+        os_consent_stmts_seq.nextval, concat('C', os_consent_stmts_seq.currval), t0.statement, 'Active'
+      from
+        (
+          select
+            distinct statement
+          from
+            catissue_consent_tier
+          where
+            activity_status = 'Active'
+        ) t0
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Move existing CP consent tier statement text to coded consent statement table" dbms="mysql">
+    <sql>
+      set @row := 0;
+
+      insert into os_consent_statements
+        (code, statement, activity_status)
+      select
+        concat('C', @row := @row + 1), t0.statement, 'Active'
+      from
+        (
+          select
+            distinct statement
+          from
+            catissue_consent_tier
+          where
+            activity_status = 'Active'
+        ) t0
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Update consent tier statement ID">
+    <sql>
+      update
+        catissue_consent_tier tier
+      set
+        consent_stmt_id = (
+          select
+            identifier
+          from
+            os_consent_statements stmt
+          where
+            stmt.statement = tier.statement
+        )
+      where
+        activity_status = 'Active'
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Drop CP consent tier text statement column">
+    <dropColumn tableName="CATISSUE_CONSENT_TIER" columnName="STATEMENT"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Updated consent tier view" runOnChange="true">
+    <sql>
+      create or replace view consent_tier_view as (
+        select
+          tier.identifier as identifier, resp.coll_prot_reg_id as cpr_id, stmt.statement as statement, resp.response as response
+        from
+          catissue_consent_tier tier
+          inner join catissue_consent_tier_response resp on resp.consent_tier_id = tier.identifier
+          inner join os_consent_statements stmt on stmt.identifier =  tier.consent_stmt_id
+        where
+          resp.coll_prot_reg_id is not null
+      )
+    </sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Setting to specify saved query to use for specimen kit report">
+    <sql>
+      call add_cfg_prop(
+        'common', 'specimen_kit_export_report',
+        'specimen_kit_export_report', 'specimen_kit_export_report_desc',
+        'INT', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add specimen cart item ID column" dbms="mysql">
+    <addColumn tableName="CATISSUE_SPEC_TAG_ITEMS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add specimen cart item ID column" dbms="oracle">
+    <addColumn tableName="CATISSUE_SPEC_TAG_ITEMS">
+      <column name="IDENTIFIER" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen cart item ID sequence" dbms="oracle">
+    <createSequence sequenceName="OS_SPMN_CART_ITEMS_SEQ" ordered="true" startValue="1" incrementBy="1"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update existing cart item identifier values" dbms="oracle">
+    <sql>
+      update catissue_spec_tag_items set identifier = os_spmn_cart_items_seq.nextval;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add primary key constraint on specimen cart item identifier" dbms="oracle">
+    <addPrimaryKey tableName="CATISSUE_SPEC_TAG_ITEMS" columnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to specify whether CP is specimen centric">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="SPECIMEN_CENTRIC" type="${boolean.type}" defaultValueBoolean="0">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="Automated container settings">
+    <addColumn tableName="OS_STORAGE_CONTAINERS">
+      <column name="AUTOMATED" type="${boolean.type}" defaultValueBoolean="false">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="AUTO_FREEZER_PROVIDER_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Automated container store lists">
+    <createTable tableName="OS_CONTAINER_STORE_LISTS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+
+      <column name="CONTAINER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="OP" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="CREATION_TIME" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="EXECUTION_TIME" type="${nullable.ts.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="Sequence for container store list" dbms="oracle">
+    <createSequence sequenceName="OS_CONT_STORE_LIST_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on store list container">
+    <addForeignKeyConstraint constraintName="FK_STORE_LIST_CONTAINER_ID"
+      baseTableName="OS_CONTAINER_STORE_LISTS" baseColumnNames="CONTAINER_ID"
+      referencedTableName="OS_STORAGE_CONTAINERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on store list creator">
+    <addForeignKeyConstraint constraintName="FK_STORE_LIST_USER_ID"
+      baseTableName="OS_CONTAINER_STORE_LISTS" baseColumnNames="USER_ID"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Automated container store list items">
+    <createTable tableName="OS_CONTAINER_STORE_LIST_ITEMS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+
+      <column name="STORE_LIST_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="SPECIMEN_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="STATUS" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="ACK_TIME" type="${nullable.ts.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="Sequence for container store list specimens" dbms="oracle">
+    <createSequence sequenceName="OS_CONT_STORE_LIST_ITEM_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on item store list">
+    <addForeignKeyConstraint constraintName="FK_STORE_LIST_ITEM_STORE_LIST"
+      baseTableName="OS_CONTAINER_STORE_LIST_ITEMS" baseColumnNames="STORE_LIST_ID"
+      referencedTableName="OS_CONTAINER_STORE_LISTS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="FK on store list item specimen">
+    <addForeignKeyConstraint constraintName="FK_STORE_LIST_ITEM_SPMN_ID"
+      baseTableName="OS_CONTAINER_STORE_LIST_ITEMS" baseColumnNames="SPECIMEN_ID"
+      referencedTableName="CATISSUE_SPECIMEN" referencedColumnNames="IDENTIFIER" />
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="Automated freezer providers">
+    <createTable tableName="OS_AUTO_FREEZER_PROVIDERS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true"/>
+      </column>
+      
+      <column name="NAME" type="${text.type}(64)">
+        <constraints nullable="false"/>
+      </column>
+      
+      <column name="IMPL_CLASS" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="Automated freezer providers identifier sequence" dbms="oracle">
+    <createSequence sequenceName="OS_AUTO_FREEZER_PROVIDERS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on auto freezer provider of container">
+    <addForeignKeyConstraint constraintName="FK_STOR_CONT_AUTO_PROVIDER_ID"
+      baseTableName="OS_STORAGE_CONTAINERS" baseColumnNames="AUTO_FREEZER_PROVIDER_ID"
+      referencedTableName="OS_AUTO_FREEZER_PROVIDERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="Auto freezer provider props">
+    <createTable tableName="OS_AUTO_FREEZER_PROVIDER_PROPS">
+      <column name="PROVIDER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="NAME" type="${text.type}(64)">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="VALUE" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="FK on provider of auto freezer provider props">
+    <addForeignKeyConstraint constraintName="OS_FK_AUTO_PROV_PROPS_PROV_ID"
+      baseTableName="OS_AUTO_FREEZER_PROVIDER_PROPS" baseColumnNames="PROVIDER_ID"
+      referencedTableName="OS_AUTO_FREEZER_PROVIDERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Table to stage participants details received from external sources">
+    <createTable tableName="OS_STAGED_PARTICIPANTS">
+      <column autoIncrement="${autoIncrement}" name="IDENTIFIER" type="${int.type}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="LAST_NAME" type="${text.type}(255)"/>
+      <column name="FIRST_NAME" type="${text.type}(255)"/>
+      <column name="MIDDLE_NAME" type="${text.type}(255)"/>
+      <column name="BIRTH_DATE" type="${date.type}"/>
+      <column name="GENDER" type="${text.type}(20)"/>
+      <column name="GENOTYPE" type="${text.type}(50)"/>
+      <column name="ETHNICITY" type="${text.type}(50)"/>
+      <column name="UID" type="${text.type}(50)"/>
+      <column name="ACTIVITY_STATUS" type="${text.type}(50)"/>
+      <column name="DEATH_DATE" type="${date.type}"/>
+      <column name="VITAL_STATUS" type="${text.type}(50)"/>
+      <column name="EMPI_ID" type="${text.type}(50)"/>
+      <column name="UPDATED_TIME" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="SOURCE" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Staged participants identifier sequence" dbms="oracle">
+    <createSequence sequenceName="OS_STAGED_PARTICIPANTS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Table to stage participant race details received from external sources">
+    <createTable tableName="OS_STAGED_PARTICIPANT_RACES">
+      <column name="RACE_NAME" type="${text.type}(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="PARTICIPANT_ID" type="${int.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on staged participant ID of races table">
+    <addForeignKeyConstraint constraintName="FK_OS_STG_RACES_PID"
+      baseTableName="OS_STAGED_PARTICIPANT_RACES" baseColumnNames="PARTICIPANT_ID"
+      referencedTableName="OS_STAGED_PARTICIPANTS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Table to stage participant MRN details received from external sources">
+    <createTable tableName="OS_STAGED_PART_MEDICAL_IDS">
+      <column autoIncrement="${autoIncrement}" name="IDENTIFIER" type="${int.type}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="MEDICAL_RECORD_NUMBER" type="${text.type}(255)"/>
+      <column name="SITE_NAME" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="PARTICIPANT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Staged participants MRN identifier sequence" dbms="oracle">
+    <createSequence sequenceName="OS_STAGED_PART_MED_ID_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on staged particiapnt ID of MRNs">
+    <addForeignKeyConstraint constraintName="FK_OS_STG_PMIS_PID"
+      baseTableName="OS_STAGED_PART_MEDICAL_IDS" baseColumnNames="PARTICIPANT_ID"
+      referencedTableName="OS_STAGED_PARTICIPANTS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Updating registration extension records view to account for participant level form records">
+    <createView viewName="CPR_EXTENSION_RECORDS_VIEW" replaceIfExists="true">
+      select
+        re.object_id as cpr_id, re.record_id as record_id, fc.container_id as form_id
+      from
+        catissue_form_record_entry re
+        inner join catissue_form_context fc on re.form_ctxt_id = fc.identifier
+      where
+        fc.entity_type = 'Participant' and
+        fc.deleted_on is null and
+        re.activity_status = 'Active'
+
+      union all
+
+      select
+        cpr.identifier as cpr_id, re.record_id as record_id, fc.container_id as form_id
+      from
+        catissue_form_record_entry re
+        inner join catissue_form_context fc on re.form_ctxt_id = fc.identifier
+        inner join catissue_coll_prot_reg cpr on cpr.participant_id = re.object_id
+      where
+        fc.entity_type = 'CommonParticipant' and
+        fc.deleted_on is null and
+        re.activity_status = 'Active'
+    </createView>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Multiple participant ethnicities">
+    <createTable tableName="OS_PARTICIPANT_ETHNICITIES">
+      <column name="PARTICIPANT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ETHNICITY" type="${text.type}(50)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Add FK to participant in ethnicity">
+    <addForeignKeyConstraint constraintName="FK_OS_PART_ETHNICITY_PART_ID"
+      baseTableName="OS_PARTICIPANT_ETHNICITIES" baseColumnNames="PARTICIPANT_ID"
+      referencedTableName="CATISSUE_PARTICIPANT" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Primary key of participant ethnicities">
+    <addPrimaryKey tableName="OS_PARTICIPANT_ETHNICITIES" columnNames="PARTICIPANT_ID, ETHNICITY"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Move ethnicity data from participant table to 1:m participant ethnicities table">
+    <sql>
+      insert into os_participant_ethnicities
+        (participant_id, ethnicity)
+      select
+        identifier, ethnicity
+      from
+        catissue_participant
+      where
+        ethnicity is not null
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Drop participant ethnicity column">
+    <dropColumn tableName="CATISSUE_PARTICIPANT" columnName="ETHNICITY"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Recreating CPR view to remove ethnicity column">
+    <createView viewName="cpr_view" replaceIfExists="true">
+      select
+        cpr.identifier as cpr_id, cpr.collection_protocol_id as cp_id,
+        cpr.participant_id as participant_id, p.first_name as first_name,
+        p.middle_name as middle_name, p.last_name as last_name,
+        p.birth_date as dob, p.social_security_number as ssn,
+        cpr.activity_status as activity_status, p.gender as gender,
+        p.genotype as genotype, cpr.registration_date as registration_date,
+        cpr.protocol_participant_id as ppid, p.vital_status as vital_status,
+        p.death_date as death_date, p.empi_id as empi_id, cpr.barcode as barcode,
+        cpr.consent_sign_date as consent_sign_date, cpr.consent_witness as consent_witness,
+        cpr.consent_comments as consent_comments
+      from
+        catissue_coll_prot_reg cpr
+        inner join catissue_participant p on cpr.participant_id = p.identifier
+    </createView>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Table to stage participant ethnicity details received from external sources">
+    <createTable tableName="OS_STAGED_PART_ETHNICITIES">
+      <column name="PARTICIPANT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ETHNICITY" type="${text.type}(50)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="FK on staged participant ID of ethnicities table">
+    <addForeignKeyConstraint constraintName="FK_OS_STG_ETHNICITIES_PID"
+      baseTableName="OS_STAGED_PART_ETHNICITIES" baseColumnNames="PARTICIPANT_ID"
+      referencedTableName="OS_STAGED_PARTICIPANTS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Primary key of staged participant ethnicities">
+    <addPrimaryKey tableName="OS_STAGED_PART_ETHNICITIES" columnNames="PARTICIPANT_ID, ETHNICITY"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Drop staged participant ethnicity column">
+    <dropColumn tableName="OS_STAGED_PARTICIPANTS" columnName="ETHNICITY"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Multiple visit clinical diagnoses">
+    <createTable tableName="OS_VISIT_CLIN_DIAGNOSES">
+      <column name="VISIT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CLINICAL_DIAGNOSIS" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Add FK on visit ID of clinical diagnosis">
+    <addForeignKeyConstraint constraintName="FK_OS_VISIT_CDS_VISIT_ID"
+      baseTableName="OS_VISIT_CLIN_DIAGNOSES" baseColumnNames="VISIT_ID"
+      referencedTableName="CATISSUE_SPECIMEN_COLL_GROUP" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Primary key of visit clinical diagnoses">
+    <addPrimaryKey tableName="OS_VISIT_CLIN_DIAGNOSES" columnNames="VISIT_ID, CLINICAL_DIAGNOSIS"/>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Move clinical diagnosis data from visit table to 1:m visit clinical diagnoses table">
+    <sql>
+      insert into os_visit_clin_diagnoses
+        (visit_id, clinical_diagnosis)
+      select
+        identifier, clinical_diagnosis
+      from
+        catissue_specimen_coll_group
+      where
+        clinical_diagnosis is not null
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Drop visit clinical diagnosis column">
+    <dropColumn tableName="CATISSUE_SPECIMEN_COLL_GROUP" columnName="CLINICAL_DIAGNOSIS"/>
+  </changeSet>
+</databaseChangeLog>

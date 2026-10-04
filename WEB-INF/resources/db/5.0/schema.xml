@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Staged visits">
+    <createTable tableName="OS_STAGED_VISITS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>  
+      </column>
+      <column name="NAME" type="${text.type}(255)"/>
+      <column name="CLINICAL_STATUS" type="${text.type}(50)"/>
+      <column name="COLLECTION_STATUS" type="${text.type}(50)"/>
+      <column name="COLLECTION_TIMESTAMP" type="${nullable.ts.type}"/>
+      <column name="SURGICAL_PATHOLOGY_NUMBER" type="${text.type}(50)"/>
+      <column name="COMMENTS" type="${text.type}(1024)"/>
+      <column name="MISSED_REASON" type="${text.type}(255)"/>
+      <column name="EVENT_LABEL" type="${text.type}(255)"/>
+      <column name="COLLECTION_SITE" type="${text.type}(255)"/>
+      <column name="COHORT" type="${text.type}(64)"/>
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)"/>
+      <column name="PARTICIPANT_ID" type="${int.type}"/>
+    </createTable>
+  </changeSet>
+    
+  <changeSet author="vpawar" id="Staged visits identifier sequence" dbms="oracle">
+    <createSequence sequenceName="OS_STAGED_VISITS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on staged visit's participant ID">
+    <addForeignKeyConstraint constraintName="FK_STAGED_VISITS_PARTICIPANT"
+      baseTableName="OS_STAGED_VISITS" baseColumnNames="PARTICIPANT_ID"
+      referencedTableName="OS_STAGED_PARTICIPANTS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Staged visits clinical diagnoses">
+    <createTable tableName="OS_STAGED_VISIT_DIAGNOSES">
+      <column name="VISIT_ID" type="${int.type}">
+        <constraints nullable="false"/>  
+      </column>
+        
+      <column name="CLINICAL_DIAGNOSIS" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on staged diagnoses visit">
+    <addForeignKeyConstraint constraintName="FK_STAGED_VISITS_DIAG"
+      baseTableName="OS_STAGED_VISIT_DIAGNOSES" baseColumnNames="VISIT_ID"
+      referencedTableName="OS_STAGED_VISITS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="DP level order custom fields form">
+    <addColumn tableName="CATISSUE_DISTRIBUTION_PROTOCOL">
+      <column name="ORDER_EXTN_FORM_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on order custom fields form">
+    <addForeignKeyConstraint constraintName="FK_ORDER_EXTN_FORM_ID"
+      baseTableName="CATISSUE_DISTRIBUTION_PROTOCOL" baseColumnNames="ORDER_EXTN_FORM_ID"
+      referencedTableName="DYEXTN_CONTAINERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Non CP based form context entity ID">
+    <addColumn tableName="CATISSUE_FORM_CONTEXT">
+      <column name="ENTITY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Order extension records view">
+    <createView viewName="OS_ORDERS_CUSTOM_FIELDS_VIEW" replaceIfExists="true">
+      select
+        re.object_id as order_id, re.record_id as record_id, fc.container_id as form_id
+      from
+        catissue_form_record_entry re
+        inner join catissue_form_context fc on fc.identifier = re.form_ctxt_id
+        inner join os_orders o on o.identifier = re.object_id
+        inner join catissue_distribution_protocol dp on dp.identifier = o.distribution_protocol_id
+      where
+        fc.entity_type = 'OrderExtension' and
+        fc.deleted_on is null and
+        re.activity_status = 'ACTIVE' and
+        o.activity_status != 'Disabled' and
+        (dp.order_extn_form_id is null or dp.order_extn_form_id = fc.container_id)
+    </createView>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="CP level specimen barcode format">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="SPECIMEN_BARCODE_FORMAT" type="${text.type}(255)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Store additional info of staged visit in JSON format">
+    <addColumn tableName="OS_STAGED_VISITS">
+      <column name="ADDITIONAL_INFO_JSON" type="${clob.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add cost of distributed specimen">
+    <addColumn tableName="OS_ORDER_ITEMS">
+      <column name="COST" type="${double.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add DP specimen requirement cost">
+    <addColumn tableName="OS_DP_REQUIREMENTS">
+      <column name="COST" type="${double.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen distribution view" runOnChange="true">
+    <createView viewName="os_specimen_distribution_view" replaceIfExists="true">
+      select
+        oi.identifier as identifier,
+        o.identifier as order_id,
+        o.name as name,
+        o.distribution_protocol_id as dp_id,
+        o.site_id as site_id,
+        o.tracking_url as tracking_url,
+        o.comments as comments,
+        o.requester_id as requester_id,
+        o.execution_date as execution_date,
+        o.status as order_status,
+        oi.quantity as quantity,
+        oi.cost as cost,
+        oi.status as status,
+        oi.specimen_id as specimen_id
+      from
+        os_orders o
+        inner join os_order_items oi on oi.order_id = o.identifier
+      where
+        o.activity_status != 'Disabled'
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen reserved for distribution events">
+    <createTable tableName="OS_SPMN_RESERVED_EVENTS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="SPECIMEN_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="DP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CANCELLED_EVENT_ID" type="${int.type}"/>
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="EVENT_TIME" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="COMMENTS" type="${text.type}(255)"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Sequence to auto generate reserved event identifiers" dbms="oracle">
+    <createSequence sequenceName="OS_SPMN_RESERVED_EVENTS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on reserved specimen">
+    <addForeignKeyConstraint constraintName="FK_RESERVED_SPMN_ID"
+      baseTableName="OS_SPMN_RESERVED_EVENTS" baseColumnNames="SPECIMEN_ID"
+      referencedTableName="CATISSUE_SPECIMEN" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on DP for which the specimen is reserved">
+    <addForeignKeyConstraint constraintName="FK_RESERVED_FOR_DP_ID"
+      baseTableName="OS_SPMN_RESERVED_EVENTS" baseColumnNames="DP_ID"
+      referencedTableName="CATISSUE_DISTRIBUTION_PROTOCOL" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on reserved event that is being cancelled">
+    <addForeignKeyConstraint constraintName="FK_CANCELLED_RESERVE_EVENT_ID"
+      baseTableName="OS_SPMN_RESERVED_EVENTS" baseColumnNames="CANCELLED_EVENT_ID"
+      referencedTableName="OS_SPMN_RESERVED_EVENTS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen reserved event">
+    <addColumn tableName="CATISSUE_SPECIMEN">
+      <column name="RESERVED_EVENT_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on specimen reserved event">
+    <addForeignKeyConstraint constraintName="FK_SPMN_RESERVE_EVENT_ID"
+      baseTableName="CATISSUE_SPECIMEN" baseColumnNames="RESERVED_EVENT_ID"
+      referencedTableName="OS_SPMN_RESERVED_EVENTS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen reservation events view">
+    <createView viewName="OS_SPMN_RESERVATIONS_VIEW" replaceIfExists="true">
+      select
+        r.identifier as identifier,
+        dp.short_title as dp_short_title,
+        r.user_id as reserved_by,
+        r.event_time as reservation_date,
+        r.comments as comments
+      from
+        os_spmn_reserved_events r
+        inner join catissue_distribution_protocol dp on dp.identifier = r.dp_id
+      where
+        r.cancelled_event_id is null
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen reservation cancellation events view">
+    <createView viewName="OS_SPMN_RESV_CANCEL_VIEW" replaceIfExists="true">
+      select
+        r.identifier as identifier,
+        dp.short_title as dp_short_title,
+        r.user_id as cancelled_by,
+        r.event_time as cancellation_date,
+        r.comments as comments
+      from
+        os_spmn_reserved_events r
+        inner join catissue_distribution_protocol dp on dp.identifier = r.dp_id
+      where
+        r.cancelled_event_id is not null
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Flag to indicate whether the order was created to distribute reserved specimens">
+    <addColumn tableName="OS_ORDERS">
+      <column name="SPMNS_RESERVED_FOR_DP" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen reservation view" runOnChange="true">
+    <createView viewName="OS_SPECIMEN_RESV_VIEW" replaceIfExists="true">
+      select
+        re.identifier as identifier,
+        s.identifier as specimen_id,
+        dp.short_title as dp_short_title,
+        re.event_time as event_time
+      from
+        os_spmn_reserved_events re
+        inner join catissue_distribution_protocol dp on dp.identifier = re.dp_id
+        inner join catissue_specimen s on s.reserved_event_id = re.identifier
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Participant visits statistics" runOnChange="true">
+    <createView viewName="OS_CPR_VISIT_STATS_VIEW" replaceIfExists="true">
+      select
+        cpr.identifier as identifier,
+        sum(case when visit.collection_status = 'Complete' then 1 else 0 end) as visits_completed,
+        sum(case when visit.collection_status = 'Missed Collection' then 1 else 0 end) as visits_missed,
+        sum(case when ((visit.collection_status = 'Pending' or visit.identifier is null) and cpe.identifier is not null) then 1 else 0 end) as visits_pending
+      from
+        catissue_coll_prot_reg cpr
+        left join catissue_coll_prot_event cpe
+          on cpe.collection_protocol_id = cpr.collection_protocol_id and
+            cpe.activity_status!= 'Disabled'
+        left join catissue_specimen_coll_group visit
+          on visit.collection_protocol_event_id = cpe.identifier and
+            visit.collection_protocol_reg_id = cpr.identifier and
+            visit.activity_status!= 'Disabled'
+      group by
+        cpr.identifier
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Rename staged participants UID column to NUID as UID is function in Oracle">
+    <renameColumn tableName="OS_STAGED_PARTICIPANTS" oldColumnName="UID" newColumnName="NUID" columnDataType="${text.type}(50)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Staged visit update time">
+    <addColumn tableName="OS_STAGED_VISITS">
+      <column name="UPDATE_TIME" type="${timestamp.type}" defaultValueDate="${now}">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop not null constraint on distribution quantity">
+    <dropNotNullConstraint tableName="OS_ORDER_ITEMS" columnName="QUANTITY" columnDataType="${double.type}"/>
+  </changeSet>
+</databaseChangeLog>

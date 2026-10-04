@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.ContainerStoreListItem" table="OS_CONTAINER_STORE_LIST_ITEMS"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.ContainerStoreListItem">
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_CONT_STORE_LIST_ITEM_SEQ</param>
+      </generator>
+    </id>
+
+    <many-to-one name="storeList" column="STORE_LIST_ID"/>
+
+    <many-to-one name="specimen" column="SPECIMEN_ID"/>
+
+    <property name="status" column="STATUS">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.administrative.domain.ContainerStoreListItem$Status</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="ackTime" column="ACK_TIME"/>
+
+    <property name="error" column="ERROR"/>
+
+    <property name="comments" column="COMMENTS" />
+  </class>
+</hibernate-mapping>

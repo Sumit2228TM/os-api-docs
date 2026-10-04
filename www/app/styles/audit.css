@@ -1,0 +1,13 @@
+.os-audit-basic-info {
+  margin-top: -25px;
+}
+
+.os-audit-basic-info .os-key-values .item .key,
+.os-audit-basic-info .os-key-values .item .value {
+  padding-left: 0px;
+}
+
+.os-audit-revisions .os-modal-body {
+  max-height: 475px;
+  overflow: auto;
+}

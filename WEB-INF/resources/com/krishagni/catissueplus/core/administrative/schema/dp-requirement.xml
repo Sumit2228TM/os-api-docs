@@ -1,0 +1,70 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<object-schema>
+  <name>dpRequirement</name>
+  <record>
+    <name>com.krishagni.catissueplus.core.administrative.events.DpRequirementDetail</name>
+
+    <field>
+      <caption>#getMessage("dp_req_identifier")</caption>
+      <attribute>id</attribute>
+    </field>
+
+    <record>
+      <caption>#getMessage("dp_req_dp")</caption>
+      <attribute>dp</attribute>
+
+      <field>
+        <caption>#getMessage("dp_req_short_title")</caption>
+        <attribute>shortTitle</attribute>
+      </field>
+    </record>
+
+    <field>
+      <caption>#getMessage("dp_req_specimen_type")</caption>
+      <attribute>specimenType</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("dp_req_anatomic_site")</caption>
+      <attribute>anatomicSite</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("dp_req_path_status")</caption>
+      <attribute>pathologyStatuses</attribute>
+      <multiple>true</multiple>
+    </field>
+
+    <field>
+      <caption>#getMessage("dp_req_clinical_diagnosis")</caption>
+      <attribute>clinicalDiagnosis</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("dp_req_specimen_count")</caption>
+      <attribute>specimenCount</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("dp_req_quantity")</caption>
+      <attribute>quantity</attribute>
+    </field>
+
+    $schemaBuilder.insertAdditionalFields("/com/**/schema/dp-req/*.xml")
+
+    <field>
+      <caption>#getMessage("dp_req_comments")</caption>
+      <attribute>comments</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("dp_req_activity_status")</caption>
+      <attribute>activityStatus</attribute>
+    </field>
+
+    <record type="customFields" entityType="DpRequirementExtension">
+      <attribute>extensionDetail</attribute>
+    </record>
+  </record>
+</object-schema>

@@ -1,0 +1,46 @@
+
+.os-new-stuff-btn {
+  background: #5cb85c;
+  border-radius: 4px;
+  padding: 5px!important;
+}
+
+.os-new-stuff {
+  width: 320px;
+}
+
+.os-new-stuff .header {
+  border-bottom: 1px solid #ddd;
+}
+
+.os-new-stuff .header:after {
+  content: ' ';
+  display: table;
+  clear: both;
+}
+
+.os-new-stuff .header .left {
+  float: left;
+  font-weight: 500;
+  line-height: 1.1;
+  margin-bottom: 10px;
+}
+
+.os-new-stuff .header .right {
+  float: right;
+  margin-bottom: 10px;
+}
+
+.os-new-stuff .header button {
+  border: 0px;
+}
+
+.os-new-stuff .content {
+  padding: 10px 0px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.os-new-stuff .footer {
+  padding: 10px 0px;
+}

@@ -1,0 +1,25 @@
+<div class="os-modal os-error-modal">
+  <div class="os-modal-header">
+    <span class="fa fa-exclamation-circle"></span>
+    <span translate="common.error"></span>
+  </div>
+  <div class="os-modal-body">
+    <div ng-if="errCtx.fixedMsg">
+      <div translate="{{errCtx.fixedMsg}}" translate-values="errCtx.input"></div>
+    </div>
+    <div ng-if="errCtx.apiMsg">
+      <div ng-repeat="msg in errCtx.apiMsg">
+        <div>{{msg}}</div>
+        <div class="os-divider" ng-if="!$last"></div>
+      </div>
+    </div>
+  </div>
+  <div class="os-modal-footer">
+    <button class="btn os-btn-secondary" ng-click="cancel()">
+      <span translate="common.buttons.dismiss">Dismiss</span>
+    </button>
+    <button class="btn btn-primary" ng-click="copyToClipboard()">
+      <span translate="common.buttons.copy_to_clipboard">Copy to Clipboard</span>
+    </button>
+  </div>
+</div>

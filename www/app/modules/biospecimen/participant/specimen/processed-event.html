@@ -1,0 +1,54 @@
+<div ng-controller="SpecimenSystemEventViewCtrl">
+  <ul class="os-key-values os-one-col">
+    <li class="item">
+      <strong class="key key-sm strong" translate="specimens.lineage">Lineage</strong>
+      <span class="value value-md">{{evtCtx.lineage}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="specimens.processed_by">Processed By</strong>
+      <span class="value value-md">{{evtCtx.user.name}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="specimens.processing_time">Processing Time</strong>
+      <span class="value value-md">{{evtCtx.time | date: $root.global.dateTimeFmt}}</span>
+    </li>
+  </ul>
+
+  <div class="os-section">
+    <h3 class="os-sub-section-title" translate="specimens.list">Specimens</h3>
+    <div>
+      <table class="os-table os-table-muted-hdr os-border">
+        <thead class="os-table-head">
+          <tr class="row">
+            <th class="col">
+              <span translate="specimens.label">Label</span>
+            </th>
+            <th class="col">
+              <span translate="specimens.barcode">Barcode</span>
+            </th>
+            <th class="col">
+              <span translate="specimens.type">Type</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="os-table-body">
+          <tr class="row" ng-repeat="child in evtCtx.children">
+            <td class="col">
+              <a ui-sref="object-state-params-resolver({
+                stateName: 'specimen-detail.overview', objectName: 'specimen',
+                key: 'label', value: child.label})">
+                <span>{{child.label}}</span>
+              </a>
+            </td>
+            <td class="col">
+              <span>{{child.barcode | osNoValue}}</span>
+            </td>
+            <td class="col">
+              <span>{{child.type.name}}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

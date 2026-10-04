@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.ContainerActivityLog" table="OS_CONTAINER_ACTIVITY_LOGS"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.ContainerActivityLog">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_CONT_ACTIVITY_LOG_SEQ</param>
+      </generator>
+    </id>
+
+    <many-to-one name="container" column="CONTAINER_ID"/>
+
+    <many-to-one name="activity" column="ACTIVITY_ID"/>
+
+    <many-to-one name="task" column="TASK_ID"/>
+
+    <many-to-one name="performedBy" column="PERFORMED_BY"/>
+
+    <property name="activityDate" column="ACTIVITY_DATE"/>
+
+    <property name="timeTaken" column="TIME_TAKEN"/>
+
+    <property name="comments" column="COMMENTS"/>
+
+    <property name="activityStatus" column="ACTIVITY_STATUS"/>
+
+    <filter name="activeEntity"/>
+
+    <sql-query name="getLatestScheduledActivityDate">
+      <return-scalar column="activity_id" type="long"/>
+      <return-scalar column="latest_activity_date" type="date"/>
+
+      select
+        activity_id, max(activity_date) as latest_activity_date
+      from
+        os_container_activity_logs
+      where
+        activity_id in (:activityIds) and
+        activity_status = 'Active'
+      group by
+        activity_id
+    </sql-query>
+  </class>
+</hibernate-mapping>

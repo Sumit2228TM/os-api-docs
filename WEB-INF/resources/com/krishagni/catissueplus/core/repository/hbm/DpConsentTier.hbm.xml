@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.DpConsentTier" table="OS_DP_CONSENT_TIERS"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.DpConsentTier">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_DP_CONSENT_TIER_SEQ</param>
+      </generator>
+    </id>
+
+    <many-to-one name="distributionProtocol" column="DP_ID"/>
+
+    <many-to-one name="statement" column="CONSENT_STMT_ID"/>
+
+    <property name="activityStatus" column="ACTIVITY_STATUS"/>
+
+    <filter name="activeEntity"/>
+  </class>
+</hibernate-mapping>

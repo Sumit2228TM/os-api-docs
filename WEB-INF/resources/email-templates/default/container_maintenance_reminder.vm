@@ -1,0 +1,29 @@
+#set ( $containerUrl = "$appUrl/ui-app/#/containers/$container.id/detail/overview" )
+
+<table cellspacing="0" cellpadding="0" border="0" width="100%" style="border-spacing:0;border-collapse:separate">
+  <tbody>
+    <tr>
+      <td style="border-collapse:collapse;">
+        <table cellspacing="0" border="0" width="100%" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px;line-height:20px">
+          <tbody>
+            <tr>
+              <td style="border-collapse:collapse;padding-bottom:10px">
+                <p style="margin:10px 0 0 0">
+                  Hello $rcpt.firstName $rcpt.lastName,
+                  <br><br>
+                  The maintenance task <b>$activity.name ($task.name)</b> is scheduled to be carried out on the container <a href="$containerUrl">$container.name</a> on or before $nextCycleDate.
+                </p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        #parse( $footer )
+      </td>
+    </tr>
+  </tbody>
+</table>

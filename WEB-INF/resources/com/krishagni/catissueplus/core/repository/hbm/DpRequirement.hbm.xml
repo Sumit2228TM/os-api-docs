@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.DpRequirement" table="OS_DP_REQUIREMENTS"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.DpRequirement">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_DP_REQUIREMENTS_SEQ</param>
+      </generator>
+    </id>
+    
+    <many-to-one name="distributionProtocol" column="DP_ID" lazy="false" fetch="join"/>
+    
+    <many-to-one name="specimenType" column="SPECIMEN_TYPE_ID" lazy="false" fetch="join"/>
+    
+    <many-to-one name="anatomicSite" column="ANATOMIC_SITE_ID" lazy="false" fetch="join"/>
+    
+    <set name="pathologyStatuses" table="OS_DPR_PATHOLOGY_STATUSES">
+      <key column="DPR_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.administrative.domain.PermissibleValue" column="PATHOLOGY_STATUS_ID"/>
+    </set>
+
+    <many-to-one name="clinicalDiagnosis" column="CLINICAL_DIAGNOSIS_ID" lazy="false" fetch="join"/>
+
+    <property name="cost" column="COST"/>
+    
+    <property name="specimenCount" column="SPECIMEN_COUNT" />
+    
+    <property name="quantity" column="QUANTITY" />
+    
+    <property name="comments" column="COMMENTS" />
+    
+    <property name="activityStatus" column="ACTIVITY_STATUS" />
+    
+    <filter name="activeEntity" />
+    
+    <query name="getDistributionStat">
+      select
+        dpr.id, count(spec.id), sum(item.quantity)
+      from
+        com.krishagni.catissueplus.core.administrative.domain.DpRequirement dpr
+        join dpr.distributionProtocol dp
+        join dp.distributionOrders do
+        join do.orderItems item
+        join item.specimen spec
+        join spec.visit visit
+      where
+        dp.id = :dpId and
+        do.status = 'EXECUTED' and
+        (dpr.specimenType is null or dpr.specimenType = spec.specimenType) and
+        (dpr.anatomicSite is null or dpr.anatomicSite = spec.tissueSite) and
+        (dpr.pathologyStatuses is empty or spec.pathologicalStatus in elements(dpr.pathologyStatuses)) and
+        (dpr.clinicalDiagnosis is null or dpr.clinicalDiagnosis in elements(visit.clinicalDiagnoses))
+      group by
+        dpr.id
+    </query>
+  </class>
+</hibernate-mapping>

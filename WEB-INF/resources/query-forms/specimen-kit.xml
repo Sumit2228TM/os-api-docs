@@ -1,0 +1,151 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<form>
+  <view>
+    <name>SpecimenKit</name>
+    <caption>#getMessage("kit")</caption>
+    <table>OS_SPECIMEN_KITS</table>
+    <activeCondition>ACTIVITY_STATUS != 'Disabled'</activeCondition>
+
+    <row>
+      <numberField>
+        <name>id</name>
+        <udn>id</udn>
+        <caption>#getMessage("kit_identifier")</caption>
+        <column>IDENTIFIER</column>
+      </numberField>
+    </row>
+
+    <row>
+      <userField>
+        <name>sender</name>
+        <udn>sender</udn>
+        <caption>#getMessage("kit_sender")</caption>
+        <column>SENDER_ID</column>
+      </userField>
+    </row>
+
+    <row>
+      <datePicker>
+        <name>sendingDate</name>
+        <udn>sendingDate</udn>
+        <caption>#getMessage("kit_sending_date")</caption>
+        <column>SENDING_DATE</column>
+        <format>MM-dd-yyyy</format>
+      </datePicker>
+    </row>
+
+    <row>
+      <subForm>
+        <name>sendingSite</name>
+        <udn>sendingSite</udn>
+        <caption>#getMessage("kit_sending_site")</caption>
+        <table>CATISSUE_SITE</table>
+        <foreignKey>IDENTIFIER</foreignKey>
+        <parentKey>SENDING_SITE_ID</parentKey>
+
+        <row>
+          <dropDown>
+            <name>name</name>
+            <udn>name</udn>
+            <caption>#getMessage("kit_sending_site_name")</caption>
+            <column>NAME</column>
+            <options>
+              <sql>select name from CATISSUE_SITE where activity_status != 'Disabled' order by name</sql>
+            </options>
+            <recordUrl>#/object-state-params-resolver?stateName=SitesListItemDetail.Overview&amp;objectName=site&amp;key=name&amp;value={{$value}}</recordUrl>
+          </dropDown>
+        </row>
+      </subForm>
+    </row>
+
+    <row>
+      <subForm>
+        <name>receivingSite</name>
+        <udn>receivingSite</udn>
+        <caption>#getMessage("kit_recv_site")</caption>
+        <table>CATISSUE_SITE</table>
+        <foreignKey>IDENTIFIER</foreignKey>
+        <parentKey>RECEIVING_SITE_ID</parentKey>
+
+        <row>
+          <dropDown>
+            <name>name</name>
+            <udn>name</udn>
+            <caption>#getMessage("kit_recv_site_name")</caption>
+            <column>NAME</column>
+            <options>
+              <sql>select name from CATISSUE_SITE where activity_status != 'Disabled' order by name</sql>
+            </options>
+            <recordUrl>#/object-state-params-resolver?stateName=SitesListItemDetail.Overview&amp;objectName=site&amp;key=name&amp;value={{$value}}</recordUrl>
+          </dropDown>
+        </row>
+      </subForm>
+    </row>
+
+    <row>
+      <subForm>
+        <name>kitSpecimens</name>
+        <udn>kitSpecimens</udn>
+        <caption>#getMessage("kit_specimens")</caption>
+        <table>OS_KIT_SPECIMENS</table>
+        <foreignKey>KIT_ID</foreignKey>
+        <parentKey>IDENTIFIER</parentKey>
+
+        <row>
+          <subForm>
+            <name>specimen</name>
+            <udn>specimen</udn>
+            <caption>#getMessage("specimen")</caption>
+            <table>CATISSUE_SPECIMEN</table>
+            <foreignKey>IDENTIFIER</foreignKey>
+            <parentKey>SPECIMEN_ID</parentKey>
+
+            <row>
+              <textField>
+                <name>label</name>
+                <udn>label</udn>
+                <caption>#getMessage("specimen_label")</caption>
+                <column>LABEL</column>
+              </textField>
+            </row>
+
+            <row>
+              <subForm>
+                <name>scg</name>
+                <udn>scg</udn>
+                <caption>#getMessage("participant_visits")</caption>
+                <table>CATISSUE_SPECIMEN_COLL_GROUP</table>
+                <foreignKey>IDENTIFIER</foreignKey>
+                <parentKey>SPECIMEN_COLLECTION_GROUP_ID</parentKey>
+                <pathLink>true</pathLink>
+                <row>
+                  <subForm>
+                    <name>participant</name>
+                    <udn>participant</udn>
+                    <caption>#getMessage("participant")</caption>
+                    <table>CPR_VIEW</table>
+                    <foreignKey>CPR_ID</foreignKey>
+                    <parentKey>COLLECTION_PROTOCOL_REG_ID</parentKey>
+                    <pathLink>true</pathLink>
+                  </subForm>
+                </row>
+              </subForm>
+            </row>
+          </subForm>
+        </row>
+      </subForm>
+    </row>
+
+    <row>
+      <textField>
+        <name>comments</name>
+        <udn>comments</udn>
+        <caption>#getMessage("kit_comments")</caption>
+        <column>COMMENTS</column>
+      </textField>
+    </row>
+
+    $querySvc.insertCustomQueryForms('specimen-kit')
+  </view>
+</form>

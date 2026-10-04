@@ -1,0 +1,42 @@
+{
+  "id": null,
+  "title": "Show shipment details for specific shipment",
+  "createdBy": null,
+  "lastUpdatedBy": null,
+  "lastUpdated": null,
+  "cpId": -1,
+  "drivingForm": null,
+  "filters": [{
+    "id": 1,
+    "field": "Specimen.specimenShipments.name",
+    "op": "EXISTS",
+    "values": [null],
+    "expr": null,
+    "desc": null,
+    "parameterized": true
+  }],
+  "queryExpression": [{
+    "nodeType": "FILTER",
+    "value": 1
+  }],
+  "selectList": [
+    "Specimen.specimenShipments.name",
+    "Specimen.specimenShipments.sendingSite",
+    "Specimen.specimenShipments.sender",
+    "Specimen.specimenShipments.shippedDate",
+    "Specimen.specimenShipments.senderComments",
+    "Specimen.specimenShipments.receivingSite",
+    "Specimen.specimenShipments.receiver",
+    "Specimen.specimenShipments.receivedDate",
+    "Specimen.specimenShipments.receiverComments",
+    "Specimen.specimenShipments.receivedQuality",
+    "Specimen.specimenShipments.status",
+    "Specimen.label"
+  ],
+  "reporting": {
+    "type": "none",
+    "params": {}
+  },
+  "folders": null,
+  "deletedOn": null
+}

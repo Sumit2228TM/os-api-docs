@@ -1,0 +1,34 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3 translate="notifs.title">Notifications</h3>
+    </div>
+  </div>
+  <div class="container">
+    <div class="os-notif" ng-click="visitNotifLink(notif)" ng-repeat="notif in ctx.notifs" ng-if="!ctx.loading">
+      <div ng-class="{'os-notif-unread': notif.status == 'UNREAD'}"></div>
+      <div class="os-notif-op" ng-switch on="notif.operation">
+        <span ng-switch-when="CREATE" class="fa fa-plus"></span>
+        <span ng-switch-when="UPDATE" class="fa fa-pencil"></span>
+        <span ng-switch-when="DELETE" class="fa fa-trash"></span>
+        <span ng-switch-when="EXPORT" class="fa fa-external-link"></span>
+        <span ng-switch-when="ALERT"  class="fa fa-exclamation"></span>
+        <span ng-switch-default>{{notif.operation.charAt(0)}}</span>
+      </div>
+      <div class="os-notif-msg">
+        <a ng-href="{{notif.href}}" target="{{notif.newTab ? '_blank' : '_self'}}" ng-click="$event.stopPropagation()">
+          <span>{{notif.message}}</span>
+        </a>
+      </div>
+      <div class="os-notif-meta">
+        <span>{{notif.createdBy | osUserDisplayName}}</span>
+        <span>&nbsp;|&nbsp;</span>
+        <span>{{notif.creationTime | date: global.dateTimeFmt}}</span>
+      </div>
+    </div>
+
+    <pager total-items="ctx.totalNotifs" items-per-page="ctx.notifsPerPage"
+      ng-model="ctx.currPage">
+    </pager>
+  </div>
+</div>

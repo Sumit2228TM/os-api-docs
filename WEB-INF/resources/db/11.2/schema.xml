@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Specimen requirement custom fields default values">
+    <addColumn tableName="CATISSUE_CP_REQ_SPECIMEN">
+      <column name="DEFAULT_CUSTOM_FIELD_VALUES" type="${clob.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="User favorites">
+    <createTable tableName="OS_USER_FAVORITES">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false" />
+      </column>
+      <column name="TITLE" type="${text.type}(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="VIEW_URL" type="${text.type}(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="OLD_VIEW" type="${boolean.type}">
+        <constraints nullable="false" />
+      </column>
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_FAVORITE_VIEW_USER"
+          referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER" />
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="User favorites ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_USER_FAVORITES_SEQ" startValue="1" incrementBy="1" ordered="true" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container store list item comments">
+    <addColumn tableName="OS_CONTAINER_STORE_LIST_ITEMS">
+      <column name="COMMENTS" type="${text.type}(255)" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Shipment request status">
+    <addColumn tableName="OS_SHIPMENTS">
+      <column name="REQUEST_STATUS" type="${int.type}">
+        <constraints foreignKeyName="FK_SHIPMENT_REQ_STATUS"
+          referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Pre-barcoded anticipated specimens">
+    <addColumn tableName="CATISSUE_CP_REQ_SPECIMEN">
+      <column name="PRE_BARCODED_TUBE" type="${boolean.type}" defaultValueBoolean="false">
+        <constraints nullable="false" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Covering index on search keywords">
+    <createIndex tableName="OS_SEARCH_ENTITY_KEYWORDS" indexName="OS_SRCH_ENTITY_KW_COV_IDX">
+      <column name="ENTITY" />
+      <column name="ENTITY_ID" />
+      <column name="VALUE" />
+      <column name="STATUS" />
+      <column name="NAME" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on specimen created on date/time. Useful when sorting specimens by their created on dates">
+    <createIndex tableName="CATISSUE_SPECIMEN" indexName="OS_SPMN_CREATION_TIME_IDX">
+      <column name="CREATED_ON" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on specimen received timestamp">
+    <createIndex tableName="CATISSUE_RECEIVED_EVENT_PARAM" indexName="OS_SPMN_RECV_TIME_IDX">
+      <column name="EVENT_TIMESTAMP" />
+    </createIndex>
+  </changeSet>
+</databaseChangeLog>

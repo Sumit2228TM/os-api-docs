@@ -1,0 +1,13 @@
+{
+  "name": "-86 Box",
+  "nameFormat": "%PCONT_NAME%.B%PCONT_UID%",
+  "noOfColumns": 10,
+  "noOfRows": 10,
+  "positionLabelingMode": "TWO_D",
+  "columnLabelingScheme": "Numbers",
+  "rowLabelingScheme": "Numbers",
+  "temperature": -86,
+  "storeSpecimenEnabled": true,
+  "activityStatus": "Active",
+  "canHold": null
+}

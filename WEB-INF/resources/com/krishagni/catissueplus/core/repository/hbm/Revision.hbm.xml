@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.audit.domain.Revision" table="OS_REVISIONS"
+    entity-name="com.krishagni.catissueplus.core.audit.domain.Revision">
+
+    <id name="id" column="REV">
+      <generator class="native">
+        <param name="sequence">OS_REVISIONS_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="revtstmp" column="REVTSTMP"/>
+
+    <many-to-one name="user" column="USER_ID"/>
+    
+    <property name="ipAddress" column="IP_ADDRESS"/>
+
+    <set name="entityRecords" table="OS_REVISION_ENTITY_RECORDS" inverse="true" cascade="all-delete-orphan">
+      <key column="REV"/>
+      <one-to-many class="com.krishagni.catissueplus.core.audit.domain.RevisionEntityRecord"/>
+    </set>
+  </class>
+</hibernate-mapping>

@@ -1,0 +1,13 @@
+{
+  "name": "Tissue Slide Drawer",
+  "nameFormat": "%PCONT_NAME%.D%PCONT_UID%",
+  "noOfColumns": 1,
+  "noOfRows": 100,
+  "positionLabelingMode": "TWO_D",
+  "columnLabelingScheme": "Numbers",
+  "rowLabelingScheme": "Numbers",
+  "temperature": null,
+  "storeSpecimenEnabled": true,
+  "activityStatus": "Active",
+  "canHold": null
+}

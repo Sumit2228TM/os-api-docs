@@ -1,0 +1,10 @@
+<div>
+  <div ng-include="'modules/biospecimen/participant/collect-specimens-header.html'" os-replace-with-children></div>
+
+  <div class="container">
+    <os-collect-specimens-nth-step cp="cp" cpr="cpr" visit="visit" specimens="specimens"
+      latest-visit="latestVisit" cp-dict="cpDict" spmn-coll-fields="spmnCollFields"
+      on-value-change-cb="onValueChangeCb" on-save="onSave(savedVisit)">
+    </os-collect-specimens-nth-step>
+  </div>
+</div>

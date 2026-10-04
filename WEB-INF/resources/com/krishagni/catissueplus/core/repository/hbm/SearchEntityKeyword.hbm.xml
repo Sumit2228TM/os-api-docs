@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.common.domain.SearchEntityKeyword" table="OS_SEARCH_ENTITY_KEYWORDS"
+    entity-name="com.krishagni.catissueplus.core.common.domain.SearchEntityKeyword">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_SEARCH_ENTITY_KEYWORDS_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="entity" column="ENTITY"/>
+
+    <property name="entityId" column="ENTITY_ID"/>
+
+    <property name="key" column="NAME"/>
+
+    <property name="value" column="VALUE"/>
+
+    <property name="status" column="STATUS"/>
+
+    <filter name="activeSearchKeywords" condition="status = 1"/>
+
+    <query name="getKeywords">
+      select
+        k
+      from
+        com.krishagni.catissueplus.core.common.domain.SearchEntityKeyword k
+      where
+        k.entity = :entity and
+        k.entityId = :entityId and
+        k.key = :key
+    </query>
+
+    <sql-query name="getEntityRankByShortName">
+      <return-scalar column="entity" type="string" />
+      <return-scalar column="sort_order" type="integer" />
+      <return-scalar column="short_name" type="string" />
+
+      select
+        r.entity, r.sort_order, r.short_name
+      from
+        os_search_entity_ranks r
+      where
+        r.short_name = :shortName
+    </sql-query>
+  </class>
+</hibernate-mapping>

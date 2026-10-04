@@ -1,0 +1,371 @@
+
+import exprUtil from '@/common/services/ExpressionUtil.js';
+import fieldFactory from '@/common/services/FieldFactory.js';
+import http from '@/common/services/HttpClient.js';
+import util from '@/common/services/Util.js';
+
+class FormUtil {
+
+  getFormSchema(baseSchema, layoutSchema) {
+    if (!layoutSchema.rows || layoutSchema.rows.length == 0) {
+      return [];
+    }
+
+    const dict = baseSchema.reduce((acc, field) => (acc[field.name] = field) && acc, {});
+    const result = {rows: [], udnNameMap: {}};
+    for (let row of layoutSchema.rows) {
+      let fields = [];
+      for (let field of row.fields) {
+        if (!field.name) {
+          continue;
+        }
+
+        let ff = util.clone(field);
+        ff = Object.assign(util.clone(dict[field.name] || {}), ff);
+        fields.push(ff);
+
+        if (ff.udn && ff.name && ff.udn != ff.name) {
+          result.udnNameMap[ff.udn] = ff.name;
+        }
+      }
+
+      if (fields.length > 0) {
+        result.rows.push({...row, fields});
+      }
+    }
+
+    return result;
+  }
+
+  relinkFormRecords(forms, records) {
+    let fcMap = {};
+    forms.forEach((form) => { form.records = []; fcMap[form.formCtxtId] = form });
+    records.forEach(
+      (formRecs) => {
+        formRecs.records.forEach(
+          (record) => {
+            let form = fcMap[record.fcId];
+            form.records = form.records || [];
+            form.records.push(record);
+          }
+        );
+      }
+    );
+  }
+
+  deFormToDict(formDef, namePrefix) {
+    if (!formDef || !formDef.rows) {
+      return [];
+    }
+
+    return formDef.rows.map(
+      (row, rowIdx) => row.map(
+        (field, colIdx) => {
+          let fieldSchema = {
+            source: 'de',
+            row: rowIdx,
+            column: colIdx,
+            ...fieldFactory.getFieldSchema(field, namePrefix)
+          };
+
+          if (fieldSchema.type == 'subform') {
+            fieldSchema.fields.forEach(field => field.source = 'de');
+          }
+
+          return fieldSchema.type && fieldSchema;
+        }
+      )
+    ).flatMap(row => row).filter(field => !!field);
+  }
+
+  sdeFieldsToDict(fields, baseFields = []) {
+    const baseFieldsMap = baseFields.reduce(
+      (map, field) => {
+        map[field.name] = field;
+        return map;
+      },
+      {}
+    );
+
+    return (fields || []).map(
+      (field) => {
+        let result = {};
+        if (field.baseField) {
+          result = util.clone(baseFieldsMap[field.baseField] || {});
+        }
+
+        result = Object.assign(result, util.clone(field));
+        result.label = result.label || result.caption;
+        if (result.width) {
+          const uiStyle = result.uiStyle = result.uiStyle || {};
+          uiStyle['width'] = result.width;
+        }
+
+        if (result.type == 'textArea') {
+          result.type = 'textarea';
+        } else if (result.type == 'date') {
+          result.type = 'datePicker';
+        } else if (result.type == 'datetime') {
+          result.type = 'datePicker';
+          result.showTime = true;
+        } else if (result.type == 'pvs') {
+          result.type = 'pv';
+          result.attribute = result.attr;
+          result.selectProp = 'value';
+        } else if (result.type == 'collection') {
+          result.type = 'subform';
+          result.fields = this.sdeFieldsToDict(result.fields);
+        } else if (result.type == 'specimen-quantity') {
+          result.entity = result.specimen || 'specimen';
+        } else if (result.type == 'radio') {
+          result.optionsPerRow = result.optionsPerRow || 5;
+          result.options = (result.options || []).map(
+            (option) => {
+              if (typeof option != 'object') {
+                return {caption: option, value: option};
+              } else {
+                return {caption: option.caption, value: option.value};
+              }
+            }
+          );
+        } else if (result.type == 'span') {
+          result.displayType = result.displayType || result.formatType;
+        } else if (result.type == 'file' || result.type == 'fileUpload') {
+          result.type = 'fileUpload';
+          result.url = http.getUrl('form-files');
+          result.headers = http.headers;
+        } else if (result.type == 'dropdown' && result.multiple) {
+          result.type = 'multiselect';
+        } else if (result.type == 'user' && result.name && result.name.indexOf('extensionDetail.attrsMap.') >= 0) {
+          result.defaultValue = 'current_user';
+          result.selectProp = 'id';
+        }
+
+        const ls = result.listSource;
+        if (ls && ls.queryParams) {
+          ls.searchProp = ls.queryParams.search;
+        }
+
+        if (typeof result.showIf == 'string') {
+          result.showWhen = result.showIf;
+        } else if (result.showIf && typeof result.showIf == 'object') {
+          let conds = (result.showIf.rules || []).map(
+            (rule) => {
+              if (rule.op == 'exists') {
+                return '!!' + rule.field;
+              } else if (rule.op == 'not_exist') {
+                return '!' + rule.field;
+              } else {
+                return rule.field + ' ' + rule.op + ' ' + rule.value;
+              }
+            }
+          );
+
+          if (conds.length > 0) {
+            result.showWhen = (result.showIf.op == 'OR' ? conds.join(' || ') : conds.join(' && '));
+          }
+        }
+
+        result.showInOverviewWhen = result.showInOverviewIf == 'useShowIf' ? result.showWhen : result.showInOverviewIf;
+
+        const validations = result.validations = {};
+        if (result.optional == false) {
+          validations['required'] = {message: result.label + ' is mandatory'};
+        }
+
+        if (result.pattern) {
+          let pattern = result.pattern;
+          if (pattern.startsWith('/') && pattern.endsWith('/')) {
+            pattern = pattern.substring(1, pattern.length - 1);
+          }
+
+          validations['pattern'] = {expr: pattern, message: result.label + ' is invalid. Input does not match the pattern: ' + pattern};
+        }
+
+        return result;
+      }
+    );
+  }
+
+  fromDeToStdSchema(formDef, namePrefix) {
+    namePrefix = namePrefix || '';
+
+    const schema = { rows: [], udnNameMap: {} };
+    const dvRec = {}; // default values record
+    if (!formDef || !formDef.rows) {
+      return { schema, defaultValues: dvRec};
+    }
+
+    const { udnNameMap } = schema;
+    formDef.rows.forEach(
+      (row) => {
+        const rowSchema = {fields: []};
+        row.forEach(
+          (field) => {
+            field.formId = formDef.id;
+
+            const fqn = field.fqn = namePrefix + field.name;
+            const udn = namePrefix + field.udn;
+            if (fqn != udn) {
+              udnNameMap[udn] = fqn;
+            }
+
+            let fieldSchema = {source: 'de', ...fieldFactory.getFieldSchema(field, namePrefix)};
+            if (fieldSchema.type) {
+              rowSchema.fields.push(fieldSchema);
+              if (fieldSchema.type == 'subform') {
+                fieldSchema.fields.forEach(sfField => sfField.source = 'de');
+              }
+
+              if (fieldSchema.defaultValue) {
+                dvRec[field.name] = fieldSchema.defaultValue;
+              } else if (fieldSchema.type == 'user' && !fieldSchema.multiple) {
+                dvRec[field.name] = 'current_user';
+              }
+            }
+          }
+        );
+        schema.rows.push(rowSchema);
+      }
+    );
+
+    return { schema, defaultValues: dvRec};
+  }
+
+  createCustomFieldsMap(object, useDisplayValue) {
+    let extnDetail = object.extensionDetail;
+    if (!extnDetail || !extnDetail.attrs) {
+      return object;
+    }
+
+    let valueMap = this._createCustomFieldsMap(extnDetail.attrs, useDisplayValue);
+    extnDetail.attrsMap = Object.assign(valueMap, {id: extnDetail.id, containerId: extnDetail.formId});
+    return object;
+  }
+
+  fromFormDataToCustomFieldsMap(formData, useDisplayValue) {
+    const {id: recordId, containerId, fields} = formData;
+    const object = {extensionDetail: {recordId, containerId, attrs: fields}};
+    for (let field of fields) {
+      if (field.type == 'subForm') {
+        field.value = (field.value || []).map(sfAttrs => sfAttrs.fields);
+      }
+    }
+
+    return this.createCustomFieldsMap(object, useDisplayValue);
+  }
+
+  //
+  // for now, meant only for readOnly in the Order specimens step
+  //
+  fromSde(fields, readOnly) {
+    return fields.map(
+      field => {
+        field.label = field.caption;
+        field.type = this._fromSdeType(field.type).type;
+        field.formatType = this._fromSdeType(field.formatType).type;
+        if (readOnly) {
+          field.displayType = field.formatType || field.type;
+          field.type = 'span';
+        }
+
+        const uiStyle = field.uiStyle = field.uiStyle || {};
+        if (field.width) {
+          uiStyle['min-width'] = field.width;
+        }
+
+        return field;
+      }
+    );
+  }
+
+  setDefaultValues(formSchema, formData, setOnlyIfEmpty) {
+    formSchema = formSchema || {};
+    formSchema.rows = formSchema.rows || [];
+    for (let {fields} of formSchema.rows) {
+      for (let field of fields) {
+        if (field.type == 'subform' || field.defaultValue == undefined || field.defaultValue == null) {
+          continue;
+        }
+
+        if (setOnlyIfEmpty) {
+          const existingValue = exprUtil.eval(formData, field.name);
+          if (existingValue != null && existingValue != undefined && existingValue != '') {
+            continue;
+          }
+        }
+
+        let value = field.defaultValue;
+        if (value == 'current_date') {
+          value = new Date();
+          if (field.dateOnly) {
+            const year  = value.getFullYear();
+            const month = (value.getMonth() < 9 ? '0' : '') + (value.getMonth() + 1);
+            const date  = (value.getDate() <= 9 ? '0' : '') + value.getDate();
+            value = year + '-' + month + '-' + date;
+          }
+        } else if (value == 'current_user') {
+          if (field.name.indexOf('extensionDetail') != -1) {
+            value = window.osUi.currentUser.id;
+          } else {
+            value = window.osUi.currentUser;
+          }
+        } else if (typeof value == 'string' && value.indexOf('field:') == 0) {
+          const accessor = value.substring('field:'.length).trim();
+          value = exprUtil.eval(formData, accessor);
+        }
+
+        exprUtil.setValue(formData, field.name, value);
+      }
+    }
+  }
+
+  _createCustomFieldsMap(attrs, useDisplayValue) {
+    let valueMap = {};
+
+    for (let attr of (attrs || [])) {
+      let value = attr.value;
+      if (attr.type == 'subForm') {
+        value = (attr.value || []).map(sfAttrs => this._createCustomFieldsMap(sfAttrs, useDisplayValue));
+      } else if (attr.type == 'datePicker') {
+        if (useDisplayValue && attr.displayValue) {
+          value = attr.displayValue;
+        } else if (attr.value == 'current_date' || attr.value == 'current_time') {
+          value = Date.now();
+        } else if (!isNaN(attr.value) && !isNaN(parseInt(attr.value))) {
+          value = new Date(parseInt(attr.value));
+        } else if (attr.value && attr.value.length == 10 && attr.value[4] == '-' && attr.value[7] == '-') {
+          // const [year, month, date] = attr.value.split('-');
+          // value = new Date(year, +month - 1, date);
+          value = attr.value;
+        } else if (!!attr.value || attr.value === 0) {
+          value = new Date(attr.value);
+        }
+      } else if (attr.type != 'fileUpload' && useDisplayValue && attr.displayValue) {
+        value = attr.displayValue;
+      }
+
+      valueMap[attr.name] = value;
+      if (!useDisplayValue && attr.displayValue) {
+        valueMap[attr.name + '$displayValue'] = attr.displayValue;
+      }
+    }
+
+    return valueMap;
+  }
+
+  _fromSdeType(type) {
+    switch (type) {
+      case 'pvs':
+        return {type: 'pv'};
+
+      case 'specimen-quantity':
+        return {type: 'specimen-measure'};
+
+    }
+
+    return {type};
+  }
+}
+
+export default new FormUtil();

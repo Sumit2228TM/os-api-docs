@@ -1,0 +1,99 @@
+<div ng-controller="SpecimenSystemEventViewCtrl">
+  <ul class="os-key-values os-one-col">
+    <li class="item" ng-show="!!evtCtx.fromSite">
+      <strong class="key key-sm strong">From Site</strong>
+      <span class="value value-md">{{evtCtx.fromSite.name}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong">From Location</strong>
+      <span class="value value-md">
+        <span ng-show="!!evtCtx.fromLocation.id">
+          <a ui-sref="container-detail.locations({containerId: evtCtx.fromLocation.id})">
+            <os-disp-storage-position position="evtCtx.fromLocation"></os-disp-storage-position>
+          </a>
+          <button ng-show="!!evtCtx.fromLocation.position" class="btn btn-default os-btn-info"
+            data-placement="right" data-container="body" data-trigger="hover"
+            content-template="modules/biospecimen/participant/specimen/transfer-event-from-location.html" bs-popover>
+            <span class="fa fa-question-circle"></span>
+          </button>
+        </span>
+        <span ng-show="!evtCtx.fromLocation.id" translate="specimens.virtually_located"></span>
+      </span>
+    </li>
+    <li class="item" ng-show="!!evtCtx.toSite">
+      <strong class="key key-sm strong">To Site</strong>
+      <span class="value value-md">{{evtCtx.toSite.name}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong">To Location</strong>
+      <span class="value value-md">
+        <span ng-show="!!evtCtx.toLocation.id">
+          <a ui-sref="container-detail.locations({containerId: evtCtx.toLocation.id})">
+            <os-disp-storage-position position="evtCtx.toLocation"></os-disp-storage-position>
+          </a>
+          <button ng-show="!!evtCtx.toLocation.position" class="btn btn-default os-btn-info"
+            data-placement="right" data-container="body" data-trigger="hover"
+            content-template="modules/biospecimen/participant/specimen/transfer-event-to-location.html" bs-popover>
+            <span class="fa fa-question-circle"></span>
+          </button>
+        </span>
+        <span ng-show="!evtCtx.toLocation.id" translate="specimens.virtually_located"></span>
+      </span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong">Storage Status</strong>
+      <span class="value value-md">{{evtCtx.status}}</span>
+    </li>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong">Transferred By</strong>
+      <span class="value value-md">{{evtCtx.user.name}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong">Transfer Time</strong>
+      <span class="value value-md">{{evtCtx.time | date: $root.global.dateTimeFmt}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong">Comments</strong>
+      <span class="value value-md">{{evtCtx.comments | osNoValue}}</span>
+    </li>
+  </ul>
+</div>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimen/transfer-event-from-location.html">
+  <div>
+    <ul class="os-key-values os-one-col">
+      <li class="item">
+        <strong class="key key-sm strong">Container</strong>
+        <span class="value value-md">{{evtCtx.fromLocation.name}}</span>
+      </li>
+      <li class="item">
+        <strong class="key key-sm strong">Row x Column</strong>
+        <span class="value value-md">{{evtCtx.fromLocation.positionY}} x {{evtCtx.fromLocation.positionX}}</span>
+      </li>
+      <li class="item">
+        <strong class="key key-sm strong">Position</strong>
+        <span class="value value-md">{{evtCtx.fromLocation.position}}</span>
+      </li>
+    </ul>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimen/transfer-event-to-location.html">
+  <div>
+    <ul class="os-key-values os-one-col">
+      <li class="item">
+        <strong class="key key-sm strong">Container</strong>
+        <span class="value value-md">{{evtCtx.toLocation.name}}</span>
+      </li>
+      <li class="item">
+        <strong class="key key-sm strong">Row x Column</strong>
+        <span class="value value-md">{{evtCtx.toLocation.positionY}} x {{evtCtx.toLocation.positionX}}</span>
+      </li>
+      <li class="item">
+        <strong class="key key-sm strong">Position</strong>
+        <span class="value value-md">{{evtCtx.toLocation.position}}</span>
+      </li>
+    </ul>
+  </div>
+</script>

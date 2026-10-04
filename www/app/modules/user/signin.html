@@ -1,0 +1,63 @@
+<div ng-show="domains.length > 0 && showSignIn">
+  <div class="os-custom-banner">
+    <div style="height: 10px;"></div>
+    <h3 translate="user.sign_in_title">Sign in to continue to OpenSpecimen</h3>
+  </div>
+
+  <div class="os-center-box">
+    <img class="os-rounded-img" src="images/profile-user.png"/>
+    <div class="alert alert-danger" ng-if="errors.length > 0">
+      <ul class="os-signin-errors">
+        <li ng-repeat="error in errors">
+          <span>{{error.message}} <span ng-show="error.code">({{error.code}})</span> </span>
+        </li>
+      </ul>
+    </div>
+    <form name="signinForm" class="os-no-label-form" ng-submit="login()">
+      <div class="os-group-controls">
+        <div ng-if="domains.length > 1 && !!samlDomain">
+          <os-select ng-model="loginData.domainName" list="domains" select-prop="name" display-prop="name"
+            ng-click="$event.stopPropagation();" on-select="onDomainSelect($item)"
+            ng-class="{'os-no-border-bottom': !!loginData.domainName}"
+            placeholder="{{'user.domain_name' | translate}}" required>
+          </os-select>
+        </div>
+
+        <span ng-if="!samlDomain || (!!loginData.domainName && loginData.domainName != samlDomain.name)">
+          <input type="text" class="form-control" ng-model="loginData.loginName"
+            required placeholder="{{'user.login_name' | translate}}">
+          <input type="password" class="form-control" ng-model="loginData.password"
+            required placeholder="{{'user.password' | translate}}">
+          <input type="password" class="form-control" ng-model="loginData.props.otp"
+            required placeholder="{{'otp.title' | translate}}" ng-if="loginData.$$otpReq">
+
+          <os-plugin-hooks view-name="'sign-in'" sec-name="'input-fields'">
+          </os-plugin-hooks>
+        </span>
+
+        <div ng-if="domains.length > 1 && !samlDomain">
+          <os-select ng-model="loginData.domainName" list="domains" select-prop="name" display-prop="name"
+            ng-click="$event.stopPropagation()" ng-class="{'os-no-border-top': !samlDomain}"
+            placeholder="{{'user.domain_name' | translate}}" required>
+          </os-select>
+        </div>
+      </div>
+      <span class="os-error-msg" ng-if="loginError" translate="user.sign_in_failed">
+        The username or password you entered is incorrect
+      </span>
+      <button type="submit" class="btn btn-block btn-primary">
+        <span translate="user.sign_in">Sign in</span>
+      </button>
+      <div class="clearfix" style="padding-top: 5px;">
+        <div class="pull-left" ng-if="!!global.appProps.forgot_password">
+          <a ui-sref="forgot-password" translate="user.forgot_password">Forgot password?</a>
+        </div>
+        <div class="pull-right">
+          <os-plugin-hooks view-name="'sign-in'" sec-name="'reset-links'">
+          </os-plugin-hooks>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+

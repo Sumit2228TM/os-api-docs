@@ -1,0 +1,154 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3>
+        <span translate="shipments.list">Shipments</span>
+      </h3>
+    </div>
+    <div class="os-page-header-actions">
+      <os-list-pager opts="pagerOpts"></os-list-pager>
+    </div>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left">
+      <div show-if-allowed="shipmentResource.createOpts" dropdown class="os-inline-btn">
+        <button class="default dropdown-toggle" title="{{'shipments.tooltip.create' | translate}}">
+          <span class="fa fa-plus"></span>
+          <span translate="common.buttons.create">Create</span>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a ui-sref="shipment-addedit({shipmentId: '', type: 'SPECIMEN'})">
+              <span class="fa fa-flask"></span>
+              <span translate="shipments.specimens">Specimens</span>
+            </a>
+          </li>
+          <li>
+            <a ui-sref="shipment-addedit({shipmentId: '', type: 'CONTAINER'})">
+              <span class="fa fa-dropbox"></span>
+              <span translate="shipments.containers">Containers</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div show-if-allowed="shipmentResource.importOpts" dropdown class="os-inline-btn">
+        <button class="default dropdown-toggle">
+          <span translate="common.buttons.import">Import</span>
+          <span class="fa fa-caret-down"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a ui-sref="shipment-import">
+              <span class="fa fa-flask"></span>
+              <span translate="shipments.specimen_shipments">Specimen Shipments</span>
+            </a>
+          </li>
+          <li>
+            <a ui-sref="shipment-import({type: 'containerShipment'})">
+              <span class="fa fa-dropbox"></span>
+              <span translate="shipments.container_shipments">Container Shipments</span>
+            </a>
+          </li>
+          <li>
+            <a ui-sref="shipment-import-jobs">
+              <span class="fa fa-list-alt"></span>
+              <span translate="bulk_imports.view_jobs">View Jobs</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <os-help class="os-btns btn default" link="shipment_help_link"></os-help>
+    </div>
+    <div class="right">
+      <button class="default" os-right-drawer-toggle title="{{'shipments.tooltip.search' | translate}}">
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th class="col">
+            <span>&nbsp;</span>
+          </th>
+          <th class="col">
+            <span translate="shipments.name">Name</span>
+          </th>
+          <th class="col">
+            <span translate="shipments.sending_site">Sending Site</span>
+          </th>
+          <th class="col">
+            <span translate="shipments.sender">Sender</span>
+          </th>
+          <th class="col">
+            <span translate="shipments.shipped_date">Shipped Date</span>
+          </th>
+          <th class="col">
+            <span translate="shipments.receiving_site">Receiving Site</span>
+          </th>
+          <th class="col">
+            <span translate="shipments.receiver">Receiver</span>
+          </th>
+          <th class="col">
+            <span translate="shipments.received_date">Received Date</span>
+          </th>
+          <th class="col">
+            <span translate="shipments.status">Status</span>
+          </th>
+          <th class="col">
+            <span translate="shipments.specimens">Specimens</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-if="emptyState.empty || emptyState.loading">
+          <td class="col" colspan="100%">
+            <os-empty-list state="emptyState"></os-empty-list>
+          </td>
+        </tr>
+
+        <tr class="row" ng-repeat="shipment in shipments" os-row-click="showShipmentOverview(shipment)">
+          <td class="col" ng-switch on="shipment.type == 'SPECIMEN'">
+            <span ng-switch-when="true" class="fa fa-flask"></span>
+            <span ng-switch-when="false" class="fa fa-dropbox"></span>
+          </td>
+          <td class="col">
+            <a ui-sref="shipment-detail.overview({shipmentId: shipment.id})">
+              #{{shipment.id}} {{shipment.name}}
+            </a>
+          </td>
+          <td class="col">
+            <span>{{shipment.sendingSite | osNoValue}}</span>
+          </td>
+          <td class="col">
+            <span>{{shipment.sender | osUserDisplayName}}</span>
+          </td>
+          <td class="col">
+            <span>{{shipment.shippedDate | date: global.dateFmt}}</span>
+          </td>
+          <td class="col">
+            <span>{{shipment.receivingSite | osNoValue}}</span>
+          </td>
+          <td class="col">
+            <span>{{shipment.receiver | osUserDisplayName | osNoValue}}</span>
+          </td>
+          <td class="col">
+            <span>{{shipment.receivedDate | date: global.dateFmt | osNoValue}}</span>
+          </td>
+          <td class="col">
+            <span>{{'shipments.statuses.' + shipment.status | translate}}</span>
+          </td>
+          <td class="col">
+            <span>{{shipment.specimensCount | number: 0}}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div os-right-drawer ng-include="'modules/administrative/shipment/search.html'"> </div>
+</div>

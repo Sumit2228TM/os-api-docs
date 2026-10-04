@@ -1,0 +1,13 @@
+<div ng-controller="HomeOrderListCtrl" ng-init="init(opts)">
+  <table class="os-table">
+    <tbody class="os-table-body">
+      <tr class="row" ng-repeat="order in ctx.orders">
+        <td class="col">
+          <a ui-sref="order-detail.overview({orderId: order.id})">
+            <span>#{{order.id}} {{order.name}}</span>
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

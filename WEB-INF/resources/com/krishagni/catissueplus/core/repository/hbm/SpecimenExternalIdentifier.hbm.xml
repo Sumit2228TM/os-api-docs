@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenExternalIdentifier" table="OS_SPMN_EXTERNAL_IDS"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenExternalIdentifier">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_SPMN_EXT_ID_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="name" column="NAME" not-null="true"/>
+
+    <property name="value" column="VALUE" not-null="true"/>
+
+    <many-to-one name="specimen" column="SPECIMEN_ID" not-null="true"/>
+  </class>
+</hibernate-mapping>

@@ -1,0 +1,58 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3>
+        <span translate="consent_statement.list">Consent Statements</span>
+      </h3>
+    </div>
+  </div>
+  <div class="os-page-commands">
+    <div class="left">
+      <button class="default" title="{{'consent_statement.tooltip.add' | translate}}"
+        ui-sref="consent-statement-addedit({stmtId: ''})">
+        <span class="fa fa-plus"></span>
+        <span translate="common.buttons.create">Create</span>
+      </button>
+    </div>
+    <div class="right">
+      <button class="default" os-right-drawer-toggle title="{{'consent_statement.tooltip.search' | translate}}">
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th class="col col-xs-1">
+            <span translate="consent_statement.code">Code</span>
+          </th>
+          <th class="col col-xs-12">
+            <span translate="consent_statement.statement">Statement</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-if="ctx.emptyState.loading || ctx.emptyState.empty">
+          <td class="col" colspan="100%">
+            <os-empty-list state="ctx.emptyState"></os-empty-list>
+          </td>
+        </tr>
+        <tr class="row" ng-repeat="stmt in ctx.statements" os-row-click="showStatementEdit(stmt)">
+          <td class="col">
+            <a ui-sref="consent-statement-addedit({stmtId: stmt.id})">
+              <span>{{stmt.code}}</span>
+            </a>
+          </td>
+          <td class="col">
+            <span>{{stmt.statement}}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div os-right-drawer ng-include="'modules/biospecimen/consent-statement/search.html'"></div>
+</div>

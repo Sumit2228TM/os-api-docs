@@ -1,0 +1,35 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li>
+          <a ui-sref="cp-groups-list">
+            <span translate="cp_groups.list"></span>
+          </a>
+        </li>
+      </ul>
+      <h3>
+        <span>{{ctx.group.name}}</span>
+      </h3>
+    </div>
+  </div>
+
+  <div os-side-menu>
+    <ul>
+     <li ui-sref-active="active">
+       <a ui-sref=".overview">
+         <span class="fa fa-eye"></span>
+         <span class="os-title" translate="cp_groups.menu.overview">Overview</span>
+       </a>
+     </li>
+     <li ui-sref-active="active">
+       <a ui-sref=".forms">
+         <span class="fa fa-files-o"></span>
+         <span class="os-title" translate="cp_groups.menu.forms">Forms</span>
+       </a>
+     </li>
+   </ul>
+  </div>
+
+  <div class="os-side-menu-page-content" ui-view> </div>
+</div>

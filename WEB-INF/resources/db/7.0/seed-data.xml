@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Consent resource" dbms="mysql">
+    <sql>
+      insert into rbac_resources(name) values('Consent');
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Consent resource" dbms="oracle">
+    <sql>
+      insert into rbac_resources(identifier, name) values(rbac_resources_seq.nextval, 'Consent');
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Proc to assign consent privileges" dbms="mysql" runOnChange="true">
+    <sql endDelimiter="//">
+      create procedure assign_consent_privileges()
+      begin
+        declare done integer default 0;
+        declare role varchar(255) default "";
+        declare ops varchar(255) default "";
+
+        declare curRoleOps cursor for
+          select
+            r.name, group_concat( distinct ops.name)
+          from
+            rbac_roles r
+            inner join rbac_role_access_list acl on acl.role_id = r.identifier
+            inner join rbac_role_access_list_ops acl_ops on acl_ops.acl_id = acl.identifier
+            inner join rbac_resources res on res.identifier = acl.resource_id
+            inner join rbac_operations ops on ops.identifier = acl_ops.operation_id
+          where
+            res.name = 'ParticipantPhi'
+          group by
+            r.name;
+
+        declare continue handler for not found set done = 1;
+
+        open curRoleOps;
+
+        assignPrivileges: loop
+          fetch curRoleOps into role, ops;
+          if done = 1 then
+            leave assignPrivileges;
+          end if;
+
+          call assign_to_role(role, 'Consent', ops);
+        end loop assignPrivileges;
+
+        close curRoleOps;
+      end;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Proc to assign consent privileges" dbms="oracle" runOnChange="true">
+    <sql endDelimiter="//">
+      create or replace procedure assign_consent_privileges is
+        cursor curRoleOps is
+          select
+            r.name AS "role_name", listagg(ops.name, ',') WITHIN GROUP (ORDER BY ops.name) AS "op_names"
+          from
+            rbac_roles r
+            inner join rbac_role_access_list acl on acl.role_id = r.identifier
+            inner join rbac_role_access_list_ops acl_ops on acl_ops.acl_id = acl.identifier
+            inner join rbac_resources res on res.identifier = acl.resource_id
+            inner join rbac_operations ops on ops.identifier = acl_ops.operation_id
+          where
+            res.name = 'ParticipantPhi'
+          group by
+            r.name;
+
+        role_name varchar2(255);
+        op_names varchar2(255);
+      begin
+        open curRoleOps;
+
+        loop
+          fetch curRoleOps into role_name, op_names;
+          if (curRoleOps%found) then
+            assign_to_role(role_name, 'Consent', op_names);
+          else
+            exit;
+          end if;
+        end loop;
+
+        close curRoleOps;
+      end;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Assign consent privileges">
+    <sql>call assign_consent_privileges();</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop the proc to assign consent privileges">
+    <dropProcedure procedureName="assign_consent_privileges"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Default consent collector role">
+    <sql>call create_role('Consent Collector', 'User who works at the collection centres to register patients and collect consents from them.');</sql>
+    <sql>call assign_to_role('Consent Collector', 'CollectionProtocol', 'Read');</sql>
+    <sql>call assign_to_role('Consent Collector', 'ParticipantPhi', 'Read,Create,Update,Delete,Export Import');</sql>
+    <sql>call assign_to_role('Consent Collector', 'Consent', 'Read,Create,Update,Delete,Export Import');</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Reinit MRN search keywords -- delete old incorrect keywords" dbms="oracle">
+    <sql>
+      delete from
+        os_search_entity_keywords
+      where
+        entity = 'collection_protocol_registration' and name = 'medicalRecordNumber'
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Reinit MRN search keywords -- add correct keywords" dbms="oracle">
+    <sql>
+      insert into
+        os_search_entity_keywords(identifier, entity, entity_id, name, value, status)
+      select
+        os_search_entity_keywords_seq.nextval, 'collection_protocol_registration', r.identifier, 'medicalRecordNumber', lower(pmi.medical_record_number), 1
+      from
+        catissue_part_medical_id pmi
+        inner join catissue_participant p on p.identifier = pmi.participant_id
+        inner join catissue_coll_prot_reg r on r.participant_id = p.identifier
+      where
+        p.activity_status != 'Disabled' and
+        r.activity_status != 'Disabled' and
+        pmi.medical_record_number is not null;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Participant data entry links age">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'pde_link_age',
+        'pde_link_age', 'pde_link_age_desc',
+        'INT', '5'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Visit resource" dbms="mysql">
+    <sql>
+      insert into rbac_resources(name) values('Visit');
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Visit resource" dbms="oracle">
+    <sql>
+      insert into rbac_resources(identifier, name) values(rbac_resources_seq.nextval, 'Visit');
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Proc to assign visit privileges" dbms="mysql" runOnChange="true">
+    <sql endDelimiter="//">
+      create procedure assign_visit_privileges()
+      begin
+        declare done integer default 0;
+        declare role varchar(255) default "";
+        declare ops varchar(255) default "";
+
+        declare curRoleOps cursor for
+          select
+            r.name, group_concat( distinct ops.name)
+          from
+            rbac_roles r
+            inner join rbac_role_access_list acl on acl.role_id = r.identifier
+            inner join rbac_role_access_list_ops acl_ops on acl_ops.acl_id = acl.identifier
+            inner join rbac_resources res on res.identifier = acl.resource_id
+            inner join rbac_operations ops on ops.identifier = acl_ops.operation_id
+          where
+            res.name in ('VisitAndPrimarySpecimen', 'VisitAndSpecimen')
+          group by
+            r.name;
+
+        declare continue handler for not found set done = 1;
+
+        open curRoleOps;
+
+        assignPrivileges: loop
+          fetch curRoleOps into role, ops;
+          if done = 1 then
+            leave assignPrivileges;
+          end if;
+
+          call assign_to_role(role, 'Visit', ops);
+        end loop assignPrivileges;
+
+        close curRoleOps;
+      end;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Proc to assign visit privileges" dbms="oracle" runOnChange="true">
+    <sql endDelimiter="//">
+      create or replace procedure assign_visit_privileges is
+        cursor curRoleOps is
+          select
+            r.name AS "role_name", listagg(ops.name, ',') WITHIN GROUP (ORDER BY ops.name) AS "op_names"
+          from
+            rbac_roles r
+            inner join rbac_role_access_list acl on acl.role_id = r.identifier
+            inner join rbac_role_access_list_ops acl_ops on acl_ops.acl_id = acl.identifier
+            inner join rbac_resources res on res.identifier = acl.resource_id
+            inner join rbac_operations ops on ops.identifier = acl_ops.operation_id
+          where
+            res.name in ('VisitAndPrimarySpecimen', 'VisitAndSpecimen')
+          group by
+            r.name;
+
+        role_name varchar2(255);
+        op_names varchar2(255);
+      begin
+        open curRoleOps;
+
+        loop
+          fetch curRoleOps into role_name, op_names;
+          if (curRoleOps%found) then
+            assign_to_role(role_name, 'Visit', op_names);
+          else
+            exit;
+          end if;
+        end loop;
+
+        close curRoleOps;
+      end;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Assign visit privileges">
+    <sql>call assign_visit_privileges();</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop the proc to assign visit privileges">
+    <dropProcedure procedureName="assign_visit_privileges"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Remove visit from the specimen resource names">
+    <sql>update rbac_resources set name = 'PrimarySpecimen' where name = 'VisitAndPrimarySpecimen';</sql>
+    <sql>update rbac_resources set name = 'Specimen' where name = 'VisitAndSpecimen';</sql>
+  </changeSet>
+</databaseChangeLog>

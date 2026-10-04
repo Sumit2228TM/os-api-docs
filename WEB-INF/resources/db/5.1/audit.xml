@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Track whether container allowed DPs were modified">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <changeSetExecuted changeLogFile="db/5.0/audit.xml"
+          author="vpawar" id="Track whether container allowed DPs were modified"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="OS_STORAGE_CONTAINERS_AUD">
+      <column name="allowedDps_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track changes to container allowed DPs">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <changeSetExecuted changeLogFile="db/5.0/audit.xml"
+          author="vpawar" id="Track changes to container allowed DPs"/>
+      </not>
+    </preConditions>
+    <createTable tableName="OS_STOR_CONTAINER_DPS_AUD">
+      <column name="REV" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="STORAGE_CONTAINER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="DP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="REVTYPE" type="${tinyint.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on revision number of container allowed DPs">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <changeSetExecuted changeLogFile="db/5.0/audit.xml"
+          author="vpawar" id="Foreign key on revision number of container allowed DPs"/>
+      </not>
+    </preConditions>
+    <addForeignKeyConstraint constraintName="FK_OS_STORE_CONT_DPS_AUD_REV"
+      baseTableName="OS_STOR_CONTAINER_DPS_AUD" baseColumnNames="REV"
+      referencedTableName="OS_REVISIONS" referencedColumnNames="REV"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track changes to storage container usage mode">
+    <addColumn tableName="OS_STORAGE_CONTAINERS_AUD">
+      <column name="USED_FOR" type="${text.type}(32)"/>
+      <column name="usedFor_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track changes to disable email notif settings of the DP">
+    <addColumn tableName="CAT_DISTRIBUTION_PROTOCOL_AUD">
+      <column name="DISABLE_EMAIL_NOTIFS" type="${boolean.type}"/>
+      <column name="disableEmailNotifs_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track changes in specimen external IDs">
+    <createTable tableName="OS_SPMN_EXTERNAL_IDS_AUD">
+      <column name="REV" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="REVTYPE" type="${tinyint.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="IDENTIFIER" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="SPECIMEN_ID" type="${int.type}"/>
+      <column name="specimen_MOD" type="${boolean.type}"/>
+      <column name="NAME" type="${text.type}(128)"/>
+      <column name="name_MOD" type="${boolean.type}"/>
+      <column name="VALUE" type="${text.type}(128)"/>
+      <column name="value_MOD" type="${boolean.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on revision number of specimen external IDs">
+    <addForeignKeyConstraint constraintName="FK_SPMN_EXT_IDS_AUD_REV"
+      baseTableName="OS_SPMN_EXTERNAL_IDS_AUD" baseColumnNames="REV"
+      referencedTableName="OS_REVISIONS" referencedColumnNames="REV"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track whether specimen external IDs were modified">
+    <addColumn tableName="CATISSUE_SPECIMEN_AUD">
+      <column name="externalIds_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track changes to specimen image ID">
+    <addColumn tableName="CATISSUE_SPECIMEN_AUD">
+      <column name="IMAGE_ID" type="${text.type}(255)"/>
+      <column name="imageId_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Keep track of who deleted the records and why">
+    <createTable tableName="OS_DELETE_AUDIT_LOGS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="DELETED_ON" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ENTITY_TYPE" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ENTITY_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="REASON" type="${text.type}(255)"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Delete logs sequence" dbms="oracle">
+    <createSequence sequenceName="OS_DELETE_AUDIT_LOGS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="FK on user who deleted the record/object">
+    <addForeignKeyConstraint constraintName="FK_AUDIT_LOGS_USER_ID"
+      baseTableName="OS_DELETE_AUDIT_LOGS" baseColumnNames="USER_ID"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track changes to distributed specimens label format">
+    <addColumn tableName="CAT_DISTRIBUTION_PROTOCOL_AUD">
+      <column name="ORDER_ITEM_LABEL_FORMAT" type="${text.type}(255)"/>
+      <column name="orderItemLabelFormat_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track changes to distributed specimen label">
+    <addColumn tableName="OS_ORDER_ITEMS_AUD">
+      <column name="LABEL" type="${text.type}(255)"/>
+      <column name="label_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the width of shipment specimen received quality to match the PV width">
+    <modifyDataType tableName="OS_SHIPMENT_SPECIMENS_AUD" columnName="RECEIVED_QUALITY" newDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the width of shipment container received quality to match the PV width">
+    <modifyDataType tableName="OS_SHIPMENT_CONTAINERS_AUD" columnName="RECEIVED_QUALITY" newDataType="${text.type}(255)"/>
+  </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.ConsentStatement" table="OS_CONSENT_STATEMENTS"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.ConsentStatement">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_CONSENT_STMTS_SEQ</param>
+      </generator>
+    </id>
+    
+    <property name="code" column="CODE"/>
+
+    <property name="statement" column="STATEMENT"/>
+
+    <property name="activityStatus" column="ACTIVITY_STATUS"/>
+    
+    <filter name="activeEntity"/>
+    
+    <query name="getByCode">
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.ConsentStatement stmt
+      where
+        stmt.code = :code
+    </query>
+
+    <query name="getByStatement">
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.ConsentStatement stmt
+      where
+        stmt.statement = :statement
+    </query>
+  </class>
+</hibernate-mapping>

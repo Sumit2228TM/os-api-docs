@@ -1,0 +1,114 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.StorageContainerPosition" table="OS_CONTAINER_POSITIONS" batch-size="25"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.StorageContainerPosition">
+
+    <id name="id" column="IDENTIFIER" type="long" unsaved-value="null">
+      <generator class="native">
+        <param name="sequence">OS_CONTAINER_POSITIONS_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="posOneOrdinal" column="POS_ONE"/>
+
+    <property name="posTwoOrdinal" column="POS_TWO"/>
+
+    <property name="posOne" column="POS_ONE_STR"/>
+
+    <property name="posTwo" column="POS_TWO_STR"/>
+
+    <property name="formattedPosition" column="FORMATTED_POSITION"/>
+
+    <property name="reservationId" column="RESERVATION_ID"/>
+
+    <property name="reservationTime" column="RESERVATION_TIME"/>
+
+    <property name="blocked" column="BLOCKED"/>
+
+    <many-to-one name="container" column="STORAGE_CONTAINER_ID"/>
+
+    <many-to-one name="occupyingSpecimen" column="OCCUPYING_SPECIMEN_ID" unique="true" cascade="persist,merge"/>
+
+    <many-to-one name="occupyingContainer" column="OCCUPYING_CONTAINER_ID" unique="true"/>
+
+    <many-to-one name="blockedForContainer" column="BLOCKED_FOR_CONTAINER_ID" unique="true" />
+
+    <many-to-one name="checkoutSpecimen" column="CHECKOUT_SPECIMEN_ID" unique="true" />
+
+    <many-to-one name="checkoutBy" column="CHECKOUT_BY" />
+
+    <property name="checkoutTime" column="CHECKOUT_TIME" />
+
+    <property name="checkoutComments" column="CHECKOUT_COMMENTS" />
+
+    <sql-query name="getSpecimenIdByPosition">
+      <return-scalar column="specimen_id" type="long" />
+
+      select
+        occupying_specimen_id as specimen_id
+      from
+        os_container_positions
+      where
+        storage_container_id = :containerId and
+        pos_two_str = :rowLabel and
+        pos_one_str = :colLabel
+    </sql-query>
+
+    <sql-query name="getOccupiedPositionOrdinals">
+      <return-scalar column="pos_one" type="int" />
+      <return-scalar column="pos_two" type="int" />
+
+      select
+        pos_one as pos_one,
+        pos_two as pos_two
+      from
+        os_container_positions
+      where
+        storage_container_id = :containerId
+    </sql-query>
+
+    <query name="getPositionByOrdinals">
+      from
+        com.krishagni.catissueplus.core.administrative.domain.StorageContainerPosition p
+      where
+        p.container.id = :containerId and
+        p.posOneOrdinal = :posOne and
+        p.posTwoOrdinal = :posTwo
+    </query>
+
+    <query name="getReservedPosition">
+      from
+        com.krishagni.catissueplus.core.administrative.domain.StorageContainerPosition p
+      where
+        p.container.id = :containerId and
+        p.posTwo = :rowLabel and
+        p.posOne = :colLabel and
+        p.reservationId = :reservationId
+    </query>
+
+    <sql-query name="getPositionsBeyondCapacity">
+      <return-scalar column="cnt" type="long" />
+
+      <![CDATA[
+
+      select
+        count(*) as cnt
+      from
+        os_container_positions
+      where
+        storage_container_id = :containerId and
+        (
+          pos_two > :maxRow or
+          pos_one > :maxCol or
+          pos_two < 1 or
+          pos_one < 1
+        )
+
+      ]]>
+    </sql-query>
+  </class>
+</hibernate-mapping>

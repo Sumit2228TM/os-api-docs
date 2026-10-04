@@ -1,0 +1,301 @@
+<div ng-if="view == 'show_contexts'" class="os-form-association os-no-label-form">
+  <div class="os-modal-header">
+    <span class="title">{{form.caption}}</span>
+  </div>
+
+  <div class="os-modal-body">
+    <os-tabs>
+      <os-tab title="{{'form.associations' | translate}}">
+        <div class="os-form-association-empty-list" ng-if="!cpFormCtxts || cpFormCtxts.length == 0">
+          <h5><i translate="form.not_used">Not used in any collection protocols</i></h5>   
+        </div>
+        <div class="os-form-association-list" ng-if="cpFormCtxts && cpFormCtxts.length > 0">
+          <div class="os-section">
+            <table class="os-table">
+              <thead class="os-table-head">
+                <tr class="row">
+                  <th class="col col-xs-4">
+                    <span translate="form.level">Level</span>
+                  </th>
+                  <th class="col col-xs-3">
+                    <span translate="form.multiple_records">Multiple Records?</span>
+                  </th>
+                  <th class="col col-xs-4">
+                    <span translate="form.group">Group</span>
+                  </th>
+                  <th class="col col-xs-1">
+                    <span>&nbsp;</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="os-table-body">
+                <tr class="row" ng-repeat="ctxt in cpFormCtxts">
+                  <td class="col col-xs-4">
+                    <span>#{{ctxt.formCtxtId}}</span>
+                    <span>{{ctxt.level.caption}}</span>
+                  </td>
+                  <td class="col col-xs-3">
+                    <span ng-show="ctxt.multiRecord" translate="common.yes">Yes</span>
+                    <span ng-show="!ctxt.multiRecord" translate="common.no">No</span>
+                  </td>
+                  <td class="col col-xs-4">
+                    <span ng-show="!!ctxt.entityName">{{ctxt.entityName}}</span>
+                    <span ng-show="!ctxt.entityName">{{ctxt.collectionProtocol.shortTitle}}</span>
+                  </td>
+                  <td class="col col-xs-1">
+                    <span class="btn-group btn-group-xs" ng-if="!ctxt.sysForm && ctxt.level.allowEdits !== false">
+                      <button class="btn btn-default" ng-disabled="ctxt.level.multipleRecs == false"
+                        ng-click="showEditCtx(ctxt, $index)">
+                        <span class="fa fa-pencil"></span>
+                      </button>
+                      <button class="btn btn-default" ng-click="confirmRemoveCtx(ctxt, $index)">
+                        <span class="fa fa-trash-o"></span>
+                      </button>
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="os-form-association-form">
+          <os-select ng-model="cpFormCtxt.selectedEntity" list="extnEntities" display-prop="caption"
+            placeholder="{{'form.select_level' | translate }}" append-to-body="true">
+          </os-select>
+
+          <div class="checkbox" ng-show="cpFormCtxt.selectedEntity &&
+            !cpFormCtxt.selectedEntity.allCps && currentUser.admin">
+            <label>
+              <input type="checkbox" ng-checked="cpFormCtxt.allProtocols" ng-model="cpFormCtxt.allProtocols"/> 
+              <span translate="form.all_cps">All Present and Future Collection Protocols</span>
+            </label>
+          </div>
+
+          <div ng-if="cpFormCtxt.selectedEntity.name == 'User' || cpFormCtxt.selectedEntity.name == 'UserProfile'">
+            <div ng-if="currentUser.admin">
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" ng-checked="cpFormCtxt.allInstitutes" ng-model="cpFormCtxt.allInstitutes"/>
+                  <span translate="form.all_institutes">All Present and Future Institutes</span>
+                </label>
+              </div>
+
+              <os-select multiple ng-model="cpFormCtxt.institutes" list="institutes" display-prop="name"
+                placeholder="{{'form.select_institutes' | translate}}" append-to-body="true" refresh="loadInstitutes"
+                ng-show="!cpFormCtxt.allInstitutes">
+              </os-select>
+            </div>
+          </div>
+
+          <os-select multiple ng-model="cpFormCtxt.selectedCps" list="cpList" display-prop="shortTitle"
+            placeholder="{{'form.select_cps' | translate}}" name="cps" append-to-body="true" 
+            ng-show="!cpFormCtxt.allProtocols && cpFormCtxt.selectedEntity && !cpFormCtxt.selectedEntity.allCps">
+          </os-select>
+
+          <div class="checkbox" ng-show="cpFormCtxt.selectedEntity && cpFormCtxt.selectedEntity.multipleRecs != false">
+            <label>
+              <input type="checkbox" ng-checked="cpFormCtxt.isMultiRecord" ng-model="cpFormCtxt.isMultiRecord"/>
+              <span translate="form.multiple_records_allowed">Multiple records allowed</span>
+            </label>
+          </div>
+
+          <div class="checkbox" ng-if="['Participant', 'CommonParticipant', 'SpecimenCollectionGroup', 'Specimen', 'SpecimenEvent', 'User', 'UserProfile'].indexOf(cpFormCtxt.selectedEntity.name) != -1">
+            <label>
+              <input type="checkbox" ng-checked="cpFormCtxt.notifEnabled" ng-model="cpFormCtxt.notifEnabled"/>
+              <span translate="form.enable_notifs">Notifications Enabled</span>
+            </label>
+          </div>
+          <div class="checkbox" ng-if="cpFormCtxt.notifEnabled">
+            <label>
+              <input type="checkbox" ng-checked="cpFormCtxt.dataInNotif" ng-model="cpFormCtxt.dataInNotif"/>
+              <span translate="form.notif_data_in_email">Include Form Data in Notification</span>
+            </label>
+          </div>
+          <div ng-if="cpFormCtxt.notifEnabled">
+            <os-user-groups multiple ng-model="cpFormCtxt.notifUserGroups"
+              placeholder="{{'form.notif_user_groups' | translate}}" append-to-body="true">
+            </os-user-groups>
+          </div>
+        </div>
+      </os-tab>
+      <os-tab title="{{'audit.revisions' | translate}}" on-select="loadRevisions()">
+        <div class="os-association-revisions-tab">
+          <div class="os-alert-container show inline" ng-if="!revisions || revisions.length == 0">
+            <div class="alert alert-info">
+              <span translate="audit.no_revisions">No revisions to show!</span>
+            </div>
+          </div>
+          <table class="os-table" ng-if="revisions.length > 0">
+            <thead class="os-table-head">
+              <tr class="row">
+                <th class="col col-xs-5">
+                  <span translate="form.level">Level</span>
+                </th>
+                <th class="col col-xs-2">
+                  <span translate="audit.op">Action</span>
+                </th>
+                <th class="col col-xs-3">
+                  <span translate="audit.updated_by">Updated By</span>
+                </th>
+                <th class="col col-xs-2">
+                  <span translate="audit.updated_on">Updated On</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="os-table-body">
+              <tr class="row" ng-repeat="revision in revisions">
+                <td class="col">
+                  <span>#{{revision.id}} {{revision.entity.caption}}</span>
+                  <span ng-show="revision.entityName">({{revision.entityName}})</span>
+                </td>
+                <td class="col" ng-switch on="revision.revType">
+                  <span ng-switch-when="0" translate="audit.add_op">Add</span>
+                  <span ng-switch-when="1" translate="audit.update_op">Update</span>
+                  <span ng-switch-when="2" translate="audit.delete_op">Delete</span>
+                </td>
+                <td class="col">
+                  <span>{{revision.revBy | osUserDisplayName | osNoValue}}</span>
+                </td>
+                <td class="col">
+                  <span>{{revision.revTime | date: global.dateTimeFmt}}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </os-tab>
+    </os-tabs>
+  </div>
+
+  <div class="os-modal-footer" ng-switch on="enableAttach(cpFormCtxt)">
+    <button ng-switch-when="true"  class="btn os-btn-text" ng-click="cancel()">
+      <span translate="common.buttons.cancel">Cancel</span>
+    </button>
+    <button ng-switch-when="true"  class="btn btn-primary" ng-click="attach(cpFormCtxt)">
+      <span translate="form.attach_form">Attach Form</span>
+    </button>
+    <button ng-switch-when="false" class="btn btn-primary" ng-click="cancel()">
+      <span translate="common.buttons.done">Done</span>
+    </button>
+  </div>
+</div>
+
+<div ng-if="view == 'confirm_remove'">
+  <div class="os-modal-header">
+    <div class="title">{{form.caption}}</div>
+  </div>
+  
+  <div class="os-modal-body">
+   <span translate="form.confirm_delete_association" translate-values="removeCtxData.ctx">
+     Are you sure you want to delete this form at Participant level from ALL protocols? <br/>
+     Please note you will no longer be able to access data for this form
+   </span>
+  </div>
+
+  <div class="os-modal-footer">
+    <button class="btn os-btn-text" ng-click="cancelRemoveCtx()" translate="common.buttons.cancel">Cancel</button>
+    <button class="btn btn-danger"  ng-click="removeCtx()"       translate="common.buttons.delete">Delete</button>
+  </div>
+</div> 
+
+<div ng-if="view == 'edit_context'">
+  <div class="os-modal-header">
+    <div class="title">{{form.caption}}</div>
+  </div>
+
+  <div class="os-modal-body">
+    <div class="form-horizontal">
+      <div class="form-group">
+        <div class="col-xs-4 control-label">
+          <label>
+            <span translate="form.level">Level</span>
+          </label>
+        </div>
+        <div class="col-xs-8 os-ctrl-padding-top">
+          <span>{{editCtxData.ctx.level.caption}}</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-xs-4 control-label">
+          <label>
+            <span translate="form.collection_protocol">Collection Protocol</span>
+          </label>
+        </div>
+        <div class="col-xs-8 os-ctrl-padding-top">
+          <span>{{editCtxData.ctx.collectionProtocol.shortTitle}}</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-xs-4 control-label">
+          <label>
+            <span translate="form.multiple_records">Multiple records allowed?</span>
+          </label>
+        </div>
+        <div class="col-xs-8">
+          <label class="radio-inline">
+            <input type="radio" name="multiRecord" ng-model="editCtxData.ctx.multiRecord" ng-value="true">
+            <span translate="common.yes">Yes</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="multiRecord" ng-model="editCtxData.ctx.multiRecord" ng-value="false">
+            <span translate="common.no">No</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group" ng-if="['Participant', 'CommonParticipant', 'SpecimenCollectionGroup', 'Specimen', 'SpecimenEvent', 'User', 'UserProfile'].indexOf(editCtxData.ctx.level.name) != -1">
+        <div class="col-xs-4 control-label">
+          <label>
+            <span translate="form.enable_notifs">Enable Notifications?</span>
+          </label>
+        </div>
+        <div class="col-xs-8">
+          <label class="radio-inline">
+            <input type="radio" name="notifEnabled" ng-model="editCtxData.ctx.notifEnabled" ng-value="true">
+            <span translate="common.yes">Yes</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="notifEnabled" ng-model="editCtxData.ctx.notifEnabled" ng-value="false">
+            <span translate="common.no">No</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group" ng-if="editCtxData.ctx.notifEnabled">
+        <div class="col-xs-4 control-label">
+          <label>
+            <span translate="form.notif_data_in_email">Data in Email?</span>
+          </label>
+        </div>
+        <div class="col-xs-8">
+          <label class="radio-inline">
+            <input type="radio" name="dataInNotif" ng-model="editCtxData.ctx.dataInNotif" ng-value="true">
+            <span translate="common.yes">Yes</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="dataInNotif" ng-model="editCtxData.ctx.dataInNotif" ng-value="false">
+            <span translate="common.no">No</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group" ng-if="editCtxData.ctx.notifEnabled">
+        <div class="col-xs-4 control-label">
+          <label>
+            <span translate="form.notif_user_groups">User Groups</span>
+          </label>
+        </div>
+        <div class="col-xs-8">
+          <os-user-groups multiple ng-model="editCtxData.ctx.notifUserGroups"></os-user-groups>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="os-modal-footer">
+    <button class="btn os-btn-text" ng-click="cancelEditCtx()">
+      <span translate="common.buttons.cancel">Cancel</span>
+    </button>
+    <button class="btn btn-primary" ng-click="editCtx()">
+      <span translate="common.buttons.update">Update</span>
+    </button>
+  </div>
+</div>

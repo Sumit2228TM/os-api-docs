@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="com.krishagni.rbac.domain.SubjectAccess" table="RBAC_SUBJECT_ACCESS_VIEW" mutable="false"
+    entity-name="com.krishagni.rbac.domain.SubjectAccess">
+
+    <id name="id" column="IDENTIFIER" type="string"> </id>
+
+    <many-to-one name="subject" column="SUBJECT_ID" insert="false" update="false"/>
+
+    <many-to-one name="collectionProtocol" column="CP_ID" cascade="none"/>
+          
+    <many-to-one name="site" column="SITE_ID" cascade="none"/>
+
+    <property name="resource" column="RESOURCE_NAME"/>
+
+    <property name="operation" column="OPERATION"/>
+  </class> 
+</hibernate-mapping>

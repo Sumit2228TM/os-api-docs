@@ -1,0 +1,15 @@
+{
+  "name": "-20 Freezer",
+  "nameFormat": "%SITE_CODE%.-20F%SITE_UID%",
+  "noOfColumns": 1,
+  "noOfRows": 6,
+  "positionLabelingMode": "TWO_D",
+  "columnLabelingScheme": "Numbers",
+  "rowLabelingScheme": "Numbers",
+  "temperature": -20,
+  "storeSpecimenEnabled": false,
+  "activityStatus": "Active",
+  "canHold": {
+    "name": "-20 Rack"
+  }
+}

@@ -1,0 +1,42 @@
+<div>
+  <div class="os-head">
+    <h3 class="os-title">
+      <span translate="list_pager.recs_to_display">Records to Display</span>
+    </h3>
+  </div>
+
+  <div class="os-body">
+    <div class="form-group" ng-show="!pctx.enableCustomPageSize">
+      <label class="radio-inline">
+        <input type="radio" name="pageSize" ng-checked="opts.recordsPerPage == 100" ng-click="pageSizeChanged(100)">
+        <span translate="list_pager.hundred">100</span>
+      </label>
+      <label class="radio-inline">
+        <input type="radio" name="pageSize" ng-checked="opts.recordsPerPage == 200" ng-click="pageSizeChanged(200)">
+        <span translate="list_pager.two_hundred">200</span>
+      </label>
+      <label class="radio-inline">
+        <input type="radio" name="pageSize" ng-checked="opts.recordsPerPage == 500" ng-click="pageSizeChanged(500)">
+        <span translate="list_pager.five_hundred">500</span>
+      </label>
+      <label class="radio-inline">
+        <input type="radio" name="pageSize" ng-click="pctx.enableCustomPageSize = true">
+        <span translate="list_pager.custom">Custom</span>
+      </label>
+    </div>
+    <div class="form-group" ng-show="pctx.enableCustomPageSize">
+      <div class="os-input-addon-grp os-md-input">
+        <input type="text" os-md-input ng-model="pctx.customPageSize"
+          placeholder="{{'list_pager.custom_page_size' | translate}}">
+        <div class="os-input-addon-right os-md-input-addon">
+          <button class="btn btn-xs btn-success" ng-click="changePageSize()">
+            <span>Go</span>
+          </button>
+          <button class="btn btn-xs btn-default" ng-click="pctx.enableCustomPageSize = false">
+            <span class="fa fa-times"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

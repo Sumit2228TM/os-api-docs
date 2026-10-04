@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Consent tier responses view" runOnChange="true">
+    <createView viewName="CONSENT_TIER_VIEW" replaceIfExists="true">
+      select
+        tier.identifier as identifier, resp.coll_prot_reg_id as cpr_id,
+        stmt.code as code, stmt.statement as statement, resp.response_id as response_id
+      from
+        catissue_consent_tier tier
+        inner join catissue_consent_tier_response resp on resp.consent_tier_id = tier.identifier
+        inner join os_consent_statements stmt on stmt.identifier =  tier.consent_stmt_id
+      where
+        tier.activity_status != 'Disabled' and
+        resp.coll_prot_reg_id is not null
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Collection protocol registration view" runOnChange="true">
+    <createView viewName="cpr_view" replaceIfExists="true">
+      select
+        cpr.identifier as cpr_id, cpr.collection_protocol_id as cp_id,
+        cpr.participant_id as participant_id, p.first_name as first_name,
+        p.middle_name as middle_name, p.last_name as last_name,
+        p.email_address as email_address, p.birth_date as dob, p.social_security_number as ssn,
+        cpr.activity_status as activity_status, p.gender_id as gender_id,
+        p.genotype as genotype, cpr.registration_date as registration_date,
+        cpr.protocol_participant_id as ppid, p.vital_status_id as vital_status_id,
+        p.death_date as death_date, p.empi_id as empi_id, cpr.barcode as barcode,
+        cpr.consent_sign_date as consent_sign_date, cpr.consent_witness as consent_witness,
+        cpr.consent_comments as consent_comments,
+        substr(cpr.consent_document_name, instr(cpr.consent_document_name, '_') + 1) as consent_document_name,
+        cpr.external_subject_id as external_subject_id,
+        cpr.site_id as site_id,  cpr.creation_time as creation_time, cpr.creator as creator,
+        case
+          when cpr.update_time is null then p.update_time
+          when p.update_time is null then cpr.update_time
+          when cpr.update_time &lt; p.update_time then p.update_time
+          else cpr.update_time
+        end as update_time,
+        case
+          when cpr.update_time is null then p.updater
+          when p.update_time is null then cpr.updater
+          when cpr.update_time &lt; p.update_time then p.updater
+          else cpr.updater
+        end as updater
+      from
+        catissue_coll_prot_reg cpr
+        inner join catissue_participant p on cpr.participant_id = p.identifier
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen shipment view" runOnChange="true">
+    <createView viewName="OS_SPECIMEN_SHIPMENTS_VIEW" replaceIfExists="true">
+      select
+        s.identifier as shipment_id, s.name as shipment_name, s.type as shipment_type,
+        s.request, s.request_status, s.requester_id, s.request_date, s.requester_comments,
+        s.courier_name, s.tracking_number, s.tracking_url,
+        s.sending_site_id, s.sender_id, s.shipped_date, s.sender_comments,
+        s.receiving_site_id, s.received_date, s.receiver_id, s.receiver_comments,
+        ss.received_quality_id, c.name as container_name, s.status as status,
+        ss.specimen_id as specimen_id, sc.identifier as shipment_container_id
+      from
+        os_shipments s
+        inner join os_shipment_specimens ss on ss.shipment_id = s.identifier
+        left join os_shipment_containers sc on sc.identifier = ss.shipment_container_id
+        left join os_storage_containers c on c.identifier = sc.container_id
+      where
+        s.activity_status != 'Disabled'
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen shipment events view" runOnChange="true">
+    <createView viewName="SPECIMEN_SHIPMENTS_VIEW" replaceIfExists="true">
+      select
+        item.identifier as identifier, item.specimen_id as specimen_id, item.received_quality_id as received_quality_id,
+        ship.name as name, ship.shipped_date as shipped_date,
+        ship.sending_site_id as sending_site_id, ship.sender_id as sender_id, ship.sender_comments as sender_comments,
+        ship.received_date as received_date, ship.receiving_site_id as receiving_site_id, ship.receiver_id as receiver_id,
+        ship.receiver_comments as receiver_comments
+      from
+        os_shipment_specimens item
+        inner join os_shipments ship on ship.identifier = item.shipment_id
+      where
+        ship.status != 'PENDING' and
+        ship.activity_status != 'Disabled'
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container transfer specimen events" runOnChange="true">
+    <createView viewName="OS_CONT_TRAF_SPMN_EVENTS_VIEW" replaceIfExists="true">
+      select
+        evt_spmn.identifier as identifier, evt_spmn.specimen_id, evt.container_id,
+        evt.from_site_id, evt.from_container_id, evt.from_row, evt.from_column,
+        evt.from_row_ordinal, evt.from_column_ordinal, evt.from_position,
+        evt.to_site_id, evt.to_container_id, evt.to_row, evt.to_column,
+        evt.to_row_ordinal, evt.to_column_ordinal, evt.to_position,
+        evt.user_id, evt.transfer_time, evt.reason
+      from
+        os_container_transfer_events evt
+        inner join os_cont_transfer_evt_spmns evt_spmn on evt_spmn.event_id = evt.identifier
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Computed container hierarchy string" runOnChange="true" dbms="mysql">
+    <sql>
+      create or replace view os_container_hierarchy_view as
+      select
+        h.descendent_id as container_id,
+        group_concat(
+          concat(
+            case
+              when p.pos_one_str is not null then
+                concat(
+                  ' (',
+                      case
+                        when pr.pos_labeling_mode = 'TWO_D' then
+                          concat(p.pos_two_str, ' x ', p.pos_one_str)
+                        when pr.pos_labeling_mode = 'LINEAR' then
+                          (p.pos_two - 1) * (case when pr.pos_assignment like 'HZ%' then pr.no_of_cols else pr.no_of_rows end) + p.pos_one
+                        else
+                          'NA'
+                      end,
+                  ') -> ')
+              when p.identifier is not null then
+                ' -> '
+              else
+                ''
+            end,
+            s.name
+          )
+          order by t.hl desc
+          separator ''
+        ) as hierarchy
+      from
+        os_containers_hierarchy h
+        inner join os_storage_containers s on s.identifier = h.ancestor_id
+        inner join (
+          select
+            ancestor_id, count(*) hl
+          from
+            os_containers_hierarchy
+          group by
+            ancestor_id
+        ) t on t.ancestor_id = s.identifier
+        left join os_container_positions p on p.occupying_container_id = s.identifier
+        left join os_storage_containers pr on pr.identifier = p.storage_container_id
+      where
+        s.activity_status != 'Disabled'
+      group by
+        h.descendent_id;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Computed container hierarchy string" runOnChange="true" dbms="oracle">
+    <sql>
+      create or replace view os_container_hierarchy_view as (
+        select
+          h.descendent_id as container_id,
+          listagg(
+            concat(
+              case
+                when p.pos_one_str is not null then
+                  concat(
+                    ' (',
+                    concat(
+                      case
+                        when pr.pos_labeling_mode = 'TWO_D' then
+                          concat(p.pos_two_str, concat(' x ', p.pos_one_str))
+                        when pr.pos_labeling_mode = 'LINEAR' then
+                          concat((p.pos_two - 1) * (case when pr.pos_assignment like 'HZ%' then pr.no_of_cols else pr.no_of_rows end) + p.pos_one, '')
+                        else
+                          'NA'
+                      end,
+                      ') -> '
+                    )
+                  )
+                when p.identifier is not null then
+                  ' -> '
+                else
+                  ''
+              end,
+              s.name
+            )
+          ) within group(order by t.hl desc) as hierarchy
+        from
+          os_containers_hierarchy h
+          inner join os_storage_containers s on s.identifier = h.ancestor_id
+          inner join (
+            select
+              ancestor_id, count(*) hl
+            from
+              os_containers_hierarchy
+            group by
+              ancestor_id
+          ) t on t.ancestor_id = s.identifier
+          left join os_container_positions p on p.occupying_container_id = s.identifier
+          left join os_storage_containers pr on pr.identifier = p.storage_container_id
+        where
+          s.activity_status != 'Disabled'
+        group by
+          h.descendent_id
+      )
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Visit clinical diagnosis with codes view - query" runOnChange="true">
+    <createView viewName="OS_VISIT_CD_VIEW" replaceIfExists="true">
+      select
+        pv.identifier, cd.visit_id, pv.value, case when length(pv.concept_code) > 0 then pv.concept_code else null end as code
+      from
+        os_visit_clin_diagnoses cd
+        inner join catissue_permissible_value pv on pv.identifier = cd.clinical_diagnosis_id
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Starred CPs view" runOnChange="true">
+    <createView viewName="OS_STARRED_CPS_VIEW" replaceIfExists="true">
+      select
+        si.item_id as cp_id, si.user_id as user_id
+      from
+        os_starred_items si
+      where
+        si.item_type = 'collection_protocol'
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Participant form rec IDs view">
+    <createView viewName="OS_CPR_EXTN_RECS_VIEW" replaceIfExists="true">
+      select
+        cpr_id, form_id, record_id
+      from
+        os_cpr_extn_recs
+
+      union all
+
+      select
+        cpr.identifier, p.form_id, p.record_id
+      from
+        catissue_coll_prot_reg cpr
+        inner join os_participant_extn_recs p on p.participant_id = cpr.participant_id
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CPR custom fields rec IDs view" runOnChange="true">
+    <createView viewName="OS_CPR_CUST_FIELDS_VIEW" replaceIfExists="true">
+      select
+        cpr.identifier as cpr_id, pc.form_id, pc.record_id
+      from
+        os_participant_cust_fields pc
+        inner join catissue_coll_prot_reg cpr on cpr.participant_id = pc.participant_id
+        inner join catissue_form_context fc
+          on fc.identifier = pc.form_ctxt_id and fc.entity_type = 'ParticipantExtension' and
+            fc.container_id = pc.form_id and (fc.cp_id = cpr.collection_protocol_id or fc.cp_id = -1)
+      where
+        fc.deleted_on is null and
+        cpr.activity_status != 'Disabled'
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Pooled specimen items view" runOnChange="true">
+    <createView viewName="OS_POOLED_SPECIMEN_ITEMS_VIEW" replaceIfExists="true">
+      select
+        pi.pooled_event_id, s.identifier, s.label, s.barcode, s.specimen_type_id
+      from
+        os_pooled_specimen_items pi
+        inner join catissue_specimen s on s.identifier = pi.specimen_id
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen positions view" runOnChange="true">
+    <createView viewName="OS_SPECIMEN_POSITIONS_VIEW" replaceIfExists="true">
+      select
+        c.identifier as container_identifier, c.name as container_name,
+        c.display_name as container_display_name, c.barcode as container_barcode,
+        p.identifier as position_identifier, p.pos_one_str, p.pos_two_str,
+        p.pos_one, p.pos_two,
+        p.formatted_position,
+        p.occupying_specimen_id as specimen_id,
+        s.identifier as site_id,
+        s.name as site_name
+      from
+        os_storage_containers c
+        inner join os_container_positions p on p.storage_container_id = c.identifier
+        inner join catissue_site s on s.identifier = c.site_id
+      where
+        c.activity_status != 'Disabled' and
+        p.occupying_specimen_id is not null
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Ancestor specimen requirement names / codes view" runOnChange="true">
+    <createView viewName="OS_ANCESTOR_SPMN_REQS_VIEW" replaceIfExists="true">
+      select
+        ar.identifier, d.identifier as specimen_id, ar.spec_req_label as req_label, ar.code as req_code
+      from
+        catissue_specimen d
+        inner join catissue_specimen_hierarchy h on h.descendent_id = d.identifier
+        inner join catissue_specimen a on a.identifier = h.ancestor_id
+        inner join catissue_cp_req_specimen ar on ar.identifier = a.req_specimen_id
+      where
+        ar.spec_req_label is not null or ar.code is not null
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Checked out specimens view" runOnChange="true">
+    <createView viewName="OS_CHECKED_OUT_SPECIMENS_VIEW" replaceIfExists="true">
+      select
+        c.identifier as container_identifier, c.name as container_name,
+        c.display_name as container_display_name, c.barcode as container_barcode,
+        p.identifier as position_identifier, p.pos_one_str, p.pos_two_str,
+        p.pos_one, p.pos_two,
+        case when c.pos_labeling_mode = 'LINEAR'
+        then
+          case when c.pos_assignment like 'HZ_%'
+          then
+            concat('', ((p.pos_two - 1) * c.no_of_cols) + p.pos_one)
+          else
+            concat('', ((p.pos_two - 1) * c.no_of_rows) + p.pos_one)
+          end
+        else
+          concat(p.pos_two_str, concat(', ', p.pos_one_str))
+        end as formatted_position,
+        p.checkout_specimen_id as specimen_id,
+        p.checkout_by as checkout_by,
+        p.checkout_time as checkout_time,
+        p.checkout_comments as checkout_comments,
+        s.identifier as site_id,
+        s.name as site_name
+      from
+        os_storage_containers c
+        inner join os_container_positions p on p.storage_container_id = c.identifier
+        inner join catissue_site s on s.identifier = c.site_id
+      where
+        c.activity_status != 'Disabled' and
+        p.checkout_specimen_id is not null
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen reservation view" runOnChange="true">
+    <createView viewName="OS_SPECIMEN_RESV_VIEW" replaceIfExists="true">
+      select
+        re.identifier as identifier,
+        re.specimen_id as specimen_id,
+        dp.short_title as dp_short_title,
+        re.event_time as event_time
+      from
+        os_spmn_reserved_events re
+        left join catissue_distribution_protocol dp on dp.identifier = re.dp_id
+      where
+        re.identifier not in (select cre.cancelled_event_id from os_spmn_reserved_events cre where cre.cancelled_event_id is not null) and
+        re.cancelled_event_id is null
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen lab services rates view" runOnChange="true">
+    <createView viewName="OS_SPECIMEN_LAB_SVC_RATES_VIEW" replaceIfExists="true">
+      <![CDATA[
+      select
+        ss.identifier as specimen_service_id, ss.specimen_id as specimen_id,
+        s.identifier as service_id, s.code as code, s.description as description,
+        ss.service_date as service_date, ss.serviced_by as serviced_by, ss.comments as comments,
+        sr.currency as currency, ss.units * sr.rate as rate
+      from
+        os_specimen_lab_services ss
+        inner join os_lab_services s on s.identifier = ss.service_id
+        inner join catissue_specimen spmn on spmn.identifier = ss.specimen_id
+        left join (
+          select
+            rl.currency, rl_cp.cp_id, rl.start_date, rl.end_date, sr.service_id, sr.rate
+          from
+            os_lab_services_rate_lists rl
+            inner join os_lab_svcs_rate_list_cps rl_cp on rl_cp.rate_list_id = rl.identifier
+            inner join os_lab_service_rates sr on sr.rate_list_id = rl.identifier
+          where
+            rl.activity_status != 'Disabled'
+        ) sr on sr.cp_id = spmn.collection_protocol_id and sr.service_id = s.identifier and ss.service_date >= sr.start_date and (sr.end_date is null or ss.service_date < sr.end_date)
+      where
+        s.activity_status != 'Disabled'
+      ]]>
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen distribution view" runOnChange="true">
+    <createView viewName="os_specimen_distribution_view" replaceIfExists="true">
+      select
+        oi.identifier as identifier,
+        o.identifier as order_id,
+        o.name as name,
+        o.distribution_protocol_id as dp_id,
+        o.site_id as site_id,
+        o.tracking_url as tracking_url,
+        o.comments as comments,
+        o.requester_id as requester_id,
+        o.execution_date as execution_date,
+        o.status as order_status,
+        oi.quantity as quantity,
+        oi.cost as cost,
+        oi.status as status,
+        oi.specimen_id as specimen_id,
+        oi.label as label,
+        oi.specimen_location as specimen_location
+      from
+        os_orders o
+        inner join os_order_items oi on oi.order_id = o.identifier
+      where
+        o.activity_status != 'Disabled'
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop specimen positions view">
+    <preConditions onFail="MARK_RAN">
+      <viewExists viewName="OS_SPECIMEN_POSITIONS_VIEW"/>
+    </preConditions>
+
+    <dropView viewName="OS_SPECIMEN_POSITIONS_VIEW"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop checked out specimens view">
+    <preConditions onFail="MARK_RAN">
+      <viewExists viewName="OS_CHECKED_OUT_SPECIMENS_VIEW"/>
+    </preConditions>
+
+    <dropView viewName="OS_CHECKED_OUT_SPECIMENS_VIEW"/>
+  </changeSet>
+</databaseChangeLog>

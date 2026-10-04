@@ -1,0 +1,127 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.ContainerType" table="OS_CONTAINER_TYPES"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.ContainerType">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_CONTAINER_TYPES_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="name" column="NAME"/>
+
+    <property name="nameFormat" column="NAME_FORMAT"/>
+
+    <property name="temperature" column="TEMPERATURE"/>
+
+    <property name="rate" column="RATE"/>
+
+    <property name="noOfColumns" column="NO_OF_COLS"/>
+
+    <property name="noOfRows" column="NO_OF_ROWS"/>
+
+    <property name="positionLabelingMode" column="POS_LABELING_MODE" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.administrative.domain.StorageContainer$PositionLabelingMode</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="positionAssignment" column="POS_ASSIGNMENT" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.administrative.domain.StorageContainer$PositionAssignment</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="columnLabelingScheme" column="COLUMN_LABELING_SCHEME"/>
+
+    <property name="rowLabelingScheme" column="ROW_LABELING_SCHEME"/>
+
+    <property name="storeSpecimenEnabled" column="STORE_SPECIMENS"/>
+
+    <property name="capacity" column="CAPACITY"/>
+
+    <many-to-one name="canHold" column="CAN_HOLD"/>
+    
+    <property name="activityStatus" column="ACTIVITY_STATUS"/>
+    
+    <set name="containers" table="OS_STORAGE_CONTAINERS">
+      <key column="TYPE_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.administrative.domain.StorageContainer"/>
+      <filter name="activeEntity"/>
+    </set>
+
+    <set name="canBeStoredIn" table="OS_CONTAINER_TYPES">
+      <key column="CAN_HOLD"/>
+      <one-to-many class="com.krishagni.catissueplus.core.administrative.domain.ContainerType"/>
+      <filter name="activeEntity"/>
+    </set>
+    
+    <filter name="activeEntity"/>
+     
+    <query name="getByNames">
+      from
+        com.krishagni.catissueplus.core.administrative.domain.ContainerType t
+      where
+        t.name in (:names)
+    </query>
+
+    <query name="getLeafTypeIds">
+      select
+        t.id
+      from
+        com.krishagni.catissueplus.core.administrative.domain.ContainerType t
+        left join t.canHold ch
+      where
+        ch.id is null
+      order by
+        t.name
+    </query>
+
+    <query name="getActiveParentTypes">
+      select
+        t
+      from
+        com.krishagni.catissueplus.core.administrative.domain.ContainerType t
+        left join t.canHold ch
+      where
+        t.activityStatus != 'Disabled' and
+        ch.id = :typeId
+    </query>
+
+    <sql-query name="getDependentEntities">
+      <return-scalar column="entityName" type="string"/>
+      <return-scalar column="count" type="int"/>
+
+      select
+        de.entityName as entityName, de.count as count
+      from (
+        select
+          'storage_container' as entityName, count(s.identifier) as count
+        from
+          os_storage_containers s
+        where
+          s.activity_status != 'Disabled' and
+          s.type_id = :typeId
+
+        union all
+
+        select
+          'container_type' as entityName, count(t.identifier) as count
+        from
+          os_container_types t
+        where
+          t.activity_status != 'Disabled' and
+          t.can_hold = :typeId
+      ) de
+      where
+        de.count > 0
+    </sql-query>
+  </class>
+</hibernate-mapping>

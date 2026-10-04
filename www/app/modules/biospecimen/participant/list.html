@@ -1,0 +1,13 @@
+<div>
+  <os-list params="ctx.params" item-sref="participant-detail.overview({cprId: row.hidden.cprId})"
+    enable-selection="{{cpViewCtx.participantUpdateAllowed}}"
+    show-item="showParticipant(row)" init-ctrl="setListCtrl($list)"
+    empty-state="ctx.emptyState">
+  </os-list>
+</div>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/list-pager.html">
+  <div>
+    <os-list-pager opts="listViewCtx.pagerOpts"></os-list-pager>
+  </div>
+</script>

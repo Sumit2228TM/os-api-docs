@@ -1,0 +1,93 @@
+
+<div class="clearfix">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <span translate="dp.menu.requirements">Requirements</span>
+      <div class="os-action-btns">
+        <button class="btn btn-primary" ui-sref="req-addedit()">
+          <span class="fa fa-plus"></span>
+          <span translate="common.buttons.add">Add</span>
+        </button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <table class="os-table">
+        <thead class="os-table-head">
+          <tr class="row">
+            <th class="col">
+              <span translate="dp.distribution_order.specimen_type">Specimen Type</span>
+            </th>
+            <th class="col">
+              <span translate="dp.distribution_order.anatomic_site">Anatomic Site</span>
+            </th>
+            <th class="col">
+              <span translate="dp.distribution_order.pathology_status">Pathology Status</span>
+            </th>
+            <th class="col">
+              <span translate="dp.distribution_order.clinical_diagnosis">Clinical Diagnosis</span>
+            </th>
+            <th class="col">
+              <span translate="dp.distribution_order.target_qty">Target Quantity</span>
+            </th>
+            <th class="col" ng-repeat="tmpl in ctx.hdrTmpls">
+              <ng-include src="tmpl"></ng-include>
+            </th>
+            <th class="col">
+              <span translate="dp.distribution_order.distributed_qty">Distributed Quantity</span>
+            </th>
+            <th class="col">
+              <span translate="dp.distribution_order.distributed_cnt">Distributed Count</span>
+            </th>
+            <th class="col">
+              <span>&nbsp;</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="os-table-body">
+          <tr class="row" ng-if="ctx.emptyState.loading || ctx.emptyState.empty">
+            <td class="col" colspan="100%">
+              <os-empty-list state="ctx.emptyState"></os-empty-list>
+            </td>
+          </tr>
+          <tr class="row" ng-repeat="dpr in ctx.dprs">
+            <td class="col">
+              <span>{{dpr.specimenType | osNoValue}}</span>
+            </td>
+            <td class="col">
+              <span>{{dpr.anatomicSite | osNoValue}}</span>
+            </td>
+            <td class="col">
+              <span>{{dpr.pathologyStatuses | osArrayJoin | osNoValue}}</span>
+            </td>
+            <td class="col">
+              <span>{{dpr.clinicalDiagnosis | osNoValue}}</span>
+            </td>
+            <td class="col" ng-switch on="dpr.specimenCount !== null && dpr.quantity !== null">
+              <span ng-switch-when="true">{{dpr.specimenCount * dpr.quantity}}</span>
+              <span ng-switch-default> {{null | osNoValue}} </span>
+            </td>
+            <td class="col" ng-repeat="tmpl in ctx.cellTmpls">
+              <ng-include src="tmpl"></ng-include>
+            </td>
+            <td class="col">
+              <span>{{dpr.distributedQty}}</span>
+            </td>
+            <td class="col">
+              <span>{{dpr.distributedCnt}}</span>
+            </td>
+            <td class="col os-no-right-padding">
+              <div class="pull-right btn-group btn-group-xs">
+                <button class="btn btn-default" ui-sref="req-addedit({reqId: dpr.id})">
+                  <span class="fa fa-pencil"></span>
+                </button>
+                <button class="btn btn-default" ng-click="deleteDpr(dpr)">
+                  <span class="fa fa-trash"></span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

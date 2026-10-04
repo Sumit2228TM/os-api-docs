@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="OAuth states">
+    <createTable tableName="OS_OAUTH_STATES">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true" />
+      </column>
+      <column name="STATE" type="${text.type}(255)">
+        <constraints nullable="false" unique="true" uniqueConstraintName="OS_OAUTH_STATES_UQ"/>
+      </column>
+      <column name="DOMAIN_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_OAUTH_STATE_DOMAIN"
+          referencedTableName="OS_AUTH_DOMAINS" referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="VERIFIER" type="${text.type}(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="CHALLENGE" type="${text.type}(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="AUTH_TIME" type="${nullable.ts.type}">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="OAuth state ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_OAUTH_STATES_SEQ" startValue="1" incrementBy="1" ordered="true" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on OAuth state time to facilitate faster clean up of old states">
+    <createIndex tableName="OS_OAUTH_STATES" indexName="OS_OAUTH_STATE_TIME_IDX">
+      <column name="AUTH_TIME" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP group ID in CP table">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="CP_GROUP_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_CP_CP_GROUP_ID" referencedTableName="OS_CP_GROUPS"
+          referencedColumnNames="IDENTIFIER" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on CP group ID of CP table" dbms="oracle">
+    <createIndex tableName="CATISSUE_COLLECTION_PROTOCOL" indexName="CP_CP_GROUP_ID_IDX">
+      <column name="CP_GROUP_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Migrate CP groups to CP table">
+    <preConditions onFail="HALT">
+      <sqlCheck expectedResult="0">
+        <![CDATA[
+          select count(*) from (select cp_id from os_cp_group_cps group by cp_id having count(*) > 1) t
+        ]]>
+      </sqlCheck>
+    </preConditions>
+    <sql>
+      update
+        catissue_collection_protocol cp
+      set
+        cp_group_id = (
+          select
+            g.group_id
+          from
+            os_cp_group_cps g
+          where
+            g.cp_id = cp.identifier
+        )
+      where
+        exists (select 1 from os_cp_group_cps g where g.cp_id = cp.identifier)
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop CP group join table">
+    <dropTable tableName="OS_CP_GROUP_CPS" cascadeConstraints="true" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique constraint on the container position" dbms="mysql">
+    <addUniqueConstraint constraintName="OS_CONTAINER_POS_UQ"
+      tableName="OS_CONTAINER_POSITIONS" columnNames="STORAGE_CONTAINER_ID,POS_ONE_STR,POS_TWO_STR"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique constraint on the container position" dbms="oracle">
+    <sql>
+      create unique index
+        OS_CONTAINER_POS_UQ
+      on os_container_positions(
+        case when
+          pos_one_str is not null and pos_two_str is not null
+        then
+          storage_container_id || '-' || pos_one_str || '-' || pos_two_str
+        end
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Capacity in container types">
+    <addColumn tableName="OS_CONTAINER_TYPES">
+      <column name="CAPACITY" type="${int.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Primary specimen ID">
+    <addColumn tableName="CATISSUE_SPECIMEN">
+      <column name="PRIMARY_SPECIMEN_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_PRIMARY_SPECIMEN_ID" referencedTableName="CATISSUE_SPECIMEN"
+          referencedColumnNames="IDENTIFIER" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on primary specimen ID">
+    <createIndex tableName="CATISSUE_SPECIMEN" indexName="OS_PRIMARY_SPMN_IDX">
+      <column name="PRIMARY_SPECIMEN_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen collection and received details">
+    <createTable tableName="OS_SPMN_COLL_RECV_DETAILS">
+      <column name="PRIMARY_SPECIMEN_ID" type="${int.type}">
+        <constraints nullable="false" primaryKey="true" foreignKeyName="FK_SPMN_CRD_PRIMARY_SPMN"
+          referencedTableName="CATISSUE_SPECIMEN" referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="COLLECTION_CONTAINER_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_SPMN_CRD_COLL_CONT" referencedTableName="CATISSUE_PERMISSIBLE_VALUE"
+          referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="COLLECTION_PROCEDURE_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_SPMN_CRD_COLL_PROC" referencedTableName="CATISSUE_PERMISSIBLE_VALUE"
+          referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="COLLECTION_USER_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_SPMN_CRD_COLLECTOR" referencedTableName="CATISSUE_USER"
+          referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="COLLECTION_TIME" type="${nullable.ts.type}" defaultValue="null" />
+      <column name="COLLECTION_COMMENTS" type="${text.type}(512)" />
+      <column name="RECEIVED_QUALITY_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_SPMN_CRD_RECV_QUALITY" referencedTableName="CATISSUE_PERMISSIBLE_VALUE"
+          referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="RECEIVED_USER_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_SPMN_CRD_RECEIVER" referencedTableName="CATISSUE_USER"
+          referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="RECEIVED_TIME" type="${nullable.ts.type}" defaultValue="null" />
+      <column name="RECEIVED_COMMENTS" type="${text.type}(512)" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop specimen collection and received details view">
+    <preConditions onFail="MARK_RAN">
+      <viewExists viewName="OS_SPMN_COLL_RECV_DETAILS_VIEW"/>
+    </preConditions>
+    <dropView viewName="OS_SPMN_COLL_RECV_DETAILS_VIEW"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Formatted container position">
+    <addColumn tableName="OS_CONTAINER_POSITIONS">
+      <column name="FORMATTED_POSITION" type="${text.type}(32)" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop CP and CPG request managers">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="CATISSUE_COLLECTION_PROTOCOL" columnName="REQ_MANAGERS_USER_GROUP_ID"/>
+    </preConditions>
+    <dropForeignKeyConstraint baseTableName="CATISSUE_COLLECTION_PROTOCOL" constraintName="FK_CP_REQ_MANAGERS_UG_IDX"/>
+    <dropColumn tableName="CATISSUE_COLLECTION_PROTOCOL" columnName="REQ_MANAGERS_USER_GROUP_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop CPG request managers">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="OS_CP_GROUPS" columnName="REQ_MANAGERS_USER_GROUP_ID"/>
+    </preConditions>
+    <dropForeignKeyConstraint baseTableName="OS_CP_GROUPS" constraintName="FK_CPG_REQ_MANAGERS_UG_IDX"/>
+    <dropColumn tableName="OS_CP_GROUPS" columnName="REQ_MANAGERS_USER_GROUP_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Request manager groups">
+    <createTable tableName="OS_REQ_MGR_GROUPS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true" />
+      </column>
+      <column name="NAME" type="${text.type}(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="USER_GROUP_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_RMG_USER_GROUP" referencedTableName="OS_USER_GROUPS"
+          referencedColumnNames="IDENTIFIER" />
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Request manager group ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_REQ_MGR_GROUPS_SEQ" startValue="1" incrementBy="1" ordered="true" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique constraint on request manager group name">
+    <addUniqueConstraint constraintName="OS_REQ_MGR_GROUP_NAME_UQ"
+      tableName="OS_REQ_MGR_GROUPS" columnNames="NAME" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP request manager group">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="RMG_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_CP_REQ_MGR_GROUP" referencedTableName="OS_REQ_MGR_GROUPS"
+          referencedColumnNames="IDENTIFIER" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CPG request manager group">
+    <addColumn tableName="OS_CP_GROUPS">
+      <column name="RMG_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_CPG_REQ_MGR_GROUP" referencedTableName="OS_REQ_MGR_GROUPS"
+          referencedColumnNames="IDENTIFIER" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen request manager group">
+    <addColumn tableName="OS_SPECIMEN_REQUESTS">
+      <column name="RMG_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_SPMN_REQ_REQ_MGR_GROUP" referencedTableName="OS_REQ_MGR_GROUPS"
+          referencedColumnNames="IDENTIFIER" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Resolved specimen units for query">
+    <createTable tableName="OS_QUERY_SPMN_UNITS">
+      <column name="CP_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_OS_QSU_CP_ID"
+          referencedTableName="CATISSUE_COLLECTION_PROTOCOL" referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="CLASS_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_OS_QSU_CLASS_ID"
+          referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="TYPE_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_OS_QSU_TYPE_ID"
+          referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="UNIT_KEY" type="${text.type}(255)">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="OS_QSU_PK" />
+      </column>
+      <column name="QUANTITY_UNIT_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_OS_QSU_QTY_UNIT_ID"
+          referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER" />
+      </column>
+      <column name="CONC_UNIT_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_OS_QSU_CONC_UNIT_ID"
+          referencedTableName="CATISSUE_PERMISSIBLE_VALUE" referencedColumnNames="IDENTIFIER" />
+      </column>
+    </createTable>
+
+    <addUniqueConstraint constraintName="OS_QSU_CP_CLASS_TYPE_UQ"
+      tableName="OS_QUERY_SPMN_UNITS" columnNames="CP_ID,CLASS_ID,TYPE_ID" />
+
+    <createIndex tableName="OS_QUERY_SPMN_UNITS" indexName="OS_QSU_QTY_UNIT_IDX">
+      <column name="QUANTITY_UNIT_ID" />
+    </createIndex>
+
+    <createIndex tableName="OS_QUERY_SPMN_UNITS" indexName="OS_QSU_CONC_UNIT_IDX">
+      <column name="CONC_UNIT_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unit key in specimen table">
+    <addColumn tableName="CATISSUE_SPECIMEN">
+      <column name="UNIT_KEY" type="${text.type}(255)" />
+    </addColumn>
+
+    <createIndex tableName="CATISSUE_SPECIMEN" indexName="OS_SPMN_UNIT_KEY_IDX">
+      <column name="UNIT_KEY" />
+    </createIndex>
+  </changeSet>
+
+  <!-- Temporarily add FK to validate UNIT_KEY charset/collation compatibility.
+  It is dropped immediately after because OS_QUERY_SPMN_UNITS is maintained
+  as query support data using delete/insert refreshes. -->
+
+  <changeSet author="vpawar" id="Specimen unit key foreign key">
+    <addForeignKeyConstraint constraintName="FK_SPMN_UNIT_KEY"
+      baseTableName="CATISSUE_SPECIMEN" baseColumnNames="UNIT_KEY"
+      referencedTableName="OS_QUERY_SPMN_UNITS" referencedColumnNames="UNIT_KEY" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop Specimen unit key foreign key">
+    <dropForeignKeyConstraint constraintName="FK_SPMN_UNIT_KEY" baseTableName="CATISSUE_SPECIMEN" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Rate in container types">
+    <addColumn tableName="OS_CONTAINER_TYPES">
+      <column name="RATE" type="${decimal.type}(10, 2)" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on form record entries for audit export">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <indexExists tableName="CATISSUE_FORM_RECORD_ENTRY" columnNames="FORM_CTXT_ID,RECORD_ID,OBJECT_ID" />
+      </not>
+    </preConditions>
+
+    <createIndex tableName="CATISSUE_FORM_RECORD_ENTRY" indexName="OS_FRE_AUD_IDX">
+      <column name="FORM_CTXT_ID" />
+      <column name="RECORD_ID" />
+      <column name="OBJECT_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on CP custom fields for audit export">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <indexExists tableName="OS_CP_CUST_FIELDS" columnNames="FORM_CTXT_ID,RECORD_ID,CP_ID" />
+      </not>
+    </preConditions>
+
+    <createIndex tableName="OS_CP_CUST_FIELDS" indexName="OS_CP_CF_AUD_IDX">
+      <column name="FORM_CTXT_ID" />
+      <column name="RECORD_ID" />
+      <column name="CP_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on CPR custom fields for audit export">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <indexExists tableName="OS_CPR_CUST_FIELDS" columnNames="FORM_CTXT_ID,RECORD_ID,CPR_ID" />
+      </not>
+    </preConditions>
+
+    <createIndex tableName="OS_CPR_CUST_FIELDS" indexName="OS_CPR_CF_AUD_IDX">
+      <column name="FORM_CTXT_ID" />
+      <column name="RECORD_ID" />
+      <column name="CPR_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on visit custom fields for audit export">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <indexExists tableName="OS_VISIT_CUST_FIELDS" columnNames="FORM_CTXT_ID,RECORD_ID,VISIT_ID" />
+      </not>
+    </preConditions>
+
+    <createIndex tableName="OS_VISIT_CUST_FIELDS" indexName="OS_VISIT_CF_AUD_IDX">
+      <column name="FORM_CTXT_ID" />
+      <column name="RECORD_ID" />
+      <column name="VISIT_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on specimen custom fields for audit export">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <indexExists tableName="OS_SPMN_CUST_FIELDS" columnNames="FORM_CTXT_ID,RECORD_ID,SPECIMEN_ID" />
+      </not>
+    </preConditions>
+
+    <createIndex tableName="OS_SPMN_CUST_FIELDS" indexName="OS_SPMN_CF_AUD_IDX">
+      <column name="FORM_CTXT_ID" />
+      <column name="RECORD_ID" />
+      <column name="SPECIMEN_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on order custom fields for audit export">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <indexExists tableName="OS_ORDER_CUST_FIELDS" columnNames="FORM_CTXT_ID,RECORD_ID,ORDER_ID" />
+      </not>
+    </preConditions>
+
+    <createIndex tableName="OS_ORDER_CUST_FIELDS" indexName="OS_ORDER_CF_AUD_IDX">
+      <column name="FORM_CTXT_ID" />
+      <column name="RECORD_ID" />
+      <column name="ORDER_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop redundant CP custom fields form context index" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="OS_CP_CUST_FIELDS" indexName="FK_CP_CUSTOM_FIELD_FC" />
+    </preConditions>
+
+    <dropIndex tableName="OS_CP_CUST_FIELDS" indexName="FK_CP_CUSTOM_FIELD_FC" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop redundant CPR custom fields form context index" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="OS_CPR_CUST_FIELDS" indexName="FK_CPR_CUSTOM_FIELD_FC" />
+    </preConditions>
+
+    <dropIndex tableName="OS_CPR_CUST_FIELDS" indexName="FK_CPR_CUSTOM_FIELD_FC" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop redundant visit custom fields form context index" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="OS_VISIT_CUST_FIELDS" indexName="FK_VISIT_CUSTOM_FIELD_FC" />
+    </preConditions>
+
+    <dropIndex tableName="OS_VISIT_CUST_FIELDS" indexName="FK_VISIT_CUSTOM_FIELD_FC" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop redundant specimen custom fields form context index" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="OS_SPMN_CUST_FIELDS" indexName="FK_SPMN_CUSTOM_FIELD_FC" />
+    </preConditions>
+
+    <dropIndex tableName="OS_SPMN_CUST_FIELDS" indexName="FK_SPMN_CUSTOM_FIELD_FC" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop redundant order custom fields form context index" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="OS_ORDER_CUST_FIELDS" indexName="FK_ORD_CUSTOM_FIELD_FC" />
+    </preConditions>
+
+    <dropIndex tableName="OS_ORDER_CUST_FIELDS" indexName="FK_ORD_CUSTOM_FIELD_FC" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop redundant CP custom fields owner index" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="OS_CP_CUST_FIELDS" indexName="OS_CP_CUST_FIELDS_IDX" />
+    </preConditions>
+
+    <dropIndex tableName="OS_CP_CUST_FIELDS" indexName="OS_CP_CUST_FIELDS_IDX" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop redundant CPR custom fields owner index" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="OS_CPR_CUST_FIELDS" indexName="OS_CPR_CUST_FIELDS_IDX" />
+    </preConditions>
+
+    <dropIndex tableName="OS_CPR_CUST_FIELDS" indexName="OS_CPR_CUST_FIELDS_IDX" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop redundant visit custom fields owner index" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="OS_VISIT_CUST_FIELDS" indexName="OS_VISIT_CUST_FIELDS_IDX" />
+    </preConditions>
+
+    <dropIndex tableName="OS_VISIT_CUST_FIELDS" indexName="OS_VISIT_CUST_FIELDS_IDX" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop redundant specimen custom fields owner index" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="OS_SPMN_CUST_FIELDS" indexName="OS_SPMN_CUST_FIELDS_IDX" />
+    </preConditions>
+
+    <dropIndex tableName="OS_SPMN_CUST_FIELDS" indexName="OS_SPMN_CUST_FIELDS_IDX" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop redundant order custom fields owner index" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="OS_ORDER_CUST_FIELDS" indexName="OS_ORDER_CUST_FIELDS_IDX" />
+    </preConditions>
+
+    <dropIndex tableName="OS_ORDER_CUST_FIELDS" indexName="OS_ORDER_CUST_FIELDS_IDX" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP event sort order">
+    <addColumn tableName="CATISSUE_COLL_PROT_EVENT">
+      <column name="SORT_ORDER" type="${int.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Default specimen cart flag">
+    <addColumn tableName="CATISSUE_SPECIMENLIST_TAGS">
+      <column name="DEFAULT_CART" type="${boolean.type}" defaultValueBoolean="false">
+        <constraints nullable="false" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Default specimen cart user ID" dbms="mysql">
+    <sql>
+      alter table
+        CATISSUE_SPECIMENLIST_TAGS
+      add
+        DEFAULT_CART_USER_ID bigint
+      as
+        (case when DEFAULT_CART = 1 and DELETED_ON is null then USER_ID else null end)
+      virtual
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track whether CP workflows are inherited from the CP group">
+    <addColumn tableName="OS_CP_WORKFLOWS">
+      <column name="GROUP_WORKFLOWS_INHERITED" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add form ID to PV attributes">
+    <addColumn tableName="CATISSUE_CDE">
+      <column name="FORM_ID" type="${int.type}" />
+      <column name="DELETED_ON" type="timestamp" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add PV attribute form foreign key">
+    <addForeignKeyConstraint constraintName="OS_CDE_FORM_FK" baseTableName="CATISSUE_CDE" baseColumnNames="FORM_ID"
+      referencedTableName="DYEXTN_CONTAINERS" referencedColumnNames="IDENTIFIER" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add PV attribute form index">
+    <createIndex tableName="CATISSUE_CDE" indexName="OS_CDE_FORM_IDX">
+      <column name="FORM_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop PV attribute foreign key before widening public ID">
+    <dropForeignKeyConstraint baseTableName="CATISSUE_PERMISSIBLE_VALUE" constraintName="FK57DDCE1FC56C2B1" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Widen PV attribute public ID">
+    <modifyDataType tableName="CATISSUE_CDE" columnName="PUBLIC_ID" newDataType="${text.type}(128)" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop the function based index on column public ID before widening its width" dbms="oracle">
+    <dropIndex tableName="CATISSUE_PERMISSIBLE_VALUE" indexName="OS_PERMISSIBLE_VALUE_UQ" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Widen permissible value public ID">
+    <modifyDataType tableName="CATISSUE_PERMISSIBLE_VALUE" columnName="PUBLIC_ID" newDataType="${text.type}(128)" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Recreate the function based index on column public ID after widening its width" dbms="oracle">
+    <sql>create unique index OS_PERMISSIBLE_VALUE_UQ on CATISSUE_PERMISSIBLE_VALUE(PUBLIC_ID, LOWER(VALUE));</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Recreate widened PV attribute foreign key">
+    <addForeignKeyConstraint constraintName="FK57DDCE1FC56C2B1"
+      baseTableName="CATISSUE_PERMISSIBLE_VALUE" baseColumnNames="PUBLIC_ID"
+      referencedTableName="CATISSUE_CDE" referencedColumnNames="PUBLIC_ID" />
+  </changeSet>
+</databaseChangeLog>

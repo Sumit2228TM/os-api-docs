@@ -1,0 +1,13 @@
+{
+  "name": "LN Cryo Box",
+  "nameFormat": "%PCONT_NAME%.LN.B%PCONT_UID%",
+  "noOfColumns": 10,
+  "noOfRows": 10,
+  "positionLabelingMode": "TWO_D",
+  "columnLabelingScheme": "Numbers",
+  "rowLabelingScheme": "Numbers",
+  "temperature": null,
+  "storeSpecimenEnabled": true,
+  "activityStatus": "Active",
+  "canHold": null
+}

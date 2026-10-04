@@ -1,0 +1,49 @@
+<table cellspacing="0" cellpadding="0" border="0" width="100%" style="border-spacing:0;border-collapse:separate">
+  <tbody>
+    <tr>
+      <td style="border-collapse:collapse;">
+        <table cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px;line-height:20px">
+          <tbody>
+            <tr>
+              <td style="padding:0px;border-collapse:collapse;padding:0px;padding-bottom:10px">
+                <p style="margin:10px 0 0 0">
+                  Hello $user.firstName $user.lastName,
+                  <br><br>
+                  An unsuccessful attempt to login your OpenSpecimen account was made from the following IP address
+                  <br>
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0px;border-collapse:collapse;padding:0px;padding-bottom:10px">
+                <table cellspacing="0" cellpadding="0" border="0" style="border-collapse:collapse;font-family:Arial,sans-serif;font-size:14px;line-height:20px">
+                  <tbody>
+                    <tr>
+                      <td><b>IP Address</b></td>
+                      <td>: $ipAddress</td>
+                    </tr>
+                    <tr>
+                      <td><b>Date and time</b></td>
+                      <td>: $dateTime</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              If this was not done by you, contact system administrator.
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="height:5px;line-height:5px;">&nbsp;</td>
+    </tr>
+    <tr>
+      <td>
+        #parse( $footer )
+      </td>
+    </tr>
+  </tbody>
+</table>

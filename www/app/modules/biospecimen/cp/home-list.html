@@ -1,0 +1,18 @@
+<div ng-controller="HomeCpListCtrl" ng-init="init(opts)">
+  <table class="os-table">
+    <tbody class="os-table-body">
+      <tr class="row" ng-repeat="cp in ctx.cps">
+        <td class="col" style="width: 40px;">
+          <span class="os-starred-item fa" ng-class="{true: 'fa-star starred', false: 'fa-star-o'}[cp.starred == true]"
+            ng-click="toggleStar(cp)">
+          </span>
+        </td>
+        <td class="col">
+          <a ui-sref="cp-summary-view({cpId: cp.id})">
+            <span>{{cp.shortTitle}}</span>
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

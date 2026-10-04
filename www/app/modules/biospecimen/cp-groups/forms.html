@@ -1,0 +1,120 @@
+<div class="container">
+  <os-tabs>
+    <os-tab title="{{'cp_groups.participant' | translate}}">
+      <div ng-include="'modules/biospecimen/cp-groups/entity-forms.html'"
+        ng-init="custFieldsLevel='ParticipantExtension'; formsLevel='Participant'; checkList='partCheckList'">
+      </div>
+    </os-tab>
+    <os-tab title="{{'cp_groups.visit' | translate}}">
+      <div ng-include="'modules/biospecimen/cp-groups/entity-forms.html'"
+        ng-init="custFieldsLevel='VisitExtension'; formsLevel='SpecimenCollectionGroup'; checkList='visitCheckList'">
+      </div>
+    </os-tab>
+    <os-tab title="{{'cp_groups.specimen' | translate}}">
+      <div ng-include="'modules/biospecimen/cp-groups/entity-forms.html'"
+        ng-init="custFieldsLevel='SpecimenExtension'; formsLevel='Specimen'; checkList='specimenCheckList'">
+      </div>
+    </os-tab>
+  </os-tabs>
+</div>
+
+<script type="text/ng-template" id="modules/biospecimen/cp-groups/entity-forms.html">
+  <div>
+    <ul class="os-key-values os-one-col">
+      <li class="item">
+        <strong class="key key-sm" translate="cp_groups.custom_fields">Custom fields</strong>
+        <span ng-switch on="fctx[custFieldsLevel].length == 1">
+          <span ng-switch-when="true">
+            <span>{{fctx[custFieldsLevel][0].caption}}</span>
+            <button class="btn btn-xs btn-default" ng-if="ctx.editAllowed"
+              ng-click="removeForms(custFieldsLevel, fctx[custFieldsLevel])">
+              <span class="fa fa-remove"></span>
+            </button>
+          </span>
+          <span ng-switch-default>
+            <span translate="common.none">None</span>
+            <button class="btn btn-xs btn-default" ng-if="ctx.editAllowed"
+              ng-click="addForm(custFieldsLevel, false)">
+              <span class="fa fa-plus"></span>
+              <span translate="common.buttons.add">Add</span>
+            </button>
+          </span>
+        </span>
+      </li>
+    </ul>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <span translate="cp_groups.forms">Forms</span>
+        <span class="os-btns">
+          <button class="default" ng-if="!fctx[checkList].anySelected && ctx.editAllowed"
+            ng-click="addForm(formsLevel, true)">
+            <span class="fa fa-plus"></span>
+            <span translate="common.buttons.add">Add</span>
+          </button>
+          <button class="default" ng-if="fctx[checkList].anySelected && ctx.editAllowed"
+            ng-click="removeForms(formsLevel, fctx[checkList].getSelectedItems())">
+            <span class="fa fa-remove"></span>
+            <span translate="common.buttons.remove">Add</span>
+          </button>
+        </span>
+      </div>
+      <div class="panel-body" ng-switch on="fctx[formsLevel].length > 0">
+        <div ng-switch-when="true">
+          <table class="os-table">
+            <thead class="os-table-head">
+              <tr class="row">
+                <th class="col os-click-esc">
+                  <div class="os-select-specimen-cb">
+                    <os-checkbox ng-change="fctx[checkList].toggleSelectAll()"
+                      ng-model="fctx[checkList].allSelected">
+                    </os-checkbox>
+                  </div>
+                  <span style="margin-left: 12px;" translate="cp_groups.name">Name</span>
+                </th>
+                <th class="col">
+                  <span translate="cp_groups.multiple_recs_allowed">Multiple Records</span>
+                </th>
+                <th class="col">
+                  <span translate="cp_groups.form_notifs_enabled">Notifications Enabled</span>
+                </th>
+                <th class="col">
+                  <span translate="cp_groups.include_form_data_in_notif">Include Form Data</span>
+                </th>
+                <th class="col">
+                  <span translate="cp_groups.form_notif_user_groups">Notification Recipients</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="os-table-body">
+              <tr class="row" ng-repeat="form in fctx[formsLevel]">
+                <td class="col os-click-esc">
+                  <div class="os-select-specimen-cb">
+                    <os-checkbox ng-change="fctx[checkList].toggleSelectItem($index)"
+                      ng-model="fctx[checkList].items[$index].selected">
+                    </os-checkbox>
+                  </div>
+                  <span style="margin-left: 12px;">{{form.caption}}</span>
+                </td>
+                <td class="col">
+                  <span>{{form.multipleRecords | osBoolValue: 'common.yes': 'common.no'}}</span>
+                </td>
+                <td class="col">
+                  <span>{{form.notifEnabled | osBoolValue: 'common.yes': 'common.no'}}</span>
+                </td>
+                <td class="col">
+                  <span>{{form.dataInNotif | osBoolValue: 'common.yes': 'common.no'}}</span>
+                </td>
+                <td class="col">
+                  <span>{{form.notifUserGroups | osArrayJoin: 'name' | osNoValue}}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div ng-switch-default>
+          <span translate="cp_groups.no_forms">No forms</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>

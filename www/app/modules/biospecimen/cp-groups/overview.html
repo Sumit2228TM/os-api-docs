@@ -1,0 +1,115 @@
+<div>
+  <div class="os-page-commands">
+    <div class="left">
+      <button class="default" ui-sref="cp-group-addedit({groupId: ctx.group.id})" ng-if="ctx.editAllowed">
+        <span class="fa fa-pencil"></span>
+        <span translate="common.buttons.edit">Edit</span>
+      </button>
+      <button class="default" ng-click="deleteGroup()" ng-if="ctx.editAllowed">
+        <span class="fa fa-trash"></span>
+        <span translate="common.buttons.delete">Delete</span>
+      </button>
+      <a class="btn default" href="{{octx.workflowUri}}" target="_blank" rel="noopener" ng-if="!ctx.editAllowed">
+        <span class="fa fa-download"></span>
+        <span translate="cp_groups.export_workflows">Export Workflows</span>
+      </a>
+      <div class="os-inline-btn" dropdown ng-if="ctx.editAllowed">
+        <button class="default dropdown-toggle">
+          <span translate="cp_groups.workflows">Workflows</span>
+          <span class="fa fa-caret-down"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a href="{{octx.workflowUri}}" target="_blank" rel="noopener">
+              <span class="fa fa-download"></span>
+              <span translate="common.buttons.export">Export</span>
+            </a>
+          </li>
+          <li>
+            <a ui-sref="cp-group-detail.import-workflows">
+              <span class="fa fa-upload"></span>
+              <span translate="common.buttons.import">Import</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div dropdown class="os-inline-btn" ng-if="ctx.exportAllowed">
+        <button class="default dropdown-toggle">
+          <span translate="common.buttons.export">Export</span>
+          <span class="fa fa-caret-down"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a ng-click="exportCpRecords('cp')">
+              <span class="fa fa-calendar"></span>
+              <span translate="cp.list">Collection Protocols</span>
+            </a>
+          </li>
+          <li>
+            <a ng-click="exportCpRecords('cpe')">
+              <span class="fa fa-list-alt"></span>
+              <span translate="cp.cpe_list">Events</span>
+            </a>
+          </li>
+          <li>
+            <a ng-click="exportCpRecords('sr')">
+              <span class="fa fa-flask"></span>
+              <span translate="srs.list">Specimen Requirements</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="clearfix">
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th class="col os-desc-column">
+            <span translate="cp.title">Title</span>
+          </th>
+          <th class="col">
+            <span translate="cp.pi">Principal Investigator</span>
+          </th>
+          <th class="col">
+            <span translate="cp.start_date">Start Date</span>
+          </th>
+          <th class="col">
+            <span>&nbsp;</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-repeat="cp in ctx.group.cps" os-row-click="showCpOverview(cp)">
+          <td class="col os-desc-column">
+            <a class="os-click-esc" ui-sref="cp-detail.overview({cpId: cp.id})">
+              <span>{{cp.shortTitle}}</span>
+              <span ng-if="!!cp.code">({{cp.code}})</span>
+            </a>
+          </td>
+          <td class="col">
+            <span>{{cp.principalInvestigator | osUserDisplayName}}</span>
+          </td>
+          <td class="col">
+            <span>{{cp.startDate | date: global.dateFmt | osNoValue}}</span>
+          </td>
+          <td class="col">
+            <button class="btn btn-xs btn-default" os-tooltip="{{'cp.view_participants' | translate}}"
+              ui-sref="participant-list({cpId: cp.id})" ng-if="!cp.specimenCentric">
+              <span class="fa fa-group"></span>
+            </button>
+            <button class="btn btn-xs btn-default" os-tooltip="{{'cp.view_specimens' | translate}}"
+              ui-sref="cp-specimens({cpId: cp.id})">
+              <span class="fa fa-flask"></span>
+            </button>
+            <button class="btn btn-xs btn-default" os-tooltip="{{'cp.view_catalog' | translate}}"
+              ui-sref="ssc-catalog-dashboard({catalogId: cp.catalogId, cpId: cp.id})" ng-if="!!cp.catalogId">
+              <span class="fa fa-table"></span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

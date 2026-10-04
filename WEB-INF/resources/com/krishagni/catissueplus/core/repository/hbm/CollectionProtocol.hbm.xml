@@ -1,0 +1,412 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol" table="CATISSUE_COLLECTION_PROTOCOL" batch-size="25"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">CATISSUE_SPECIMEN_PROTOCOL_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="title" column="TITLE" unique="true"/>
+
+    <property name="shortTitle" column="SHORT_TITLE"/>
+
+    <property name="code" column="CODE"/>
+    	
+    <property name="startDate" column="START_DATE"/>
+
+    <property name="endDate" column="END_DATE"/>
+
+    <property name="activityStatus" column="ACTIVITY_STATUS"/>
+
+    <many-to-one name="principalInvestigator" column="PRINCIPAL_INVESTIGATOR_ID"/>
+
+    <property name="irbIdentifier" column="IRB_IDENTIFIER"/>
+
+    <property name="enrollment" column="ENROLLMENT"/>
+
+    <property name="sopDocumentUrl" column="SOP_DOCUMENT_URL"/>
+
+    <property name="sopDocumentName" column="SOP_DOCUMENT_NAME"/>
+
+    <property name="storeSprEnabled" column="STORE_SPRS"/>
+
+    <property name="extractSprText" column="EXTRACT_SPR_TEXT"/>
+
+    <property name="descriptionURL" column="DESCRIPTION_URL"/>
+
+    <property name="specimenLabelFormat" column="LABEL_FORMAT"/>
+
+    <property name="derivativeLabelFormat" column="DERIV_LABEL_FORMAT"/>
+
+    <property name="aliquotLabelFormat" column="ALIQUOT_LABEL_FORMAT"/>
+
+    <property name="additionalLabelFormat" column="ADDL_LABEL_FORMAT" />
+
+    <property name="specimenBarcodeFormat" column="SPECIMEN_BARCODE_FORMAT"/>
+
+    <property name="ppidFormat" column="PPID_FORMAT"/>
+    
+    <property name="visitNameFormat" column="VISIT_NAME_FORMAT"/>
+    
+    <property name="manualPpidEnabled" column="MANUAL_PPID_ALLOWED"/>
+
+    <property name="manualVisitNameEnabled" column="MANUAL_VISIT_NAME_ALLOWED"/>
+
+    <property name="manualSpecLabelEnabled" column="MANUAL_SPEC_LABEL_ALLOWED"/>
+
+    <property name="kitLabelsEnabled" column="KIT_LABELS_ENABLED" />
+
+    <property name="bulkPartRegEnabled" column="BULK_PART_REG_ALLOWED"/>
+
+    <property name="specimenCentric" column="SPECIMEN_CENTRIC"/>
+
+    <property name="barcodingEnabled" column="BARCODING_ENABLED"/>
+
+    <property name="closeParentSpecimens" column="CLOSE_PARENT_SPMNS"/>
+
+    <property name="setQtyToZero" column="SET_QTY_TO_ZERO"/>
+
+    <property name="unsignedConsentDocumentURL" column="UNSIGNED_CONSENT_DOC_URL"/>
+
+    <property name="containerSelectionStrategy" column="CONTAINER_SEL_STRATEGY"/>
+
+    <property name="aliquotsInSameContainer" column="ALIQUOTS_IN_SAME_CONT"/>
+
+    <property name="labelSequenceKey" column="LABEL_SEQ_KEY">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol$LabelSequenceKey</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="visitCollectionMode" column="VISIT_COLLECTION_MODE">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol$VisitCollectionMode</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="spmnLabelPrePrintMode" column="SPMN_LABEL_PRE_PRINT_MODE">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol$SpecimenLabelPrePrintMode</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="storageSiteBasedAccess" column="STORE_SITE_ACCESS_RIGHTS" />
+
+    <property name="draftDataEntry" column="DRAFT_DATA_ENTRY" />
+    
+    <set name="spmnLabelPrintSettings" inverse="true" cascade="all-delete-orphan">
+      <key column="CP_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.CpSpecimenLabelPrintSetting"/>
+    </set>
+
+    <property name="catalogId" column="CATALOG_ID"/>
+
+    <property name="consentsWaived" column="CONSENTS_WAIVED"/>
+
+    <property name="visitLevelConsents" column="VISIT_CONSENTS"/>
+
+    <property name="draftMode" column="DRAFT_MODE" />
+
+    <many-to-one name="consentsSource" column="CONSENTS_SOURCE_CP_ID" />
+
+    <many-to-one name="cpGroup" column="CP_GROUP_ID"/>
+
+    <many-to-one name="requestManagerGroup" column="RMG_ID"/>
+
+    <set name="consentTier" table="CATISSUE_CONSENT_TIER" inverse="true" cascade="all-delete-orphan" order-by="id">
+      <key column="COLL_PROTOCOL_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.CpConsentTier"/>
+      <filter name="activeEntity"/>
+    </set>
+
+    <set name="coordinators" table="CATISSUE_COLL_COORDINATORS" cascade="none">
+      <key column="COLLECTION_PROTOCOL_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.administrative.domain.User" column="USER_ID"/>
+    </set>
+    
+    <set name="sites" inverse="true" cascade="all-delete-orphan">
+       <key column="COLLECTION_PROTOCOL_ID"/>
+       <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocolSite"/>
+    </set>
+
+    <set name="collectionProtocolEvents" table="CATISSUE_COLL_PROT_EVENT" inverse="true" cascade="persist,merge">
+      <key column="COLLECTION_PROTOCOL_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocolEvent"/>
+      <filter name="activeEntity"/>
+    </set>
+    
+    <set name="collectionProtocolRegistrations" cascade="none">
+      <key column="COLLECTION_PROTOCOL_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocolRegistration"/>
+      <filter name="activeEntity"/>
+    </set>
+    
+    <set name="storageContainers" table="OS_STOR_CONTAINER_CPS">
+      <key column="CP_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.administrative.domain.StorageContainer" column="STORAGE_CONTAINER_ID">
+        <filter name="activeEntity" condition="activity_status != 'Disabled'"/>
+      </many-to-many>
+    </set>
+
+    <set name="distributionProtocols" table="OS_CP_ALLOWED_DPS">
+      <key column="CP_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.administrative.domain.DistributionProtocol" column="DP_ID">
+        <filter name="activeEntity" condition="activity_status != 'Disabled'"/>
+      </many-to-many>
+    </set>
+
+    <set name="starred" table="OS_STARRED_CPS_VIEW">
+      <key column="CP_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.administrative.domain.User" column="USER_ID"/>
+    </set>
+    
+    <filter name="activeEntity"/>
+
+    <sql-query name="getParticipantAndSpecimenCount">
+      <return-scalar column="cpId" type="long"/>
+      <return-scalar column="participantCnt" type="long"/>
+      <return-scalar column="specimenCnt" type="long"/>
+
+      select 
+        cp.identifier as cpId,
+        case cp.specimen_centric when 0 then count(distinct cpr.identifier) else -1 end as participantCnt,
+        count(distinct sp.identifier) as specimenCnt
+      from 
+        catissue_collection_protocol cp 
+        left join catissue_coll_prot_reg cpr 
+          on cpr.collection_protocol_id = cp.identifier and 
+             cpr.activity_status != 'Disabled'
+        left join catissue_specimen_coll_group scg 
+          on scg.collection_protocol_reg_id = cpr.identifier and 
+             scg.activity_status != 'Disabled'
+        left join catissue_specimen sp 
+          on sp.specimen_collection_group_id = scg.identifier and 
+             sp.collection_status = 'Collected' and 
+             sp.activity_status != 'Disabled'
+      where
+        cp.identifier in (:cpIds) and
+        cp.activity_status != 'Disabled'
+      group by 
+        cp.identifier, cp.specimen_centric
+    </sql-query>
+
+    <query name="getAllCpIds">
+      select
+        cp.id
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol cp
+    </query>
+
+    <query name="getCpeByCpIdAndEventLabel">
+      select
+        cpe
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol cp
+        join cp.collectionProtocolEvents cpe
+      where
+        cp.id = :cpId and
+        cpe.eventLabel = :label
+    </query>
+    
+    <query name="getCpeByTitleAndEventLabel">
+      select
+        cpe
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol cp
+        join cp.collectionProtocolEvents cpe
+      where
+        cp.title = :title and
+        cpe.eventLabel = :label
+    </query>
+    
+    <query name="getCpesByShortTitleAndEventLabels">
+      select
+        cpe
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol cp
+        join cp.collectionProtocolEvents cpe
+      where
+        cp.shortTitle = :shortTitle and
+        cpe.eventLabel in (:labels)
+    </query>
+
+    <query name="getCpsByTitle">
+      from 
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol
+      where
+        title in (:titles) and
+        activityStatus = 'Active'
+    </query>
+
+    <query name="getCpsByShortTitle">
+      from 
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol
+      where
+        shortTitle in (:shortTitles)
+    </query>
+    
+    <query name="getCpsByShortTitleAndSite">
+      select
+        cp
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol cp
+        join cp.sites cpSite
+        join cpSite.site site
+      where
+        cp.shortTitle in (:shortTitles) and
+        site.name = :siteName and
+        cp.activityStatus != 'Disabled' and
+        site.activityStatus != 'Disabled'
+    </query>
+    
+    <query name="getConsentTier">
+      select 
+        ct
+      from 
+        com.krishagni.catissueplus.core.biospecimen.domain.CpConsentTier ct
+      where 
+        ct.id = :consentId
+    </query>
+    
+    <query name="getConsentTierByStatement"> 
+      select 
+        ct
+      from 
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol cp
+        join cp.consentTier ct
+      where 
+        cp.id = :cpId and ct.statement = :statement
+    </query>   
+    
+     <query name="getConsentResponsesCount">
+      select
+        count(response)
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol cp
+        join cp.collectionProtocolRegistrations cpr
+        join cpr.consentResponses response
+        join response.consentTier ct
+      where
+        ct.id = :consentId
+    </query>
+
+    <query name="getByCode">
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol cp
+      where
+        cp.code = :code
+    </query>
+
+    <query name="getRepoIdsByCps">
+      select 
+        cp.id, site.institute.id, site.id
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol cp
+        join cp.sites cpSite
+        join cpSite.site site
+      where
+        cp.id in (:cpIds)
+    </query>
+    
+    <query name="getExpiringCps">
+      select 
+        cp
+      from 
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol cp
+      where
+        cp.endDate is not null and
+        cp.endDate between :fromDate and :toDate and
+        cp.activityStatus = 'Active'
+    </query>
+
+    <query name="getBarcodingEnabledCpIds">
+      select
+        cp.id
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol cp
+      where
+        cp.barcodingEnabled = true
+    </query>
+
+    <sql-query name="ensureCpIsAffiliatedtoUserInstitute">
+      <return-scalar column="cp_count" type="int"/>
+
+      select
+        count(cp.identifier) as cp_count
+      from
+        catissue_collection_protocol cp
+        inner join catissue_site_cp cp_site on cp_site.collection_protocol_id = cp.identifier
+        inner join catissue_site site on site.identifier = cp_site.site_id
+        inner join catissue_user usr on usr.institute_id = site.institute_id
+      where
+        cp.identifier = :cpId and
+        usr.identifier = :userId and
+        cp.activity_status != 'Disabled'
+    </sql-query>
+
+    <sql-query name="getContainersWithCpRestrictions">
+      <return-scalar column="container_name" type="string"/>
+
+      select
+        c.name as container_name
+      from
+        os_storage_containers c
+        inner join os_stor_container_cps ccps on ccps.storage_container_id = c.identifier
+      where
+        c.site_id in (:siteIds) and
+        ccps.cp_id = :cpId and
+        c.activity_status != 'Disabled'
+    </sql-query>
+
+    <sql-query name="getCustomFieldRecordId">
+      <return-scalar column="recordId" type="long" />
+
+      select
+        record_id as recordId
+      from
+        os_cp_cust_fields
+      where
+        cp_id = :cpId and
+        form_id = :formId and
+        form_ctxt_id = :formCtxtId
+    </sql-query>
+
+    <sql-query name="getCustomFieldRecordIds">
+      <return-scalar column="cpId" type="long" />
+      <return-scalar column="recordId" type="long" />
+
+      select
+        cp_id as cpId, record_id as recordId
+      from
+        os_cp_cust_fields
+      where
+        cp_id in (:cpIds) and
+        form_id = :formId and
+        form_ctxt_id = :formCtxtId
+    </sql-query>
+
+    <sql-query name="insertCustomFieldRecord">
+      insert into
+        os_cp_cust_fields(cp_id, form_id, form_ctxt_id, record_id)
+      values
+        (:cpId, :formId, :formCtxtId, :recordId)
+    </sql-query>
+
+    <sql-query name="insertCustomFieldRecordStatus">
+      insert into
+        os_form_record_statuses (identifier, form_id, record_id, form_status)
+      values
+        (:cpId, :formId, :recordId, 'COMPLETE')
+    </sql-query>
+  </class>
+</hibernate-mapping>

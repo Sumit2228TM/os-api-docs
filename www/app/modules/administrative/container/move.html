@@ -1,0 +1,79 @@
+<form name="moveContainer" class="form-horizontal" os-form-validator="moveContainer" novalidate>
+  <div class="os-modal">
+    <div class="os-modal-header">
+      <span>{{'container.transfer_container' | translate: container}}</span>
+    </div>
+    <div class="os-modal-body">
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.parent_site">Parent Site</span>
+        </label>
+        <div class="col-xs-9">
+          <os-sites name="parentSite" ng-model="container.siteName" on-select="clearParentContainer()"
+            placeholder="{{'container.site' | translate}}" resource="StorageContainer" operation="Update" required>
+          </os-sites>
+          <div os-field-error field="moveContainer.parentSite"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.parent_container">Parent Container</span>
+        </label>
+        <div class="col-xs-9">
+          <os-storage-position entity="container"></os-storage-position>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.transferred_by">User</span>
+        </label>
+        <div class="col-xs-9">
+          <os-users ng-model="container.transferredBy" default-current-user
+            placeholder="{{'container.transferred_by' | translate}}" required>
+          </os-users>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.transfer_time">Date</span>
+        </label>
+        <div class="col-xs-9">
+          <div class="os-date-time clearfix">
+            <div class="os-col-65 input os-no-padding">
+              <os-date-picker name="transferDate" date="container.transferDate"
+                placeholder="{{'container.transfer_time' | translate}}" required>
+              </os-date-picker>
+            </div>
+            <div class="os-col-35">
+              <timepicker ng-model="container.transferDate" class="os-time-no-wheels" show-meridian="false">
+              </timepicker>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="container.transfer_reason">Comments</span>
+        </label>
+        <div class="col-xs-9">
+          <textarea class="form-control" ng-model="container.transferComments"
+            placeholder="{{'container.transfer_reason' | translate}}" rows="4">
+          </textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="os-modal-footer">
+      <button class="btn os-btn-text" ng-click="cancel()">
+        <span translate="common.buttons.discard">Cancel</span>
+      </button>
+      <button class="btn btn-primary" ng-click="submit()">
+        <span translate="container.transfer">Move</span>
+      </button>
+    </div>
+  </div>
+</form>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Setting to indicate whether users should be forced to change the password">
+    <addColumn tableName="CATISSUE_USER_AUD">
+      <column name="FORCE_PASSWORD_RESET" type="${boolean.type}" />
+      <column name="forcePasswordReset_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to indicate whether the CP is in draft mode or not">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="DRAFT_MODE" type="${boolean.type}" />
+      <column name="draftMode_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen pool item flag">
+    <addColumn tableName="CATISSUE_SPECIMEN_AUD">
+      <column name="POOL_ITEM" type="${boolean.type}" />
+      <column name="poolItem_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Manage workflows">
+    <addColumn tableName="CATISSUE_USER_AUD">
+      <column name="MANAGE_WFS" type="${boolean.type}" />
+      <column name="manageWfs_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Download labels print file user profile setting">
+    <addColumn tableName="CATISSUE_USER_AUD">
+      <column name="DOWNLOAD_LABELS_PRINT_FILE" type="${boolean.type}" />
+      <column name="downloadLabelsPrintFile_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

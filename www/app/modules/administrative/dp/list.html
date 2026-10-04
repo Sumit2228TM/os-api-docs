@@ -1,0 +1,166 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3>
+        <span translate="dp.list">Distribution Protocols</span>
+      </h3>
+    </div>
+    <div class="os-page-header-actions">
+      <os-list-pager opts="pagerOpts"></os-list-pager>
+    </div>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left">
+      <div ng-if="!ctx.checkList.anySelected">
+        <div ng-include="'modules/administrative/dp/single-dp-ops.html'"></div>
+      </div>
+
+      <div ng-if="ctx.checkList.anySelected">
+        <div ng-include="'modules/administrative/dp/bulk-dp-ops.html'"></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <button class="default" os-right-drawer-toggle title="{{'dp.tooltip.search' | translate}}">
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="alert alert-info os-lean-box" ng-show="ctx.checkList.count > 0">
+      <span> {{'common.items_selected_info' | translate: ctx.checkList}} </span>
+    </div>
+
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th class="col os-click-esc" style="width: 50px;">
+            <div class="os-select-specimen-cb" ng-if="dpDeleteAllowed">
+              <os-checkbox ng-change="ctx.checkList.toggleSelectAll()" ng-model="ctx.checkList.allSelected">
+              </os-checkbox>
+            </div>
+            <span>&nbsp;</span>
+          </th>
+          <th class="col">
+            <span translate="dp.short_title">Short Title</span>
+          </th>
+          <th class="col">
+            <span translate="dp.receiving_institute">Receiving Institute</span>
+          </th>
+          <th class="col">
+            <span translate="dp.receiving_site">Receiving Site</span>
+          </th>
+          <th class="col">
+            <span translate="dp.pi">Principal Investigator</span>
+          </th>
+          <th class="col">
+            <span translate="dp.start_date">Start Date</span>
+          </th>
+          <th class="col">
+            <span translate="dp.dist_spmns_count">Distributed Specimens</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-if="ctx.emptyState.loading || ctx.emptyState.empty">
+          <td class="col" colspan="100%">
+            <os-empty-list state="ctx.emptyState"></os-empty-list>
+          </td>
+        </tr>
+
+        <tr class="row" ng-repeat="dp in distributionProtocols" os-row-click="showDpOverview(dp)">
+          <td class="col os-click-esc">
+            <div class="os-select-specimen-cb" ng-if="dpDeleteAllowed">
+              <os-checkbox ng-change="ctx.checkList.toggleSelectItem($index)"
+                ng-model="ctx.checkList.items[$index].selected">
+              </os-checkbox>
+            </div>
+            <span class="os-starred-item fa"
+              ng-class="{true: 'fa-star starred', false: 'fa-star-o'}[dp.starred == true]"
+              ng-click="toggleStar(dp)">
+            </span>
+          </td>
+          <td class="col">
+            <a ui-sref="dp-detail.overview({dpId: dp.id})">
+              <span>{{dp.shortTitle}}</span>
+            </a>
+          </td>
+          <td class="col">
+            <span>{{dp.instituteName}}</span>
+          </td>
+          <td class="col">
+            <span>{{dp.defReceivingSiteName | osNoValue}}</span>
+          </td>
+          <td class="col">
+            <span>{{dp.principalInvestigator | osUserDisplayName}}</span>
+          </td>
+          <td class="col">
+            <span>{{dp.startDate | date : global.dateFmt}}</span>
+          </td>
+          <td class="col">
+            <span>{{dp.distributedSpecimensCount || 0 | number: 0}}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div os-right-drawer ng-include="'modules/administrative/dp/search.html'"></div>
+
+</div>
+
+<script type="text/ng-template" id="modules/administrative/dp/single-dp-ops.html">
+  <div>
+    <button show-if-allowed="dpResource.createOpts" class="default"
+      title="{{'dp.tooltip.add' | translate}}" ui-sref="dp-addedit({dpId: ''})">
+      <span class="fa fa-plus"></span>
+      <span translate="common.buttons.create">Create</span>
+    </button>
+
+    <div show-if-allowed="dpResource.importOpts" dropdown class="os-inline-btn">
+      <button class="default dropdown-toggle">
+        <span translate="common.buttons.import">Import</span>
+        <span class="fa fa-caret-down"></span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-left">
+        <li>
+          <a ui-sref="dp-import">
+            <span class="fa fa-truck"></span>
+            <span translate="dp.list">Distribution Protocols</span>
+          </a>
+        </li>
+        <li>
+          <a ui-sref="dp-req-import">
+            <span class="fa fa-list-ol"></span>
+            <span translate="dp.menu.requirements">Requirements</span>
+          </a>
+        </li>
+        <li>
+          <a ui-sref="dp-import-jobs">
+            <span class="fa fa-list-alt"></span>
+            <span translate="bulk_imports.view_jobs">View Jobs</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <os-export show-if-allowed="dpResource.importOpts" class="default" detail="ctx.exportDetail"></os-export>
+
+    <os-help class="os-btns btn default" link="dp_help_link"></os-help>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/administrative/dp/bulk-dp-ops.html">
+  <div>
+    <button class="default" title="{{'dp.tooltip.delete_dps' | translate}}" ng-click="deleteDps()">
+      <span class="fa fa-trash"></span>
+      <span translate="common.buttons.delete">Delete</span>
+    </button>
+
+    <os-export show-if-allowed="dpResource.importOpts" class="default"
+      detail="ctx.exportDetail" check-list="ctx.checkList">
+    </os-export>
+  </div>
+</script>

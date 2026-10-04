@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Entity search keywords">
+    <createTable tableName="OS_SEARCH_ENTITY_KEYWORDS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="ENTITY" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ENTITY_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="NAME" type="${text.type}(64)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="VALUE" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="STATUS" type="${tinyint.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Entity search keyword auto ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_SEARCH_ENTITY_KEYWORDS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index to fasten search for keywords using entity metadata">
+    <createIndex tableName="OS_SEARCH_ENTITY_KEYWORDS" indexName="OS_SEARCH_ENTITY_META_IDX">
+      <column name="ENTITY"/>
+      <column name="ENTITY_ID"/>
+      <column name="NAME"/>
+      <column name="STATUS"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index to fasten search for entity keywords">
+    <createIndex tableName="OS_SEARCH_ENTITY_KEYWORDS" indexName="OS_SEARCH_ENTITY_KEYWORDS_IDX">
+      <column name="VALUE"/>
+      <column name="STATUS"/>
+      <column name="ENTITY"/>
+      <column name="ENTITY_ID"/>
+      <column name="NAME"/>
+    </createIndex>
+  </changeSet>
+
+
+  <changeSet author="vpawar" id="Search entity sort order">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="OS_SEARCH_ENTITY_RANKS"/>
+      </not>
+    </preConditions>
+
+    <createTable tableName="OS_SEARCH_ENTITY_RANKS">
+      <column name="ENTITY" type="${text.type}(64)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="SORT_ORDER" type="${tinyint.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Renamed search entity rank to sort order as rank is keyword">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="OS_SEARCH_ENTITY_RANKS" columnName="RANK"/>
+    </preConditions>
+    <renameColumn tableName="OS_SEARCH_ENTITY_RANKS" oldColumnName="RANK"
+      newColumnName="SORT_ORDER" columnDataType="${tinyint.type}"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop old index on entity ranks">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="OS_SEARCH_ENTITY_RANKS" indexName="OS_SEARCH_ENTITY_RANKS_IDX"/>
+    </preConditions>
+    <dropIndex tableName="OS_SEARCH_ENTITY_RANKS" indexName="OS_SEARCH_ENTITY_RANKS_IDX"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on entity sort order">
+    <createIndex tableName="OS_SEARCH_ENTITY_RANKS" indexName="OS_SEARCH_ENTITY_RANKS_IDX">
+      <column name="ENTITY"/>
+      <column name="SORT_ORDER"/>
+    </createIndex>
+  </changeSet>
+</databaseChangeLog>

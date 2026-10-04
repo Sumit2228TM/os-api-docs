@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+ "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+ "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd"> 
+
+<hibernate-mapping>
+  <class name="com.krishagni.catissueplus.core.de.domain.SavedQuery" table="CATISSUE_SAVED_QUERIES"
+    entity-name="com.krishagni.catissueplus.core.de.domain.SavedQuery">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">CATISSUE_SAVED_QUERIES_SEQ</param>
+      </generator>      
+    </id>
+
+    <property name="title" column="TITLE"/>
+
+    <property name="cpId" column="CP_ID"/>
+
+    <many-to-one name="cp" column="CP_ID" update="false" insert="false" not-found="ignore" />
+
+    <property name="cpGroupId" column="CP_GROUP_ID"/>
+
+    <many-to-one name="cpGroup" column="CP_GROUP_ID" update="false" insert="false" not-found="ignore" />
+
+    <many-to-one name="createdBy" column="CREATED_BY" cascade="none"/>
+     
+    <many-to-one name="lastUpdatedBy" column="LAST_UPDATED_BY" cascade="none"/>
+
+    <property name="queryDefJson" column="QUERY_DEF"/>
+	
+    <property name="lastUpdated"  column="LAST_UPDATED_ON" type="timestamp"/>
+	
+    <property name="deletedOn" column="DELETED_ON" type="timestamp"/>
+
+    <set name="subQueries" table="OS_SAVED_QUERY_DEPS">
+      <key column="QUERY_ID"/>
+      <element column="SUB_QUERY_ID" type="long"/>
+    </set>
+
+    <set name="dependentQueries" table="OS_SAVED_QUERY_DEPS" mutable="false">
+      <key column="SUB_QUERY_ID"/>
+      <element column="QUERY_ID" type="long"/>
+    </set>
+
+    <set name="folders" table="CATISSUE_QUERY_FOLDER_QUERIES">
+      <key column="QUERY_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.de.domain.QueryFolder" column="FOLDER_ID" />
+    </set>
+
+    <set name="scheduledJobs" table="OS_SCHEDULED_JOBS">
+      <key column="QUERY_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.administrative.domain.ScheduledJob"/>
+      <filter name="activeEntity"/>
+    </set>
+	
+    <query name="getQueriesByIds">
+      from SavedQuery s where s.id IN (:queryIds) and s.deletedOn is null
+    </query>
+    
+    <sql-query name="insertQueryChangeLog">
+      insert into catissue_import_queries_log
+        (filename, md5_digest, status, executed_on, query_id) 
+      values
+        (:fileName, :md5Digest, :status, :executedOn, :queryId)
+    </sql-query>
+    
+    <sql-query name="getQueryIdAndDigest">
+      select 
+        query_id, md5_digest 
+      from
+        catissue_import_queries_log ql 
+      where
+        ql.filename = :fileName 
+        and ql.executed_on in ( 
+          select 
+            max(executed_on) 
+          from
+            catissue_import_queries_log 
+          where
+            filename = :fileName 
+        )
+    </sql-query>
+  </class> 
+</hibernate-mapping>

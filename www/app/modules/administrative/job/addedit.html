@@ -1,0 +1,303 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li>
+          <a ui-sref="job-list"> 
+            <span translate="jobs.list">Scheduled Jobs</span>
+          </a>
+        </li>
+      </ul>
+
+      <h3 ng-switch on="!job.id">
+        <span ng-switch-when="true" translate="jobs.create_job">Create Scheduled Job"</span>
+        <span ng-switch-default>
+          <span translate="common.update">Update</span> 
+          <span> {{job.name}} </span>
+        </span>
+      </h3>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="os-alert-container inline show" ng-if="!job.$$editAllowed">
+      <div class="alert alert-warning">
+        <span translate="jobs.update_not_allowed"></span>
+      </div>
+    </div>
+    <form name="jobForm" class="form-horizontal" os-form-validator="jobForm" novalidate>
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.name">Job Name</span>
+        </label>
+        <div class="col-xs-6">
+          <input type="text" name="name" ng-model="job.name" class="form-control" 
+            placeholder="{{'jobs.name' | translate}}" ng-maxlength="255" required>
+          <div os-field-error field="jobForm.name"></div>
+        </div>
+      </div>
+
+      <div class="os-divider"></divider>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.type">Job Type</span>
+        </label>
+        <div class="col-xs-6">
+          <label class="radio-inline">
+            <input type="radio" name="jobType" ng-model="job.type" ng-value="'INTERNAL'" required>
+            <span translate="jobs.internal">Internal</span>
+          </label>
+          <label class="radio-inline" ng-click="selectQueryType()">
+            <input type="radio" name="jobType" ng-model="job.type" ng-value="'QUERY'" required>
+            <span translate="jobs.query">Query</span>
+          </label>
+          <div os-field-error field="jobForm.jobType"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.shared_with">Share job with following users</span>
+        </label>
+
+        <div class="col-xs-6">
+          <os-users ng-model="job.sharedWith" placeholder="{{'jobs.shared_with' | translate}}" multiple></os-users>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="job.type == 'EXTERNAL'">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.command">External Command</span>
+        </label>
+        <div class="col-xs-6 os-no-label-form">
+          <textarea name="command" ng-model="job.command" class="form-control" 
+            placeholder="{{'jobs.command_desc' | translate}}" rows="2" required>
+          </textarea>
+          <div os-field-error field="jobForm.command"></div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="job.type == 'INTERNAL'">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.fqn">Task Implementation</span>
+        </label>
+
+        <div class="col-xs-6 os-no-label-form">
+          <textarea name="fqn" ng-model="job.taskImplFqn" class="form-control" 
+            placeholder="{{'jobs.fqn_desc' | translate}}" rows="2" required>
+          </textarea>
+          <div os-field-error field="jobForm.fqn"></div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="job.type == 'INTERNAL' || job.type == 'EXTERNAL'">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.fixed_args">Fixed Parameters</span>
+        </label>
+
+        <div class="col-xs-6 os-no-label-form">
+          <textarea name="fixedArgs" ng-model="job.fixedArgs" class="form-control" rows="2">
+          </textarea>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="!!job.type && job.type != 'QUERY'">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.run_args">Runtime Arguments</span>
+        </label>
+        <div class="col-xs-6">
+          <label class="radio-inline">
+            <input type="radio" name="argsProvided" ng-model="job.rtArgsProvided" ng-value="true" required>
+            <span translate="jobs.args_provided">Provided</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="argsProvided" ng-model="job.rtArgsProvided" ng-value="false" required>
+            <span translate="jobs.args_not_provided">Not Provided</span>
+          </label>
+          <div os-field-error field="jobForm.argsProvided"></div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="!!job.rtArgsProvided && job.type != 'QUERY'">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.args_help_text">Runtime Arguments Help Text</span>
+        </label>
+
+        <div class="col-xs-6 os-no-label-form">
+          <textarea name="helpText" ng-model="job.rtArgsHelpText" class="form-control" 
+            placeholder="{{'jobs.args_help_text_desc' | translate}}" rows="2" required>
+          </textarea>
+          <div os-field-error field="jobForm.helpText"></div>
+        </div>
+      </div>
+
+      <span ng-if="job.type == 'QUERY'">
+        <div class="form-group">
+          <label class="col-xs-3 control-label">
+            <span translate="jobs.query">Query</span>
+          </label>
+
+          <div class="col-xs-6">
+            <os-select name="query" ng-model="job.savedQuery" list="savedQueries" display-prop="title"
+              refresh="loadSavedQueries" class="form-control" placeholder="{{'jobs.query' | translate}}" required>
+            </os-select>
+            <div os-field-error field="jobForm.query"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-xs-3 control-label">
+            <span translate="jobs.run_as_user">Run As User</span>
+          </label>
+
+          <div class="col-xs-6">
+            <os-users ng-model="job.runAs" placeholder="{{'jobs.run_as_user' | translate}}"></os-users>
+          </div>
+        </div>
+      </span>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.notify_users">Notify Users</span>
+        </label>
+
+        <div class="col-xs-6">
+          <os-users ng-model="job.recipients" placeholder="{{'jobs.notify_users' | translate}}" multiple></os-users>
+        </div>
+      </div>
+
+      <div class="os-divider"></div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.repeat_schedule">Repeat Schedule</span>
+        </label>
+
+        <div class="col-xs-6">
+          <label class="radio-inline">
+            <input type="radio" name="rptSched" ng-model="job.repeatSchedule" ng-value="'MONTHLY'" required>
+            <span translate="jobs.repeat_schedules.MONTHLY">Monthly</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="rptSched" ng-model="job.repeatSchedule" ng-value="'WEEKLY'" required>
+            <span translate="jobs.repeat_schedules.WEEKLY">Monthly</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="rptSched" ng-model="job.repeatSchedule" ng-value="'DAILY'" required>
+            <span translate="jobs.repeat_schedules.DAILY">Daily</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="rptSched" ng-model="job.repeatSchedule" ng-value="'HOURLY'" required>
+            <span translate="jobs.repeat_schedules.HOURLY">Hourly</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="rptSched" ng-model="job.repeatSchedule" ng-value="'MINUTELY'" required>
+            <span translate="jobs.repeat_schedules.MINUTELY">Minutely</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="rptSched" ng-model="job.repeatSchedule" ng-value="'ONDEMAND'" required>
+            <span translate="jobs.repeat_schedules.ONDEMAND">On Demand</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="job.repeatSchedule == 'MONTHLY'">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.day_of_month">Day of Month</span>
+        </label>
+
+        <div class="col-xs-1">
+          <input type="text" name="dom" ng-model="job.scheduledDayOfMonth" class="form-control"
+            ng-pattern="/^0*([1-9]|[1-2][0-9]|3[0-1])$/" required no-hint="true">
+          <div os-field-error field="jobForm.dom"></div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="job.repeatSchedule == 'WEEKLY'">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.week_day">Day of Week</span>
+        </label>
+
+        <div class="col-xs-2">
+          <os-select name="dow" ng-model="job.scheduledDayOfWeek"
+            list="weekDays" select-prop="name" display-prop="caption" required no-hint="true">
+          </os-select>
+          <div os-field-error field="jobForm.dow"></div>
+        </div>
+      </div>
+
+      <div class="form-group os-multi-parts-control"
+        ng-if="job.repeatSchedule == 'MONTHLY' || job.repeatSchedule == 'WEEKLY' || job.repeatSchedule == 'DAILY'">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.time_of_day">Time of Day</span>
+        </label>
+
+        <div class="col-xs-1">
+          <label class="part-label" translate="jobs.hour">Hour</label>
+          <input type="text" name="hod" ng-model="job.scheduledHour" class="form-control"
+            ng-pattern="/^0*([0-9]|1[0-9]|2[0-3])$/" required no-hint="true">
+          <div os-field-error field="jobForm.hod"></div>
+        </div>
+        <div class="col-xs-1">
+          <label class="part-label" translate="jobs.minute">Minute</label>
+          <input type="text" name="moh" ng-model="job.scheduledMinute" class="form-control"
+            ng-pattern="/^0*([0-9]|[1-5][0-9])$/" required no-hint="true">
+          <div os-field-error field="jobForm.moh"></div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="job.repeatSchedule == 'HOURLY'">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.minute_of_hour">Minute of Hour</span>
+        </label>
+
+        <div class="col-xs-1">
+          <input type="text" name="moh" ng-model="job.scheduledMinute" class="form-control"
+            ng-pattern="/^0*([0-9]|[1-5][0-9])$/" required no-hint="true">
+          <div os-field-error field="jobForm.moh"></div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="job.repeatSchedule == 'MINUTELY'">
+        <label class="col-xs-3 control-label">
+          <span translate="jobs.minutely_interval">Minutely Interval</span>
+        </label>
+
+        <div class="col-xs-1">
+          <input type="text" name="interval" ng-model="job.minutelyInterval" class="form-control"
+            ng-pattern="/^0*[1-9][0-9]*$/" required no-hint="true">
+          <div os-field-error field="jobForm.interval"></div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="!jobForm.$invalid">
+        <div class="col-xs-offset-3 col-xs-6">
+          <div>
+            <strong> <i>{{'jobs.schedule_desc.'+ job.repeatSchedule | translate: job}}</i></strong>
+          </div>
+          <div ng-if="job.repeatSchedule == 'MINUTELY' && job.minutelyInterval < 60">
+            <strong class="text-danger">
+              <i translate="jobs.warn_frequent_runs">Running a job frequently can slowdown the system.</i>
+            </strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="os-divider"></div>
+
+      <div class="form-group">
+        <div class="col-xs-offset-3 col-xs-6">
+          <button ng-disabled="!job.$$editAllowed" class="btn btn-primary"
+            os-form-submit="saveOrUpdateJob()" ng-switch on="!!job.id">
+            <span ng-switch-when="false" translate="common.buttons.create">Create</span>
+            <span ng-switch-when="true" translate="common.buttons.update">Update</span>
+          </button>
+          <button class="btn os-btn-text" ng-click="back()">
+            <span translate="common.buttons.discard">Discard</span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,5 @@
+"IDENTIFIER","CONCEPT_CODE","DEFINITION","value","PUBLIC_ID"
+"getNextPvId()","","","Laboratory","Site_Type_PID"
+"getNextPvId()","","","Repository","Site_Type_PID"
+"getNextPvId()","","","Not Specified","Site_Type_PID"
+"getNextPvId()","","","Collection Site","Site_Type_PID"

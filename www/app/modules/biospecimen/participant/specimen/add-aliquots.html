@@ -1,0 +1,81 @@
+<div ng-if="showForm">
+  <div os-page-header>
+    <div class="os-page-header-content" ng-switch on="!!fieldsCtx.headers.specimen.breadcrumb">
+      <os-html-template ng-switch-when="true" template="fieldsCtx.headers.specimen.breadcrumb"></os-html-template>
+
+      <ul ng-switch-when="false" os-breadcrumbs>
+        <li>
+          <a ui-sref="cp-list-view({cpId: cpr.cpId})">
+            <span>{{cpr.cpShortTitle}}</span>
+          </a>
+        </li>
+        <li ng-if="!cp.specimenCentric">
+          <a ui-sref="participant-detail.overview({cprId: cpr.id})">
+            <span>{{cpr.ppid}}</span>
+          </a>
+        </li>
+        <li ng-if="!cp.specimenCentric">
+          <a ui-sref="visit-detail.overview({visitId: visit.id, eventId: visit.eventId})">
+            <os-event-desc event-point="visit.eventPoint" event-point-unit="visit.eventPointUnit"
+              event-label="visit.eventLabel">
+            </os-event-desc>
+          </a>
+        </li>
+        <li>
+          <a ui-sref="specimen-detail.overview({specimenId: parentSpecimen.id, srId: parentSpecimen.reqId})">
+            <span>{{parentSpecimen.label}}</span>
+          </a>
+        </li>
+      </ul>
+
+      <h3>
+        <span translate="specimens.create_aliquots">Create Aliquots</span>
+      </h3>
+    </div>
+
+    <div class="os-page-header-actions">
+      <h3 ng-if="!!fieldsCtx.headers.specimen.rightTitle">
+        <os-html-template template="fieldsCtx.headers.specimen.rightTitle"></os-html-template>
+      </h3>
+    </div>
+  </div>
+
+  <div class="container">
+    <form name="aliquotForm" class="form-horizontal" os-form-validator="aliquotForm" validator="aliquotFormValidator" novalidate>
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="specimens.parent_specimen">Parent Specimen</label>
+        <div class="col-xs-2 os-ctrl-padding-top">
+          <a ui-sref="specimen-detail.overview({specimenId: parentSpecimen.id, srId: parentSpecimen.reqId})">
+            <span>{{parentSpecimen.label}}</span>
+          </a>
+        </div>
+        <label class="col-xs-2 control-label" translate="specimens.available_qty">Available Quantity</label>
+        <div class="col-xs-2 os-ctrl-padding-top">
+          <os-spmn-measure-val specimen="parentSpecimen" value="parentSpecimen.availableQty"></os-spmn-measure-val>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="specimens.anatomic_site">Anatomic Site</label>
+        <div class="col-xs-6 os-ctrl-padding-top">
+          <span>{{parentSpecimen.anatomicSite | osNoValue}}</span>
+        </div>
+      </div>
+
+      <div ng-include src="'modules/biospecimen/participant/specimen/aliquot-form-fields.html'"></div>
+
+      <div class="os-divider"></div>
+
+      <div class="form-group">
+        <div class="col-xs-offset-3 col-xs-6">
+          <button class="btn btn-primary" os-form-submit="collectAliquots()" local-form="true">
+            <span translate="common.buttons.create">Create</span>
+          </button>
+          <button class="btn os-btn-text" ng-click="back()">
+            <span translate="common.buttons.discard">Discard</span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

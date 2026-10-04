@@ -1,0 +1,563 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="External app IDs">
+    <createTable tableName="OS_EXTERNAL_APP_IDS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="APP_NAME" type="${text.type}(32)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ENTITY_NAME" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="EXTERNAL_ID" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="OS_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="External app ID sequence" dbms="oracle">
+    <createSequence sequenceName="OS_EXTERNAL_APP_IDS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on external app name + entity name + external ID">
+    <createIndex tableName="OS_EXTERNAL_APP_IDS" indexName="OS_EXT_APP_IDX">
+      <column name="APP_NAME"/>
+      <column name="ENTITY_NAME"/>
+      <column name="EXTERNAL_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop index on external app ID">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="OS_EXTERNAL_APP_IDS" indexName="OS_EXT_APP_IDX"/>
+    </preConditions>
+
+    <dropIndex tableName="OS_EXTERNAL_APP_IDS" indexName="OS_EXT_APP_IDX"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique constraint on app name + entity name + external ID">
+    <addUniqueConstraint constraintName="OS_APP_ENTITY_EXT_ID_UQ"
+      tableName="OS_EXTERNAL_APP_IDS" columnNames="APP_NAME,ENTITY_NAME,EXTERNAL_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job hourly and minutely interval">
+    <addColumn tableName="OS_SCHEDULED_JOBS">
+      <column name="HOURLY_INTERVAL" type="${mediumint.type}" defaultValue="1"/>
+      <column name="MINUTELY_INTERVAL" type="${mediumint.type}" defaultValue="1"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job - saved query ID">
+    <addColumn tableName="OS_SCHEDULED_JOBS">
+      <column name="QUERY_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on scheduled query">
+    <addForeignKeyConstraint constraintName="FK_SCHED_QUERY_ID"
+      baseTableName="OS_SCHEDULED_JOBS" baseColumnNames="QUERY_ID"
+      referencedTableName="CATISSUE_SAVED_QUERIES" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job - run as user ID">
+    <addColumn tableName="OS_SCHEDULED_JOBS">
+      <column name="RUN_AS_USER_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on scheduled job run user">
+    <addForeignKeyConstraint constraintName="FK_SCHED_RUN_USER_ID"
+      baseTableName="OS_SCHEDULED_JOBS" baseColumnNames="RUN_AS_USER_ID"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Procedure to refresh anticipated specimens" runOnChange="true" dbms="mysql">
+    <sql>
+      drop procedure if exists stage_anticipated_specimens;
+    </sql>
+
+    <sql endDelimiter="//">
+      create procedure stage_anticipated_specimens(in cp_list text)
+      begin
+        drop table if exists tmp_os_cpr_anticipated_spmns;
+
+        set @create_tmp_table = concat('create table
+          tmp_os_cpr_anticipated_spmns (identifier bigint auto_increment primary key)
+        as
+          select
+            r.identifier cpr_id,
+            r.registration_date reg_date,
+            e.code event_code,
+            e.collection_point_label event_label,
+            case
+              when v.collection_status = \'Pending\' and v.encounter_timestamp is not null then v.encounter_timestamp
+              else date_add(r.registration_date, interval (e.offset - me.min_offset) day)
+            end event_date,
+            e.clinical_status,
+            e.clinical_diagnosis,
+            spmn.identifier req_id,
+            spmn.spec_req_label req_name,
+            spmn.code req_code,
+            spmn.lineage,
+            spmn.specimen_class,
+            spmn.specimen_type,
+            spmn.tissue_site anatomic_site,
+            spmn.tissue_side laterality,
+            spmn.initial_quantity quantity,
+            spmn.concentration,
+            spmn.pathological_status path_status,
+            spmn.collection_container,
+            spmn.collection_procedure
+          from
+            catissue_coll_prot_reg r
+            inner join (
+              select
+                ae.identifier, ae.code, ae.collection_point_label, ae.collection_protocol_id,
+                ae.study_calendar_event_point, ae.event_point_unit, ae.activity_status,
+                ae.clinical_status, ae.clinical_diagnosis,
+                case
+                  when ae.event_point_unit = \'YEARS\' then ae.study_calendar_event_point * 365
+                  when ae.event_point_unit = \'MONTHS\' then ae.study_calendar_event_point * 30
+                  when ae.event_point_unit = \'WEEKS\' then ae.study_calendar_event_point * 7
+                  else ae.study_calendar_event_point
+                end as offset
+              from
+                catissue_coll_prot_event ae
+              where
+                ae.activity_status != \'Disabled\'
+            ) e on e.collection_protocol_id = r.collection_protocol_id
+            inner join catissue_cp_req_specimen spmn on spmn.collection_protocol_event_id = e.identifier
+            left join catissue_specimen_coll_group v
+              on v.collection_protocol_event_id = e.identifier and
+                v.collection_protocol_reg_id = r.identifier and
+                v.activity_status != \'Disabled\'
+            left join (
+              select
+                reg.identifier as reg_id,
+                min(
+                  case
+                    when cpe.event_point_unit = \'YEARS\'  then cpe.study_calendar_event_point * 365
+                    when cpe.event_point_unit = \'MONTHS\' then cpe.study_calendar_event_point * 30
+                    when cpe.event_point_unit = \'WEEKS\'  then cpe.study_calendar_event_point * 7
+                    else cpe.study_calendar_event_point
+                  end
+                ) as min_offset
+              from
+                catissue_coll_prot_reg reg
+                inner join catissue_coll_prot_event cpe on cpe.collection_protocol_id = reg.collection_protocol_id
+                left join catissue_specimen_coll_group v
+                  on v.collection_protocol_reg_id = reg.identifier and
+                    v.collection_protocol_event_id = cpe.identifier and
+                    v.activity_status != \'Disabled\'
+              where
+                ((cpe.activity_status = \'Active\' and v.identifier is null) or
+                 (v.identifier is not null)) and
+                reg.activity_status = \'Active\' and
+                reg.collection_protocol_id in (', cp_list, ')
+              group by
+                reg.identifier
+            ) me on me.reg_id = r.identifier
+          where
+            ((e.activity_status = \'Active\' and v.identifier is null) or
+            (v.collection_status = \'Pending\')) and
+            r.activity_status = \'Active\' and
+            r.collection_protocol_id in (', cp_list, ') and
+            spmn.activity_status = \'Active\'');
+
+        prepare create_sql from @create_tmp_table;
+        execute create_sql;
+        deallocate prepare create_sql;
+      end;
+      //
+    </sql>
+
+    <sql>
+      drop procedure if exists refresh_anticipated_specimens;
+    </sql>
+
+    <sql endDelimiter="//">
+      create procedure refresh_anticipated_specimens(in cp_list text)
+      begin
+        call stage_anticipated_specimens(cp_list);
+
+        drop table if exists os_cpr_anticipated_spmns;
+
+        alter table tmp_os_cpr_anticipated_spmns rename os_cpr_anticipated_spmns;
+
+        create index os_cpr_aspmns_cpr_date_idx on os_cpr_anticipated_spmns (cpr_id, event_date);
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job to refresh anticipated specimens" dbms="mysql">
+    <sql>
+      select identifier into @userId from catissue_user where login_name = '$system';
+
+      insert into os_scheduled_jobs
+        (identifier, name, created_by, start_date, scheduled_minute, scheduled_hour,
+         activity_status, repeat_schedule, type, task_impl_fqn, rt_args_provided)
+      values
+        (default, 'Refresh anticipated specimens', @userId, now(), 30, 01,
+         'Active', 'ONDEMAND', 'INTERNAL', 'com.krishagni.catissueplus.core.biospecimen.services.impl.RefreshAnticipatedSpecimens', 0)
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Anticipated specimens ID sequence" dbms="oracle">
+    <createSequence sequenceName="OS_CPR_ANTICIPATED_SPMNS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Procedure to drop the table" dbms="oracle">
+    <sql endDelimiter="//">
+      create or replace procedure drop_table_if_exists(tab_name in varchar2) is
+      begin
+        declare
+          table_does_not_exist exception;
+          pragma exception_init(table_does_not_exist, -942); -- ORA-00942
+        begin
+          execute immediate 'drop table ' || tab_name;
+        exception
+          when table_does_not_exist then null;
+        end;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Procedure to refresh anticipated specimens" runOnChange="true" dbms="oracle">
+    <sql endDelimiter="//">
+      create or replace procedure stage_anticipated_specimens(cp_list in varchar2) AUTHID CURRENT_USER is
+        seq_id number;
+      begin
+        drop_table_if_exists('tmp_os_cpr_anticipated_spmns');
+        drop_table_if_exists('tmp_input_cps');
+
+        select os_cpr_anticipated_spmns_seq.nextval into seq_id from dual;
+        seq_id := 1 - seq_id;
+
+        execute immediate 'alter sequence os_cpr_anticipated_spmns_seq increment by ' || seq_id || ' nocache';
+        select os_cpr_anticipated_spmns_seq.nextval into seq_id from dual;
+        execute immediate 'alter sequence os_cpr_anticipated_spmns_seq increment by 1 nocache';
+
+        execute immediate 'create table tmp_input_cps(id number(19, 0))';
+        execute immediate 'insert into tmp_input_cps select * from table(split(:1, '',''))' using cp_list;
+
+        execute immediate '
+          create table
+            tmp_os_cpr_anticipated_spmns
+          as select
+            os_cpr_anticipated_spmns_seq.nextval as identifier,
+            r.identifier cpr_id,
+            r.registration_date reg_date,
+            e.code event_code,
+            e.collection_point_label event_label,
+            case
+              when v.collection_status = ''Pending'' and v.encounter_timestamp is not null then v.encounter_timestamp
+              else r.registration_date + (e.offset - me.min_offset)
+            end event_date,
+            e.clinical_status,
+            e.clinical_diagnosis,
+            spmn.identifier req_id,
+            spmn.spec_req_label req_name,
+            spmn.code req_code,
+            spmn.lineage,
+            spmn.specimen_class,
+            spmn.specimen_type,
+            spmn.tissue_site anatomic_site,
+            spmn.tissue_side laterality,
+            spmn.initial_quantity quantity,
+            spmn.concentration,
+            spmn.pathological_status path_status,
+            spmn.collection_container,
+            spmn.collection_procedure
+          from
+            catissue_coll_prot_reg r
+            inner join (
+              select
+                ae.identifier, ae.code, ae.collection_point_label, ae.collection_protocol_id,
+                ae.study_calendar_event_point, ae.event_point_unit, ae.activity_status,
+                ae.clinical_status, ae.clinical_diagnosis,
+                case
+                  when ae.event_point_unit = ''YEARS'' then ae.study_calendar_event_point * 365
+                  when ae.event_point_unit = ''MONTHS'' then ae.study_calendar_event_point * 30
+                  when ae.event_point_unit = ''WEEKS'' then ae.study_calendar_event_point * 7
+                  else ae.study_calendar_event_point
+                end as offset
+              from
+                catissue_coll_prot_event ae
+              where
+                ae.activity_status != ''Disabled''
+            ) e on e.collection_protocol_id = r.collection_protocol_id
+            inner join catissue_cp_req_specimen spmn on spmn.collection_protocol_event_id = e.identifier
+            left join catissue_specimen_coll_group v
+              on v.collection_protocol_event_id = e.identifier and
+                v.collection_protocol_reg_id = r.identifier and
+                v.activity_status != ''Disabled''
+            left join (
+              select
+                reg.identifier as reg_id,
+                min(
+                  case
+                    when cpe.event_point_unit = ''YEARS''  then cpe.study_calendar_event_point * 365
+                    when cpe.event_point_unit = ''MONTHS'' then cpe.study_calendar_event_point * 30
+                    when cpe.event_point_unit = ''WEEKS''  then cpe.study_calendar_event_point * 7
+                    else cpe.study_calendar_event_point
+                  end
+                ) as min_offset
+              from
+                catissue_coll_prot_reg reg
+                inner join catissue_coll_prot_event cpe on cpe.collection_protocol_id = reg.collection_protocol_id
+                left join catissue_specimen_coll_group v
+                  on v.collection_protocol_reg_id = reg.identifier and
+                    v.collection_protocol_event_id = cpe.identifier and
+                    v.activity_status != ''Disabled''
+              where
+                ((cpe.activity_status = ''Active'' and v.identifier is null) or
+                (v.identifier is not null)) and
+                reg.collection_protocol_id in (select * from tmp_input_cps) and
+                reg.activity_status = ''Active''
+              group by
+                reg.identifier
+            ) me on me.reg_id = r.identifier
+          where
+            ((e.activity_status = ''Active'' and v.identifier is null) or
+            (v.collection_status = ''Pending'')) and
+            r.activity_status = ''Active'' and
+            spmn.activity_status = ''Active'' and
+            r.collection_protocol_id in (select * from tmp_input_cps)';
+      end;
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      create or replace procedure refresh_anticipated_specimens(cp_list in varchar2) AUTHID CURRENT_USER is
+      begin
+        stage_anticipated_specimens(cp_list);
+
+        declare
+          table_does_not_exist exception;
+          pragma exception_init(table_does_not_exist, -942); -- ORA-00942
+        begin
+          execute immediate 'drop table os_cpr_anticipated_spmns';
+        exception
+          when table_does_not_exist then null;
+        end;
+
+        execute immediate 'alter table tmp_os_cpr_anticipated_spmns rename to os_cpr_anticipated_spmns';
+
+        execute immediate 'create index os_cpr_aspmns_cpr_date_idx on os_cpr_anticipated_spmns (cpr_id, event_date)';
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job to refresh anticipated specimens" dbms="oracle">
+    <sql endDelimiter="//">
+      declare
+        userId number;
+      begin
+        select identifier into userId from catissue_user where login_name = '$system';
+
+      insert into os_scheduled_jobs
+        (identifier, name, created_by, start_date, scheduled_minute, scheduled_hour,
+         activity_status, repeat_schedule, type, task_impl_fqn, rt_args_provided)
+      values
+        (os_scheduled_jobs_seq.nextVal, 'Refresh anticipated specimens', userId, SYSDATE, 30, 01,
+         'Active', 'ONDEMAND', 'INTERNAL', 'com.krishagni.catissueplus.core.biospecimen.services.impl.RefreshAnticipatedSpecimens', 0);
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job input parameters">
+    <addColumn tableName="OS_SCHEDULED_JOBS">
+      <column name="FIXED_ARGS" type="${clob.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track external app messages received and processed by OpenSpecimen">
+    <createTable tableName="OS_EXT_APP_MESSAGE_LOGS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="EXTERNAL_APP" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="TYPE" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="MESSAGE" type="${clob.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="RECEIVE_TIME" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="RECORD_ID" type="${text.type}(255)"/>
+      <column name="STATUS" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="PROCESS_STATUS" type="${text.type}(16)"/>
+      <column name="PROCESS_TIME" type="${nullable.ts.type}"/>
+      <column name="NO_OF_RETRIES" type="${int.type}" defaultValueNumeric="0"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="External app message log identifier sequence" dbms="oracle">
+    <createSequence sequenceName="OS_EXT_APP_MESSAGE_LOGS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add index on process status field of external app message log table">
+    <createIndex tableName="OS_EXT_APP_MESSAGE_LOGS" indexName="OS_EXT_APP_MSG_PROC_STATUS_IDX">
+      <column name="PROCESS_STATUS"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Exact error because of which the message could not be processed in the first place">
+    <addColumn tableName="OS_EXT_APP_MESSAGE_LOGS">
+      <column name="ERROR" type="${clob.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen distribution view" runOnChange="true">
+    <createView viewName="os_specimen_distribution_view" replaceIfExists="true">
+      select
+        oi.identifier as identifier,
+        o.identifier as order_id,
+        o.name as name,
+        o.distribution_protocol_id as dp_id,
+        o.site_id as site_id,
+        o.tracking_url as tracking_url,
+        o.comments as comments,
+        o.requester_id as requester_id,
+        o.execution_date as execution_date,
+        o.status as order_status,
+        oi.quantity as quantity,
+        oi.cost as cost,
+        oi.status as status,
+        oi.specimen_id as specimen_id,
+        oi.label as label
+      from
+        os_orders o
+        inner join os_order_items oi on oi.order_id = o.identifier
+      where
+        o.activity_status != 'Disabled'
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Better index on DE form record entries to fasten the queries">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <indexExists tableName="CATISSUE_FORM_RECORD_ENTRY" columnNames="FORM_CTXT_ID,OBJECT_ID,RECORD_ID,ACTIVITY_STATUS"/>
+      </not>
+    </preConditions>
+    <createIndex tableName="CATISSUE_FORM_RECORD_ENTRY" indexName="OS_FORM_REC_ENTRY_IDX">
+      <column name="FORM_CTXT_ID"/>
+      <column name="OBJECT_ID"/>
+      <column name="RECORD_ID"/>
+      <column name="ACTIVITY_STATUS"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop the older non-performing index on DE form record entries">
+    <dropIndex tableName="CATISSUE_FORM_RECORD_ENTRY" indexName="OS_EXTN_VIEW_IDX"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Anticipated specimens table">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="OS_CPR_ANTICIPATED_SPMNS"/>
+      </not>
+    </preConditions>
+
+    <createTable tableName="OS_CPR_ANTICIPATED_SPMNS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="CPR_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="REG_DATE" type="${timestamp.type}"/>
+      <column name="EVENT_LABEL" type="${text.type}(255)"/>
+      <column name="EVENT_DATE" type="${timestamp.type}"/>
+      <column name="CLINICAL_STATUS" type="${text.type}(50)"/>
+      <column name="CLINICAL_DIAGNOSIS" type="${text.type}(255)"/>
+      <column name="REQ_ID" type="${int.type}"/>
+      <column name="LINEAGE" type="${text.type}(50)"/>
+      <column name="SPECIMEN_CLASS" type="${text.type}(50)"/>
+      <column name="SPECIMEN_TYPE" type="${text.type}(50)"/>
+      <column name="ANATOMIC_SITE" type="${text.type}(150)"/>
+      <column name="LATERALITY" type="${text.type}(50)"/>
+      <column name="QUANTITY" type="${double.type}"/>
+      <column name="CONCENTRATION" type="${double.type}"/>
+      <column name="PATH_STATUS" type="${text.type}(50)"/>
+      <column name="COLLECTION_CONTAINER" type="${text.type}(50)"/>
+      <column name="COLLECTION_PROCEDURE" type="${text.type}(50)"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Anticipated specimens table - event and SR codes">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="OS_CPR_ANTICIPATED_SPMNS" columnName="EVENT_CODE"/>
+      </not>
+    </preConditions>
+
+    <addColumn tableName="OS_CPR_ANTICIPATED_SPMNS">
+      <column name="EVENT_CODE" type="${text.type}(32)"/>
+      <column name="REQ_NAME" type="${text.type}(255)"/>
+      <column name="REQ_CODE" type="${text.type}(32)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on pooled specimen requirement">
+    <addForeignKeyConstraint constraintName="FK_POOLED_SPMN_REQ"
+      baseTableName="CATISSUE_CP_REQ_SPECIMEN" baseColumnNames="POOLED_SPMN_REQ_ID"
+      referencedTableName="CATISSUE_CP_REQ_SPECIMEN" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Revision entity records">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="OS_REVISION_ENTITY_RECORDS" />
+      </not>
+    </preConditions>
+
+    <createTable tableName="OS_REVISION_ENTITY_RECORDS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="REV" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="REV_TYPE" type="${tinyint.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ENTITY_NAME" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="ENTITY_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Entity audit revision details sequence" dbms="oracle">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <sequenceExists sequenceName="OS_REV_ENTITY_RECS_SEQ" />
+      </not>
+    </preConditions>
+
+    <createSequence sequenceName="OS_REV_ENTITY_RECS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,15 @@
+{
+  "name": "-86 Rack B",
+  "nameFormat": "%PCONT_NAME%.R.B%PCONT_UID%",
+  "noOfColumns": 4,
+  "noOfRows": 6,
+  "positionLabelingMode": "TWO_D",
+  "columnLabelingScheme": "Numbers",
+  "rowLabelingScheme": "Numbers",
+  "temperature": -86,
+  "storeSpecimenEnabled": false,
+  "activityStatus": "Active",
+  "canHold": {
+    "name": "-86 Box"
+  }
+}

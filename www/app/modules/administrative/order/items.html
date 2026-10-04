@@ -1,0 +1,38 @@
+<div class="os-full-height-container clearfix">
+  <div class="os-full-height-container col-xs-12">
+    <div class="os-detail-sublist">
+      <div class="os-page-commands">
+        <div class="left">
+          <button class="default" ng-click="printLabels()" ng-if="orctx.printDistLabels">
+            <span class="fa fa-print"></span>
+            <span translate="common.buttons.print">Print</span>
+          </button>
+          <button class="default" ng-click="retrieveSpecimens()" ng-if="ctx.showRetrieveBtn">
+            <span class="fa fa-reply"></span>
+            <span translate="orders.buttons.retrieve">Retrieve</span>
+          </button>
+        </div>
+
+        <div class="right">
+          <div class="btn pull-left"> <!-- the button is added to make the text aligned to the search button -->
+            <os-list-pager opts="ctx.listCtrl.pagerOpts"></os-list-pager>
+          </div>
+
+          <button class="default" os-right-drawer-toggle ng-if="ctx.showSearch">
+            <span class="fa fa-search"></span>
+            <span translate="common.buttons.search">Search</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="os-container-wrapper">
+        <div>
+          <os-list params="ctx.params" item-sref="specimen({specimenId: row.hidden.specimenId})"
+            enable-selection="{{orctx.printDistLabels}}" show-item="showSpecimen(row)" init-ctrl="setListCtrl($list)"
+            empty-state="ctx.emptyState">
+          </os-list>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

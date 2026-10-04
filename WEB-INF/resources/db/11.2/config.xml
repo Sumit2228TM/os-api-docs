@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Config setting to specify the saved query to use for container shipment report">
+    <sql>
+      call add_cfg_prop(
+        'common', 'shipment_container_report',
+        'shipment_container_report', 'shipment_container_report_desc',
+        'INT', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to control the order of search results">
+    <sql>
+      call add_cfg_prop(
+        'common', 'predictive_search_results',
+        'predictive_search_results', 'predictive_search_results_desc',
+        'BOOLEAN', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to enable faster generation of system unique IDs">
+    <sql>
+      call add_cfg_prop(
+        'common', 'gen_fast_unique_ids',
+        'gen_fast_unique_ids', 'gen_fast_unique_ids_desc',
+        'BOOLEAN', ''
+      );
+    </sql>
+  </changeSet>
+</databaseChangeLog>

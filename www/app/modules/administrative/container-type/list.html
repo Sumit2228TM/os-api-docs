@@ -1,0 +1,129 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3>
+        <span translate="container_type.list">Container Types</span>
+      </h3>
+    </div>
+
+    <div class="os-page-header-actions">
+      <os-list-pager opts="pagerOpts"></os-list-pager>
+    </div>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left" ng-if="ctx.checkList.anySelected">
+      <button class="default" ng-click="deleteTypes()">
+        <span class="fa fa-trash"></span>
+        <span translate="common.buttons.delete">Delete</span>
+      </button>
+
+      <os-export class="default" detail="ctx.exportDetail" check-list="ctx.checkList"></os-export>
+    </div>
+
+    <div class="left" ng-if="!ctx.checkList.anySelected">
+      <button show-if-admin="institute" class="default" title="{{'container_type.tooltip.add' | translate}}" 
+        ui-sref="container-type-addedit({containerTypeId: ''})">
+        <span class="fa fa-plus"></span>
+        <span translate="common.buttons.create">Create</span>
+      </button>
+
+      <button class="default" title="{{'container_type.tooltip.container_list' | translate}}" ui-sref="container-list">
+        <span class="fa fa-dropbox"></span>
+        <span translate="container.list">Containers</span>
+      </button>
+
+      <div show-if-admin="institute" dropdown class="os-inline-btn">
+        <button class="default dropdown-toggle">
+          <span translate="common.buttons.import">Import</span>
+          <span class="fa fa-caret-down"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a ui-sref="container-type-import">
+              <span class="fa fa-cubes"></span>
+              <span translate="container.types">Types</span>
+            </a>
+          </li>
+          <li>
+            <a ui-sref="container-type-import-jobs">
+              <span class="fa fa-list-alt"></span>
+              <span translate="bulk_imports.view_jobs">View Past Imports</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <os-export show-if-admin="institute" class="default" detail="ctx.exportDetail"></os-export>
+
+      <os-help class="btn default" url="https://openspecimen.atlassian.net/wiki/x/ioDIBg"></os-help>
+    </div>
+
+    <div class="right">
+      <button class="default" os-right-drawer-toggle title="{{'container_type.tooltip.search' | translate}}">
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="alert alert-info os-lean-box" ng-show="ctx.checkList.count > 0">
+      <span> {{'common.items_selected_info' | translate: ctx.checkList}} </span>
+    </div>
+
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th show-if-admin="institute" class="col os-click-esc">
+            <div class="os-select-specimen-cb">
+              <os-checkbox ng-change="ctx.checkList.toggleSelectAll()" ng-model="ctx.checkList.allSelected">
+              </os-checkbox>
+            </div>
+          </th>
+          <th class="col">
+            <span translate="container.name">Name</span>
+          </th>
+          <th class="col">
+            <span translate="container_type.name_format">Name Format</span>
+          </th>
+          <th class="col">
+            <span translate="container.dimension">Dimension</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-if="ctx.emptyState.loading || ctx.emptyState.empty">
+          <td class="col" colspan="100%">
+            <os-empty-list state="ctx.emptyState"></os-empty-list>
+          </td>
+        </tr>
+
+        <tr class="row" ng-repeat="containerType in containerTypes"
+          os-row-click="showContainerTypeOverview(containerType)">
+          <td show-if-admin="institute" class="col os-click-esc">
+            <div class="os-select-specimen-cb">
+              <os-checkbox ng-change="ctx.checkList.toggleSelectItem($index)"
+                ng-model="ctx.checkList.items[$index].selected">
+              </os-checkbox>
+            </div>
+          </td>
+          <td class="col">
+            <a ui-sref="container-type-detail.overview({containerTypeId: containerType.id})">
+              <span>{{containerType.name}}</span>
+            </a>
+          </td>
+          <td class="col">
+            <span>{{containerType.nameFormat}}</span>
+          </td>
+          <td class="col">
+            <span>{{containerType.noOfRows}} X {{containerType.noOfColumns}}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div os-right-drawer ng-include="'modules/administrative/container-type/search.html'"></div>
+
+</div>

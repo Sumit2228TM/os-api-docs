@@ -1,0 +1,208 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs ng-show="!user.$$editProfile">
+        <li>
+          <a ui-sref="user-list">
+            <span translate="user.list">Users</span>
+          </a>
+        </li>
+      </ul>
+      <h3>
+        <span ng-if="!user.id" translate="user.create_user">Create User</span>
+        <span ng-if="!!user.id">{{user | osUserDisplayName}}</span>
+      </h3> 
+    </div>
+  </div>
+
+  <div class="container">
+    <form name="userForm" class="form-horizontal" os-form-validator="userForm" validator="userFormValidator" novalidate
+      os-disable-fields="disabledFields">
+      <div show-if-admin="institute" class="form-group">
+        <label class="col-xs-3 control-label" translate="user.type">Type</label>
+        <div class="col-xs-6">
+          <label class="radio-inline" show-if-admin>
+            <input type="radio" name="type" ng-model="user.type" ng-value="'SUPER'">
+            <span translate="user.super_admin">Super Administrator</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="type" ng-model="user.type" ng-value="'INSTITUTE'">
+            <span translate="user.inst_admin">Institute Administrator</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="type" ng-model="user.type" ng-value="'CONTACT'"
+              ng-change="onContactTypeSelect()">
+            <span translate="user.contact">Contact</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="type" ng-model="user.type" ng-value="'NONE'"
+              ng-change="user.manageForms = false">
+            <span translate="user.regular">Regular</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group os-multi-parts-control">
+        <label class="col-xs-3 control-label" translate="user.name">Name</label>
+        <div class="col-xs-3">
+          <label class="part-label" translate="user.first_name"></label>
+          <input type="text" name="firstName" ng-model="user.firstName" class="form-control"
+            placeholder="{{'user.first_name' | translate}}" ng-maxlength="255" required/>
+          <div os-field-error field="userForm.firstName"></div>
+        </div>
+        <div class="col-xs-3">
+          <label class="part-label" translate="user.last_name"></label>
+          <input type="text" name="lastName" ng-model="user.lastName" class="form-control"
+            placeholder="{{'user.last_name' | translate}}" ng-maxlength="255" required/>
+          <div os-field-error field="userForm.lastName"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="user.email_address">Email Address</label>
+        <div class="col-xs-6">
+          <input type="email" name="email" class="form-control" ng-model="user.emailAddress"
+            placeholder="{{'user.email_address' | translate}}" ng-maxlength="255" required>
+          <div os-field-error field="userForm.email"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="user.phone_number">Phone Number</label>
+        <div class="col-xs-6">
+          <input type="text" name="phoneNumber" class="form-control" ng-model="user.phoneNumber"
+            placeholder="{{'user.phone_number' | translate}}" ng-maxlength="16">
+          <div os-field-error field="userForm.phoneNumber"></div>
+        </div>
+      </div>
+
+      <span ng-if="user.type != 'CONTACT'">
+        <div class="form-group">
+          <label class="col-xs-3 control-label" translate="user.domain_name">Domain Name</label>
+          <div class="col-xs-6">
+            <os-select ng-model="user.domainName" list="domains" name="domain"
+              placeholder="{{'user.domain_name' | translate}}" required>
+            </os-select>
+            <div os-field-error field="userForm.domain"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-xs-3 control-label" translate="user.login_name">Login Name</label>
+          <div class="col-xs-6">
+            <input type="text" name="loginName" class="form-control" ng-model="user.loginName"
+              placeholder="{{'user.login_name' | translate}}" ng-maxlength="255" required>
+            <div os-field-error field="userForm.loginName"></div>
+          </div>
+        </div>
+      </span>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="user.institute">Institute</label>
+        <div class="col-xs-6">
+          <os-institutes name="institute" ng-model="user.instituteName" on-select="onInstituteSelect(institute)"
+            placeholder="{{'user.institute' | translate}}" auto-select required>
+          </os-institutes>
+          <div os-field-error field="userForm.institute"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="user.primary_site">Primary Site</label>
+        <div class="col-xs-6">
+          <os-select ng-model="user.primarySite" list="sites" refresh="searchSites($select.search)"
+            name="primarySite" placeholder="{{'user.primary_site' | translate}}">
+          </os-select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="user.time_zone">Time Zone</label>
+        <div class="col-xs-6">
+          <os-select ng-model="user.timeZone" list="timeZones" display-prop="name" select-prop="id"
+            placeholder="{{'user.time_zone' | translate}}">
+          </os-select>
+        </div>
+      </div>
+
+      <div show-if-admin="institute" class="form-group" ng-if="user.type == 'NONE'">
+        <label class="col-xs-3 control-label">Manage Forms?</label>
+        <div class="col-xs-6">
+          <label class="radio-inline">
+            <input type="radio" name="manageForms" ng-model="user.manageForms" ng-value="true">
+            <span translate="common.yes">Yes</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="manageForms" ng-model="user.manageForms" ng-value="false">
+            <span translate="common.no">No</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="user.disable_notifs">Disable Email Notifications</span>
+        </label>
+        <div class="col-xs-6">
+          <label class="radio-inline">
+            <input type="radio" name="disableNotif" ng-model="user.dnd" ng-value="true">
+            <span translate="common.yes">Yes</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="disableNotif" ng-model="user.dnd" ng-value="false">
+            <span translate="common.no">No</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" show-if-admin>
+        <label class="col-xs-3 control-label">
+          <span translate="user.api_user_q">API User?</span>
+        </label>
+        <div class="col-xs-6">
+          <label class="radio-inline">
+            <input type="radio" name="apiUser" ng-model="user.apiUser" ng-value="true">
+            <span translate="common.yes">Yes</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="apiUser" ng-model="user.apiUser" ng-value="false">
+            <span translate="common.no">No</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" show-if-admin ng-if="user.apiUser == true">
+        <label class="col-xs-3 control-label">
+          <span translate="user.ip_address">IP Address</span>
+        </label>
+        <div class="col-xs-6">
+          <input type="text" name="ipAddress" class="form-control" ng-model="user.ipRange"
+            placeholder="{{'user.ip_address' | translate}}" required>
+          <div os-field-error field="userForm.ipAddress"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="user.address">Address</label>
+        <div class="col-xs-6">
+          <textarea rows="2" placeholder="{{'user.address' | translate}}" ng-model="user.address" class="form-control">
+          </textarea>
+        </div>
+      </div>
+
+      <div class="os-divider"></div>
+
+      <div class="form-group">
+        <div class="col-xs-offset-3 col-xs-6">
+          <button class="btn btn-primary" os-form-submit="createUser()">
+            <span ng-if="!user.id" translate="common.buttons.create"> Create </span>
+            <span ng-if="!!user.id" translate="common.buttons.update"> Update </span>
+          </button>
+          <button class="btn os-btn-text" ng-click="back()">
+            <span translate="common.buttons.discard"> Discard </span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

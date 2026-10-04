@@ -1,0 +1,31 @@
+<div class="os-audit-basic-info">
+  <h3 class="os-sub-section-title" translate="audit.activity">
+    Activity
+  </h3>
+
+  <ul class="os-key-values os-one-col">
+    <li class="item">
+      <strong class="key key-sm" translate="audit.created_by">Created By</strong>
+      <span class="value value-md">{{audit.createdBy | osUserDisplayName}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm" translate="audit.created_on">Created On</strong>
+      <span class="value value-md">{{audit.createdOn | date: $root.global.dateTimeFmt}}</span>
+    </li>
+    <li class="item" ng-if="audit.lastUpdatedBy">
+      <strong class="key key-sm" translate="audit.updated_by">Updated By</strong>
+      <span class="value value-md">{{audit.lastUpdatedBy | osUserDisplayName}} </span>
+    </li>
+    <li class="item" ng-if="audit.lastUpdatedOn">
+      <strong class="key key-sm" translate="audit.updated_on">Updated On</strong>
+      <span class="value value-md">{{audit.lastUpdatedOn | date: $root.global.dateTimeFmt}}</span>
+    </li>
+    <li class="item" ng-if="audit.revisionsCount > 1">
+      <strong class="key key-sm" translate="audit.no_of_revisions">Number of Revisions</strong>
+      <span class="value value-md">
+        {{audit.revisionsCount}}
+        <a ng-click="showRevisions()">(<span translate="audit.view_all">View All</span>)</a>
+      </span>
+    </li>
+  </ul>
+</div>

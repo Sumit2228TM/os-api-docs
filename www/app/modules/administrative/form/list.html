@@ -1,0 +1,145 @@
+
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3>
+        <span translate="form.list">Forms</span>
+      </h3>
+    </div>
+    <div class="os-page-header-actions">
+      <os-list-pager opts="pagerOpts"></os-list-pager>
+    </div>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left">
+      <div ng-if="!ctx.checkList.anySelected">
+        <div ng-include="'modules/administrative/form/single-form-ops.html'"></div>
+      </div>
+
+      <div ng-if="ctx.checkList.anySelected">
+        <div ng-include="'modules/administrative/form/bulk-form-ops.html'"></div>
+      </div>
+    </div>
+    <div class="right">
+      <button class="default" os-right-drawer-toggle title="{{'form.tooltip.search' | translate}}">
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="alert alert-info os-lean-box" ng-show="ctx.checkList.count > 0">
+      <span> {{'common.items_selected_info' | translate: ctx.checkList}} </span>
+    </div>
+
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th class="col os-click-esc">
+            <div class="os-select-specimen-cb">
+              <os-checkbox ng-change="ctx.checkList.toggleSelectAll()" ng-model="ctx.checkList.allSelected">
+              </os-checkbox>
+            </div>
+          </th>
+          <th class="col">
+            <span translate="form.name">Form Name</span>
+          </th>
+          <th class="col">
+            <span translate="form.created_by">Created By</span>
+          </th>
+          <th class="col">
+            <span translate="form.last_updated">Last Updated</span>
+          </th>
+          <th class="col">
+            <span translate="form.associations">Associations</span>
+          </th>
+          <th class="col">
+            <span>&nbsp;</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-if="ctx.emptyState.empty || ctx.emptyState.loading">
+          <td class="col" colspan="100%">
+            <os-empty-list state="ctx.emptyState"></os-empty-list>
+          </td>
+        </tr>
+
+        <tr class="row" ng-repeat="form in formsList" os-row-click="openForm(form)">
+          <td class="col os-click-esc">
+            <div class="os-select-specimen-cb">
+              <os-checkbox ng-change="ctx.checkList.toggleSelectItem($index)"
+                ng-model="ctx.checkList.items[$index].selected">
+              </os-checkbox>
+            </div>
+          </td>
+          <td class="col">
+            <a ui-sref="form-addedit({formId: form.formId})" title="{{'form.tooltip.edit' | translate}}">
+              <span>{{form.caption}}</span>
+            </a>
+          </td>
+          <td class="col">
+            <span>{{form.createdBy | osUserDisplayName}}</span>
+          </td>
+          <td class="col" ng-if="form.modificationTime">
+            <span>{{form.modificationTime | date:global.dateFmt}}</span>
+          </td>
+          <td class="col" ng-if="!form.modificationTime">
+            <span>{{form.creationTime |  date:global.dateFmt}}</span>
+          </td>
+          <td class="col">
+            <span>{{form.associations}}</span>
+          </td>
+          <td class="col os-click-esc">
+            <div class="btn-group btn-group-xs">
+              <button type="button" class="btn btn-default" ng-click="downloadForm(form)"
+                os-tooltip="{{'form.tooltip.download_xml' | translate}}" placement="bottom">
+                <span class="fa fa-download"></span>
+              </button>
+              <button type="button" class="btn btn-default" ng-click="showFormContexts(form)"
+                os-tooltip="{{'form.tooltip.attach_form_to_cp' | translate}}" placement="bottom">
+                <span class="fa fa-wrench"></span>
+              </button>
+              <button type="button" class="btn btn-default" ng-click="showRevisions(form)"
+                os-tooltip="{{'form.tooltip.revisions' | translate}}" placement="bottom">
+                <span class="fa fa-history"></span>
+              </button>
+              <button type="button" class="btn btn-default" ng-click="confirmFormDeletion(form)"
+                os-tooltip="{{'form.tooltip.delete' | translate}}" placement="bottom">
+                <span class="fa fa-trash-o"></span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div os-right-drawer ng-include="'modules/administrative/form/search.html'"></div>
+
+</div>
+
+<script type="text/ng-template" id="modules/administrative/form/single-form-ops.html">
+  <div>
+    <button class="default" title="{{'form.tooltip.add' | translate}}" ui-sref="form-addedit({formId: ''})">
+      <span class="fa fa-plus"></span>
+      <span translate="common.buttons.create">Create</span>
+    </button>
+    <button class="default" title="{{'form.tooltip.import_zip' | translate}}" ui-sref="form-import">
+      <span class="fa fa-upload"></span>
+      <span translate="common.buttons.import">Import</span>
+    </button>
+    <os-help class="os-btns btn default" link="form_help_link"></os-help>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/administrative/form/bulk-form-ops.html">
+  <div>
+    <button class="default" title="{{'form.tooltip.delete_forms' | translate}}" ng-click="deleteForms()">
+      <span class="fa fa-trash"></span>
+      <span translate="common.buttons.delete">Delete</span>
+    </button>
+  </div>
+</script>

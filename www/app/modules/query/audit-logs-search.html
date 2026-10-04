@@ -1,0 +1,24 @@
+<div class="os-search">
+  <div class="os-head">
+    <h3 class="os-title">
+      <span translate="queries.audit_logs.filter">Audit Logs Filter</span>
+    </h3>
+  </div>
+
+  <div class="os-body">
+    <div class="form-group">
+      <input os-md-input type="text" ng-model="ctx.filterOpts.query" class="form-control"
+        placeholder="{{'queries.filter.id_or_title' | translate}}">
+    </div>
+
+    <div class="form-group">
+      <div os-md-input ng-model="ctx.filterOpts.userId" placeholder="{{'queries.users' | translate}}">
+        <os-users ng-model="ctx.filterOpts.userId" include-archived
+          placeholder="{{'queries.users' | translate}}" select-prop="id">
+        </os-users>
+      </div>
+    </div>
+
+    <os-clear-filters opts="ctx.filterOpts"></os-clear-filters>
+  </div>
+</div>

@@ -1,0 +1,9 @@
+<div class="os-headless-view">
+  <div class="os-alert-container" ng-class="{'show': alerts.length > 0}">
+    <alert type="{{alert.type}}" ng-repeat="alert in alerts" close="alert.close()">
+      <span ng-bind-html="alert.text"></span>
+    </alert>
+  </div>
+
+  <div ui-view></div>
+</div>

@@ -1,0 +1,49 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<object-schema>
+  <name>containerSpecimen</name>
+
+  <record>
+    <name>com.krishagni.catissueplus.core.biospecimen.events.ContainerSpecimenDetail</name>
+
+    <record>
+      <caption>#getMessage("specimen_location")</caption>
+      <attribute>location</attribute>
+
+      <field>
+        <caption>#getMessage("specimen_location_container_name")</caption>
+        <attribute>name</attribute>
+      </field>
+
+      <field>
+        <caption>#getMessage("specimen_location_container_barcode")</caption>
+        <attribute>barcode</attribute>
+      </field>
+
+      <field>
+        <caption>#getMessage("specimen_location_row")</caption>
+        <attribute>positionY</attribute>
+      </field>
+
+      <field>
+        <caption>#getMessage("specimen_location_column")</caption>
+        <attribute>positionX</attribute>
+      </field>
+
+      <field>
+        <caption>#getMessage("specimen_location_position")</caption>
+        <attribute>position</attribute>
+      </field>
+    </record>
+
+    <record>
+      <caption>#getMessage("specimen")</caption>
+      <attribute>specimen</attribute>
+
+      <field>
+        <caption>#getMessage("specimen_barcode")</caption>
+        <attribute>barcode</attribute>
+      </field>
+    </record>
+  </record>
+</object-schema>

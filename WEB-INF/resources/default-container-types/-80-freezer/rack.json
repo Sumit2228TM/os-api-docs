@@ -1,0 +1,15 @@
+{
+  "name": "-80 Rack",
+  "nameFormat": "%PCONT_NAME%.R%PCONT_UID%",
+  "noOfColumns": 1,
+  "noOfRows": 5,
+  "positionLabelingMode": "TWO_D",
+  "columnLabelingScheme": "Numbers",
+  "rowLabelingScheme": "Numbers",
+  "temperature": -80,
+  "storeSpecimenEnabled": false,
+  "activityStatus": "Active",
+  "canHold": {
+    "name": "-80 Drawer"
+  }
+}

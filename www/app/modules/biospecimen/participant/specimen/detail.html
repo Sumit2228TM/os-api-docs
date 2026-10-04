@@ -1,0 +1,97 @@
+<div> 
+  <div os-page-header>
+    <div class="os-page-header-content" ng-switch on="!!fieldsCtx.headers.specimen.breadcrumb">
+      <os-html-template ng-switch-when="true" template="fieldsCtx.headers.specimen.breadcrumb"></os-html-template>
+
+      <ul ng-switch-when="false" os-breadcrumbs>
+        <li> 
+          <a ui-sref="cp-list-view({cpId: cpr.cpId})">
+            {{cpr.cpShortTitle}}
+          </a> 
+        </li>
+        <li ng-if="!cp.specimenCentric">
+          <a ui-sref="participant-detail.overview({cprId: cpr.id})">
+            <span>{{cpr.ppid}}</span>
+          </a>
+        </li>
+        <li ng-if="!cp.specimenCentric">
+          <a ui-sref="visit-detail.overview({visitId: visit.id, eventId: visit.eventId})">
+            <os-event-desc event-point="visit.eventPoint" event-point-unit="visit.eventPointUnit"
+              event-label="visit.eventLabel"></os-event-desc>
+          </a>
+        </li>
+      </ul>
+  
+      <h3>
+        <div ng-switch on="!!fieldsCtx.headers.specimen.leftTitle">
+          <div ng-switch-when="true">
+            <os-html-template template="fieldsCtx.headers.specimen.leftTitle"></os-html-template>
+            <span class="btn" ng-class="statusCss.css">{{specimen.availabilityStatus || 'Pending'}}</span>
+            <span class="btn os-status-pooled" ng-if="specimen.specimensPool.length > 0">
+              <span translate="specimens.pooled">Pooled</span>
+            </span>
+            <span class="btn os-status-closed" ng-if="specimen.checkoutPosition">
+              <span translate="specimens.checked_out">Checked Out</span>
+            </span>
+          </div>
+          <div ng-switch-when="false" ng-switch on="!!specimen.label">
+            <span ng-switch-when="true">{{specimen.label}}</span>
+            <span ng-switch-default>{{specimen.type}} ({{specimen.specimenClass}})</span>
+            <span class="btn" ng-class="statusCss.css">{{specimen.availabilityStatus || 'Pending'}}</span>
+            <span class="btn os-status-pooled" ng-if="specimen.specimensPool.length > 0">
+              <span translate="specimens.pooled">Pooled</span>
+            </span>
+            <span class="btn os-status-closed" ng-if="specimen.checkoutPosition">
+              <span translate="specimens.checked_out">Checked Out</span>
+            </span>
+          </div>
+        </div>
+      </h3>
+    </div>
+
+    <div class="os-page-header-actions">
+      <h3 ng-if="!!fieldsCtx.headers.specimen.rightTitle">
+        <os-html-template template="fieldsCtx.headers.specimen.rightTitle"></os-html-template>
+      </h3>
+    </div>
+  </div>
+
+  <div os-side-menu>
+    <ul>
+      <li ui-sref-active="active">
+        <a ui-sref=".overview"> 
+          <i class="fa fa-eye"></i>
+          <span class="os-title" translate="specimens.menu.overview">Overview</span>
+        </a>
+      </li>
+      <li ui-sref-active="active" ng-if="!!specimen.id">
+        <a ui-sref=".extensions.list">
+          <i class="fa fa-files-o"></i>
+          <span class="os-title" translate="specimens.menu.extensions">Forms</span>
+        </a>
+      </li>
+      <li ui-sref-active="active" ng-if="!!specimen.id && notCoordinatOrStoreAllowed">
+        <a ui-sref=".events">
+          <i class="fa fa-calendar-o"></i>
+          <span class="os-title">Events</span>
+        </a>
+      </li>
+      <li ng-click="toggleTree()">
+        <a>
+          <span class="fa fa-sitemap"></span>
+          <span class="os-title" translate="participant.menu.specimen_tree">Specimen Tree</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="os-side-menu-page-content os-no-right-padding clearfix">
+    <div ng-if="rootCtx.showTree" class="os-col-25 os-full-height-container os-no-padding">
+      <div class="os-full-height-container" ng-include src="'modules/biospecimen/participant/specimens-drawer.html'"></div>
+    </div>
+    <div class="os-specimen-tree-pane" ng-class="{'os-col-75': !!rootCtx.showTree}">
+      <div ui-view></div>
+    </div>
+  </div>
+</div>
+

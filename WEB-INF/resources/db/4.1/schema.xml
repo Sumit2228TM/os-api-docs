@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Update CPR extension records view to include participant level form records">
+    <createView viewName="CPR_EXTENSION_RECORDS_VIEW" replaceIfExists="true">
+      select
+        re.object_id as cpr_id, re.record_id as record_id, fc.container_id as form_id
+      from
+        catissue_form_record_entry re
+        inner join catissue_form_context fc on re.form_ctxt_id = fc.identifier
+      where
+        fc.entity_type = 'Participant' and
+        fc.deleted_on is null and
+        re.activity_status = 'ACTIVE'
+
+      union all
+
+      select
+        cpr.identifier as cpr_id, re.record_id as record_id, fc.container_id as form_id
+      from
+        catissue_form_record_entry re
+        inner join catissue_form_context fc on re.form_ctxt_id = fc.identifier
+        inner join catissue_coll_prot_reg cpr on cpr.participant_id = re.object_id
+      where
+        fc.entity_type = 'CommonParticipant' and
+        fc.deleted_on is null and
+        re.activity_status = 'ACTIVE'
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Export jobs">
+    <createTable tableName="OS_EXPORT_JOBS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="NAME" type="${text.type}(32)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="STATUS" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="TOTAL_RECORDS" type="${int.type}"/>
+      <column name="CREATED_BY" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CREATION_TIME" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="END_TIME" type="${nullable.ts.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Export jobs identifier sequence" dbms="oracle">
+    <createSequence sequenceName="OS_EXPORT_JOBS_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on export job user">
+    <addForeignKeyConstraint constraintName="FK_EXPORT_JOBS_USER"
+      baseTableName="OS_EXPORT_JOBS" baseColumnNames="CREATED_BY"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+  
+  <changeSet author="vpawar" id="Export job params">
+    <createTable tableName="OS_EXPORT_JOB_PARAMS">
+      <column name="JOB_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="PARAM" type="${text.type}(32)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="VALUE" type="${text.type}(64)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key export job params job ID">
+    <addForeignKeyConstraint constraintName="FK_EXPORT_JOBS_PARAMS_JOB_ID"
+      baseTableName="OS_EXPORT_JOB_PARAMS" baseColumnNames="JOB_ID"
+      referencedTableName="OS_EXPORT_JOBS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Increase width of clinical diagnosis">
+    <modifyDataType tableName="CATISSUE_COLL_PROT_EVENT" columnName="CLINICAL_DIAGNOSIS" newDataType="${text.type}(255)" />
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="Table to maintain DPs allowed for particular CP">
+    <createTable tableName="OS_CP_ALLOWED_DPS">
+      <column name="CP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="DP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="FK on CP in CP allowed DPs">
+    <addForeignKeyConstraint constraintName="OS_FK_CP_ALLOWED_DPS_CP_ID"
+      baseTableName="OS_CP_ALLOWED_DPS" baseColumnNames="CP_ID"
+      referencedTableName="CATISSUE_COLLECTION_PROTOCOL" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="FK on DP in CP allowed DPs">
+    <addForeignKeyConstraint constraintName="OS_FK_CP_ALLOWED_DPS_DP_ID"
+      baseTableName="OS_CP_ALLOWED_DPS" baseColumnNames="DP_ID"
+      referencedTableName="CATISSUE_DISTRIBUTION_PROTOCOL" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="Make CP - DP link mapping unique">
+    <addUniqueConstraint
+      constraintName="OS_CP_DP_UQ"
+      tableName="OS_CP_ALLOWED_DPS"
+      columnNames="CP_ID, DP_ID"/>
+  </changeSet>
+</databaseChangeLog>

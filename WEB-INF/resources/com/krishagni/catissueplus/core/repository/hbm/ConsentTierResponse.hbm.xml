@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.ConsentTierResponse" table="CATISSUE_CONSENT_TIER_RESPONSE"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.ConsentTierResponse">
+
+    <id name="id" column="IDENTIFIER" type="long">
+      <generator class="native">
+        <param name="sequence">CATISSUE_CONSENT_TIER_RES_SEQ</param>
+      </generator>
+    </id>
+
+    <many-to-one name="response" column="RESPONSE_ID" lazy="false" fetch="join"/>
+
+    <many-to-one name="consentTier" column="CONSENT_TIER_ID" lazy="false" fetch="join"/>
+
+    <many-to-one name="cpr" column="COLL_PROT_REG_ID"/>
+  </class>
+</hibernate-mapping>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Config setting to specify visits lookup workflow">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'visits_lookup_flow',
+        'visits_lookup_flow', 'visits_lookup_flow_desc',
+        'STRING', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Settings to specify system level custom fields for order">
+    <sql>
+      call add_cfg_prop(
+        'administrative', 'order_custom_fields_form',
+        'order_custom_fields_form', 'order_custom_fields_form_desc',
+        'INT', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Settings to specify system level specimen barcode format">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'specimen_barcode_format',
+        'specimen_barcode_format', 'specimen_barcode_format_desc',
+        'STRING', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Settings to specify system level aliquot label format">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'aliquot_label_format',
+        'aliquot_label_format', 'aliquot_label_format_desc',
+        'STRING', '%PSPEC_LABEL%_%PSPEC_UID%'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update the data type of UID mandatory setting from string to boolean">
+    <sql>update os_cfg_props set data_type = 'BOOLEAN' where name = 'uid_mandatory'</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Training link for query results view">
+    <sql>
+      call add_cfg_prop(
+        'training', 'query_results_help_link',
+        'query_results_help_link', 'query_results_help_link_desc',
+        'STRING', 'http://help.openspecimen.org/query-results'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to specify whether to enforce mandatory aliquot quantity constraint">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'mandatory_aliquot_qty',
+        'mandatory_aliquot_qty', 'mandatory_aliquot_qty_desc',
+        'BOOLEAN', 'true'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to enable or disable downloading of print data integration file">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'download_labels_print_file',
+        'download_labels_print_file', 'download_labels_print_file_desc',
+        'BOOLEAN', 'false'
+      );
+    </sql>
+  </changeSet>
+</databaseChangeLog>

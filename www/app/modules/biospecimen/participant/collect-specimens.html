@@ -1,0 +1,11 @@
+<div>
+  <div ng-include="'modules/biospecimen/participant/collect-specimens-header.html'" os-replace-with-children></div>
+
+  <div class="container">
+    <os-collect-specimens cp="cp" cpr="cpr" visit="visit" latest-visit="latestVisit" cp-dict="cpDict"
+      spmn-coll-fields="spmnCollFields" barcoding-enabled="barcodingEnabled"
+      spmn-barcodes-auto-gen="spmnBarcodesAutoGen" mrn-access-restriction="mrnAccessRestriction"
+      on-save="onSave(visit, collectedSpecimens)">
+    </os-collect-specimens>
+  </div>
+</div>

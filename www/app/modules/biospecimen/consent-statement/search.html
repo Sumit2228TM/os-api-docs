@@ -1,0 +1,20 @@
+<div class="os-search">
+  <div class="os-head">
+    <h3 class="os-title">
+      <span translate="consent_statement.filter.title">Filters</span>
+    </h3>
+  </div>
+
+  <div class="os-body">
+    <div class="form-group">
+      <input os-md-input type="text" ng-model="ctx.filterOpts.code" class="form-control"
+        placeholder="{{'consent_statement.code' | translate}}">
+    </div>
+    <div class="form-group">
+      <input os-md-input type="text" ng-model="ctx.filterOpts.statement" class="form-control"
+        placeholder="{{'consent_statement.statement' | translate}}">
+    </div>
+
+    <os-clear-filters opts="ctx.filterOpts"></os-clear-filters>
+  </div>
+</div>

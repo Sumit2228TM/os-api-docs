@@ -1,0 +1,197 @@
+<template>
+  <os-page>
+    <os-page-head :showBreadcrumb="true">
+      <template #breadcrumb>
+        <os-breadcrumb :items="bcrumb" />
+      </template>
+
+      <span class="os-title">
+        <h3>
+          <os-dynamic-template v-if="ctx.header.leftTitle" :template="ctx.header.leftTitle"
+            :cp="ctx.cp" :cpr="cpr" :visit="visit" :specimen="specimen" :hasPhiAccess="hasPhiAccess" />
+
+          <span v-else>{{specimen.label || specimen.type}}</span>
+        </h3>
+
+        <div class="accessories">
+          <os-tag :value="status" :rounded="true" :type="statusType" />
+
+          <os-tag class="os-pooled-specimen" :value="$t('specimens.pooled')" :rounded="true"
+            v-if="specimen.specimensPool && specimen.specimensPool.length > 0"/>
+
+          <os-tag :value="$t('specimens.checked_out')" :rounded="true" :type="'danger'" v-if="specimen.checkedOut" />
+
+          <os-copy-link size="small" :route="{
+            name: 'ParticipantsListItemSpecimenDetail.Overview',
+            params: {cpId: ctx.cp.id, cprId: cpr.id, visitId: visit.id, specimenId: specimen.id},
+            query: {eventId: visit.eventId, srId: specimen.reqId}}" />
+        </div>
+      </span>
+
+      <template #right v-if="ctx.header.rightTitle">
+        <h3>
+          <os-dynamic-template :template="ctx.header.rightTitle" :cp="ctx.cp" :cpr="cpr" :visit="visit"
+            :specimen="specimen" :hasPhiAccess="hasPhiAccess" />
+        </h3>
+      </template>
+    </os-page-head>
+    <os-page-body>
+      <div>
+        <os-side-menu>
+          <ul>
+            <li>
+              <router-link :to="getRoute('Overview')">
+                <os-icon name="eye" />
+                <span class="label" v-t="'common.overview'">Overview</span>
+              </router-link>
+            </li>
+
+            <li v-if="specimen.id > 0">
+              <router-link :to="getRoute('Forms')">
+                <os-icon name="file-alt" />
+                <span class="label" v-t="'common.forms'">Forms</span>
+              </router-link>
+            </li>
+
+            <li v-if="specimen.id > 0">
+              <router-link :to="getRoute('Services')">
+                <os-icon name="tasks" />
+                <span class="label" v-t="'cps.services'">Services</span>
+              </router-link>
+            </li>
+
+            <os-plugin-views page="specimen-detail" view="tab-menu" />
+          </ul>
+        </os-side-menu>
+
+        <router-view :cpr="cpr" :visit="visit" :specimen="specimen"
+          v-if="specimen && (specimen.id > 0 || specimen.reqId > 0)" />
+      </div>
+    </os-page-body>
+  </os-page>
+</template>
+
+<script>
+
+import authSvc   from '@/common/services/Authorization.js';
+import cpSvc     from '@/biospecimen/services/CollectionProtocol.js';
+import routerSvc from '@/common/services/Router.js';
+
+export default {
+  props: ['cpr', 'visit', 'specimen', 'noNavButton'],
+
+  inject: ['cpViewCtx'],
+
+  data() {
+    const cp = this.cpViewCtx.getCp();
+    return { ctx: { cp, header: { } } };
+  },
+
+  created() {
+    const route = this.$route.matched[this.$route.matched.length - 1];
+    this.detailRouteName = route.name.split('.')[0];
+    this.query = {};
+    if (this.$route.query) {
+      const {filters, view} = this.$route.query;
+      Object.assign(this.query, {filters, view});
+    }
+
+    cpSvc.getWorkflowProperty(this.ctx.cp.id, 'common', 'specimenHeader').then(
+      header => {
+        if (header) {
+          this.ctx.header = header;
+        }
+      }
+    );
+  },
+
+  computed: {
+    bcrumb: function() {
+      const cp = this.ctx.cp;
+      const {query} = routerSvc.getCurrentRoute();
+      const {cpId, cprId, visitId, eventId, parentId, parentLabel} = this.specimen;
+      const parentSpmnUrl = [];
+      if (parentId > 0) {
+        parentSpmnUrl.push({
+          url: routerSvc.getUrl(
+            'ParticipantsListItemSpecimenDetail.Overview',
+            {cpId, cprId, visitId, specimenId: parentId},
+            Object.assign({eventId}, query || {})
+          ),
+          label: parentLabel
+        });
+      }
+
+      if (cp.specimenCentric) {
+        return [
+          {
+            url: routerSvc.getUrl('ParticipantsList', {cpId, cprId: -1}, {view: 'specimens_list'}),
+            label: cp.shortTitle
+          },
+
+          ...parentSpmnUrl
+        ];
+      }
+
+      return [
+        {
+          url: routerSvc.getUrl('ParticipantsList', {cpId, cprId: -1}),
+          label: cp.shortTitle
+        },
+        {
+          url: routerSvc.getUrl('ParticipantsListItemDetail.Overview', {cpId, cprId}),
+          label: this.cpr.ppid
+        },
+        {
+          url: routerSvc.getUrl('ParticipantsListItemVisitDetail.Overview', {cpId, cprId, visitId}, {eventId}),
+          label: cpSvc.getEventDescription(this.visit)
+        },
+        ...parentSpmnUrl
+      ];
+    },
+
+    status: function() {
+      return this.specimen.availabilityStatus || 'Pending';
+    },
+
+    statusType: function() {
+      switch(this.status) {
+        case 'Available':
+          return 'success';
+        case 'Distributed':
+          return 'distributed';
+        case 'Reserved':
+          return 'reserved';
+        case 'Closed':
+          return 'danger';
+        case 'Missed Collection':
+        case 'Not Collected':
+          return 'missed';
+        case 'Pending':
+        default:
+          return 'warning';
+      }
+    },
+
+    hasPhiAccess: function() {
+      return authSvc.isAllowed({resources: ['ParticipantPhi'], cp: this.ctx.cp.shortTitle, operations: ['Read']});
+    }
+  },
+
+  methods: {
+    getRoute: function(routeName, params, query) {
+      return {
+        name: this.detailRouteName + '.' + routeName,
+        params: params,
+        query: {...this.query, query}
+      }
+    }
+  }
+}
+</script>
+
+<style scoped>
+.os-pooled-specimen :deep(.p-tag) {
+  background: #ff69b4;
+}
+</style>

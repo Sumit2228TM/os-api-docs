@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Label sequence key">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="LABEL_SEQ_KEY" type="${text.type}(32)"/>
+      <column name="labelSequenceKey_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit table for roles">
+    <createTable tableName="RBAC_ROLES_AUD">
+      <column name="IDENTIFIER" type="${int.type}"/>
+      <column name="REV" type="${int.type}"/>
+      <column name="REVTYPE" type="${smallint.type}"/>
+      <column name="NAME" type="${text.type}(64)"/>
+      <column name="name_MOD" type="${boolean.type}"/>
+      <column name="DESCRIPTION" type="${text.type}(255)"/>
+      <column name="description_MOD" type="${boolean.type}"/>
+      <column name="acl_MOD" type="${boolean.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit table for role access list">
+    <createTable tableName="RBAC_ROLE_ACCESS_LIST_AUD">
+      <column name="IDENTIFIER" type="${int.type}"/>
+      <column name="REV" type="${int.type}"/>
+      <column name="REVTYPE" type="${smallint.type}"/>
+      <column name="ROLE_ID" type="${int.type}"/>
+      <column name="role_MOD" type="${boolean.type}"/>
+      <column name="RESOURCE_ID" type="${int.type}"/>
+      <column name="resource_MOD" type="${boolean.type}"/>
+      <column name="operations_MOD" type="${boolean.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit table for role access list ops">
+    <createTable tableName="RBAC_ROLE_ACCESS_LIST_OPS_AUD">
+      <column name="IDENTIFIER" type="${int.type}"/>
+      <column name="REV" type="${int.type}"/>
+      <column name="REVTYPE" type="${smallint.type}"/>
+      <column name="OPERATION_ID" type="${int.type}"/>
+      <column name="operation_MOD" type="${boolean.type}"/>
+      <column name="ACL_ID" type="${int.type}"/>
+      <column name="accessControl_MOD" type="${boolean.type}"/>
+    </createTable>
+  </changeSet>
+  
+  <changeSet author="vpawar" id="Audit table for subject/user roles">
+    <createTable tableName="RBAC_SUBJECT_ROLES_AUD">
+      <column name="IDENTIFIER" type="${int.type}"/>
+      <column name="REV" type="${int.type}"/>
+      <column name="REVTYPE" type="${smallint.type}"/>
+      <column name="SUBJECT_ID" type="${int.type}"/>
+      <column name="subject_MOD" type="${boolean.type}"/>
+      <column name="ROLE_ID" type="${int.type}"/>
+      <column name="role_MOD" type="${boolean.type}"/>
+      <column name="SITE_ID" type="${int.type}"/>
+      <column name="site_MOD" type="${boolean.type}"/>
+      <column name="CP_ID" type="${int.type}"/>
+      <column name="collectionProtocol_MOD" type="${boolean.type}"/>
+      <column name="SYSTEM_ROLE" type="${boolean.type}"/>
+      <column name="systemRole_MOD" type="${boolean.type}"/>
+    </createTable>
+  </changeSet>
+</databaseChangeLog>

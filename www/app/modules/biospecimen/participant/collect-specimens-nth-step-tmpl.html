@@ -1,0 +1,56 @@
+<div>
+  <form name="collectionForm" os-form-validator="collectionForm" novalidate ng-if="customFieldGroups.length > 0">
+    <div ng-if="customFieldGroups[0].visitFields">
+      <sde-form-fields name="visit" table="customFieldGroups[0].multiple" opts="customFieldGroups[0].opts"
+        base-fields="customFieldGroups[0].baseFields" fields="customFieldGroups[0].fields"
+        obj="customFieldGroups[0].input" opts="opts">
+      </sde-form-fields>
+    </div>
+    <div ng-repeat="group in customFieldGroups" ng-if="!group.noMatch && !group.visitFields">
+      <div class="panel panel-default" ng-show="group.input.length > 0 && !group.hideTable">
+        <div class="panel-heading">
+          <span>{{group.title}}</span>
+          <a class="btn btn-xs btn-default" ng-click="group.opts.cofrc = !group.opts.cofrc"
+            ng-if="group.opts.enableCofrc">
+            <span ng-if="group.opts.cofrc">
+              <span class="fa fa-plus"></span>
+              <span translate="common.show_all">Show all rows</span>
+              <span>({{group.input.length}})</span>
+            </span>
+            <span ng-if="!group.opts.cofrc">
+              <span class="fa fa-minus"></span>
+              <span translate="common.show_only_first">Show only first row</span>
+            </span>
+          </a>
+          <a class="btn btn-xs btn-default" ng-click="group.opts.$$sdeFormFields.copyFirstToAll()"
+            ng-if="!group.opts.enableCofrc || !group.opts.cofrc">
+            <span class="fa fa-clone"></span>
+            <span translate="specimens.copy_first_to_all">Copy First To All</span>
+          </a>
+        </div>
+        <div class="panel-body os-scrollable-container-x">
+          <sde-form-fields name="samples" table="group.multiple" opts="group.opts"
+            base-fields="group.baseFields" fields="group.fields" obj="group.input">
+          </sde-form-fields>
+        </div>
+      </div>
+    </div>
+
+    <div class="os-divider"></div>
+
+    <div class="row">
+      <div class="col-xs-10">
+        <button type="submit" class="btn btn-primary" os-form-submit="updateSpecimens()">
+          <span translate="common.buttons.submit"> Submit </span>
+        </button>
+        <button type="submit" class="btn btn-primary" os-form-submit="updateSpecimens(true)"
+          ng-show="showManifestPrint">
+          <span translate="common.buttons.submit_n_print"> Submit & Print </span>
+        </button>
+        <button class="btn os-btn-text" ng-click="cancel()">
+          <span translate="common.buttons.cancel"> Cancel </span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>

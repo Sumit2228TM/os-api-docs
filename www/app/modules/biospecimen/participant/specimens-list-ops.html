@@ -1,0 +1,18 @@
+
+<span ng-if="!listViewCtx.ctrl.listCtrl.checkList || listViewCtx.ctrl.listCtrl.checkList.count == 0">
+  <span ng-include="'modules/biospecimen/participant/primary-button.html'"></span>
+</span>
+
+<os-specimen-ops cp="cp" specimens="listViewCtx.ctrl.getSelectedSpecimens()"
+  init-list="listViewCtx.ctrl.loadSpecimens()" resource-opts="listViewCtx.ctrl.resourceOpts">
+</os-specimen-ops>
+
+<os-assign-to-spmn-list menu-align="left" on-add-to-list="listViewCtx.ctrl.addSpecimensToList(list)">
+</os-assign-to-spmn-list>
+
+<span ng-if="!listViewCtx.ctrl.listCtrl.checkList || listViewCtx.ctrl.listCtrl.checkList.count == 0">
+  <button class="default" ui-sref="participant-list({cpId: cp.id})" ng-if="!cp.specimenCentric">
+    <span class="fa fa-group"></span>
+    <span translate="cp.view_participants">View Participants</span>
+  </button>
+</span>

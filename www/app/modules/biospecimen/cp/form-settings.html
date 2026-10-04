@@ -1,0 +1,42 @@
+<div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <span translate="cp.forms.title">Forms</span>
+    </div>
+    <div class="panel-body">
+      <div class="os-alert-container inline show" ng-show="cpsCtx.cpUpdateAllowed">
+        <div class="alert alert-info">
+          <span translate="cp.forms.help">Drag and drop forms to reorder the forms data entry sequence</span>
+        </div>
+      </div>
+      <div ng-include="'modules/biospecimen/cp/entity-forms'" ng-repeat="entityForms in fctx.forms"></div>
+    </div>
+  </div>
+</div>
+
+<script type="text/ng-template" id="modules/biospecimen/cp/entity-forms">
+  <div class="os-section os-line-section">
+    <strong class="key key-sm">
+      <span>{{'cp.forms.' + entityForms.type | translate}}</span>
+      <span>&nbsp;</span>
+    </strong>
+    <div class="list-group" ng-if="entityForms.forms.length > 0">
+      <div ui-sortable="entityForms.sortOpts" ng-model="entityForms.forms" ng-if="entityForms.display">
+        <div class="list-group-item" ng-repeat="form in entityForms.forms">
+          <span>{{form.caption}}</span>
+        </div>
+      </div>
+      <div class="list-group-item" ng-if="entityForms.modified && cpsCtx.cpUpdateAllowed">
+        <button class="btn btn-primary" ng-click="save(entityForms)">
+          <span translate="common.buttons.save">Save</span>
+        </button>
+        <a class="btn os-btn-text" ng-click="cancel(entityForms)">
+          <span translate="common.buttons.cancel">Cancel</span>
+        </a>
+      </div>
+    </div>
+    <div class="value value-md" ng-if="!entityForms.forms">
+      <span translate="cp.forms.none">No forms</span>
+    </div>
+  </div>
+</script>

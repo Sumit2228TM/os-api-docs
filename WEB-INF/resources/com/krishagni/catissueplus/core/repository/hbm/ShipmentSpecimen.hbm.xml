@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.ShipmentSpecimen" table="OS_SHIPMENT_SPECIMENS"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.ShipmentSpecimen">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_SHIPMENT_ITEMS_SEQ</param>
+      </generator>
+    </id>
+  
+    <many-to-one name="shipment" column="SHIPMENT_ID"/>
+      
+    <many-to-one name="specimen" column="SPECIMEN_ID"/>
+
+    <many-to-one name="shipmentContainer" column="SHIPMENT_CONTAINER_ID"/>
+
+    <many-to-one name="receivedQuality" column="RECEIVED_QUALITY_ID" lazy="false" fetch="join"/>
+  </class>
+</hibernate-mapping>

@@ -1,0 +1,37 @@
+<div> 
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li>
+          <a ui-sref="shipment-list" translate="shipments.list">Shipments</a>
+        </li>
+      </ul>
+      <h3>{{shipment.name}}</h3>
+    </div>
+  </div>
+
+  <div os-side-menu>
+    <ul>
+      <li ui-sref-active="active">
+        <a ui-sref="shipment-detail.overview"> 
+          <span class="fa fa-eye"></span>
+          <span class="os-title" translate="shipments.menu.overview">Overview</span>
+        </a>
+      </li>
+      <li ui-sref-active="active" ng-if="shipment.type == 'CONTAINER'">
+        <a ui-sref="shipment-detail.containers">
+          <span class="fa fa-dropbox"></span>
+          <span class="os-title" translate="shipments.menu.containers">Containers</span>
+        </a>
+      </li>
+      <li ui-sref-active="active" ng-if="shipment.type == 'SPECIMEN' || shipment.status != 'Pending'">
+        <a ui-sref="shipment-detail.specimens">
+          <span class="fa fa-flask"></span>
+          <span class="os-title" translate="shipments.menu.specimens">Specimens</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+  
+  <div class="os-side-menu-page-content" ui-view></div>
+</div>

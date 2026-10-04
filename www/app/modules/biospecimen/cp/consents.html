@@ -1,0 +1,79 @@
+<div>
+  <div class="clearfix">
+    <div class="col-xs-8">
+      <div ng-switch="consentCtx.allowEdit">
+        <div ng-switch-when="true">
+          <ul class="os-key-values os-one-col">
+            <li class="item" ng-hide="(!!consentCtx.tiers && consentCtx.tiers.length > 0) ||
+                                       consentCtx.hasDocs || cp.consentsSource">
+              <strong class="key key-sm" translate="cp.consents_waived">Consents Waived</strong>
+              <div class="value value-md">
+                <div class="btn-group btn-group-xs">
+                  <button class="btn btn-default" ng-model="cp.consentsWaived"
+                    btn-checkbox btn-checkbox-true="true" btn-checkbox-false="false"
+                    ng-change="updateConsentsWaived()">
+                    <span translate="common.yes">Yes</span>
+                  </button>
+                  <button class="btn btn-default" ng-model="cp.consentsWaived"
+                    btn-checkbox btn-checkbox-true="false" btn-checkbox-false="true"
+                    ng-change="updateConsentsWaived()">
+                    <span translate="common.no">No</span>
+                  </button>
+                </div>
+              </div>
+            </li>
+
+            <li class="item" ng-hide="cp.consentsWaived || (!cp.consentsSource && consentCtx.tiers.length > 0) ||
+                                       (!cp.consentsSource && consentCtx.hasDocs)">
+              <strong class="key key-sm" translate="cp.consents_cp">Consents CP</strong>
+              <div class="value value-md">
+                <span ng-if="cp.consentsSource.id > 0">
+                  <a style="margin-right: 5px;" ui-sref="cp-detail.consents({cpId: cp.consentsSource.id})">
+                    <span>{{cp.consentsSource.shortTitle}}</span>
+                  </a>
+                  <div class="btn-group btn-group-xs">
+                    <button class="btn btn-default btn-xs" ng-click="showSelectConsentsCp()">
+                      <span class="fa fa-pencil"></span>
+                    </button>
+                    <button class="btn btn-default btn-xs" ng-click="resetConsentsCp()">
+                      <span class="fa fa-times"></span>
+                    </button>
+                  </div>
+                </span>
+                <button class="btn btn-default btn-xs" ng-if="!cp.consentsSource" ng-click="showSelectConsentsCp()">
+                  <span class="fa fa-gear"></span>
+                  <span translate="common.buttons.set">Set</span>
+                </button>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div ng-switch-default>
+          <div ng-if="cp.consentsWaived">
+            <span translate="cp.consents_are_waived">Consents are waived</span>
+          </div>
+
+          <div ng-if="!cp.consentsWaived && consents.tiers.length == 0">
+            <span translate="cp.no_consents">No consents to show</span>
+          </div>
+        </div>
+      </div>
+
+      <div ng-if="!consentCtx.hasEc">
+        <os-editable-item-list
+          items="consentCtx.tiers" item-pvs="consentCtx.stmts" text-attr="displayValue"
+          list-changed="listChanged" allow-edit="consentCtx.allowEdit && !cp.consentsSource" refresh="loadConsentStmts"
+          add-caption="{{'cp.add_consent_tier' | translate}}" list-title="{{'cp.consent_tiers' | translate}}"
+          ng-if="!cp.consentsWaived && (consentCtx.allowEdit || consentCtx.tiers.length > 0)">
+        </os-editable-item-list>
+      </div>
+    </div>
+  </div>
+
+  <div class="clearfix">
+    <div class="col-xs-12">
+      <os-plugin-hooks view-name="'cp-consents'" sec-name="'body'"></os-plugin-hooks>
+    </div>
+  </div>
+</div>

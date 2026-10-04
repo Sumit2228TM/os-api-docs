@@ -1,0 +1,5 @@
+"IDENTIFIER","CONCEPT_CODE","DEFINITION","value","PUBLIC_ID"
+"getNextPvId()","","","Not Hispanic or Latino","Ethnicity_PID"
+"getNextPvId()","","","Hispanic or Latino","Ethnicity_PID"
+"getNextPvId()","","","Not Reported","Ethnicity_PID"
+"getNextPvId()","","","Unknown","Ethnicity_PID"

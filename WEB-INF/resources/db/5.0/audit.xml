@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Audit and track changes to DP level order extension form">
+    <addColumn tableName="CAT_DISTRIBUTION_PROTOCOL_AUD">
+      <column name="ORDER_EXTN_FORM_ID" type="${int.type}"/>
+      <column name="orderExtnForm_MOD" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Audit and track changes to CP level specimen barcode format">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="SPECIMEN_BARCODE_FORMAT" type="${text.type}(255)"/>
+      <column name="specimenBarcodeFormat_MOD" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit and track changes to cost of distributed specimen">
+    <addColumn tableName="OS_ORDER_ITEMS_AUD">
+      <column name="COST" type="${double.type}"/>
+      <column name="cost_MOD" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit and track DP specimen requirement costs">
+    <addColumn tableName="OS_DP_REQUIREMENTS_AUD">
+      <column name="COST" type="${double.type}"/>
+      <column name="cost_MOD" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit and track changes in specimen reservation">
+    <addColumn tableName="CATISSUE_SPECIMEN_AUD">
+      <column name="RESERVED_EVENT_ID" type="${int.type}"/>
+      <column name="reservedEvent_MOD" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit and track changes in distribution of reserved specimens">
+    <addColumn tableName="OS_ORDERS_AUD">
+      <column name="SPMNS_RESERVED_FOR_DP" type="${bit.type}"/>
+      <column name="allReservedSpecimens_MOD" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

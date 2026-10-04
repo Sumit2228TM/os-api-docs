@@ -1,0 +1,6 @@
+"IDENTIFIER","CONCEPT_CODE","DEFINITION","value","PUBLIC_ID"
+"getNextPvId()","","","Fair- Definable Tissue Architecture","Hist_Quality"
+"getNextPvId()","","","Not Specified","Hist_Quality"
+"getNextPvId()","","","Good- Definable Cellular Detail","Hist_Quality"
+"getNextPvId()","","","Excellent- Definable Nuclear Detail","Hist_Quality"
+"getNextPvId()","","","Poor- No Definable Features","Hist_Quality"

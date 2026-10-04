@@ -1,0 +1,47 @@
+<div>
+  <div class="os-page-commands">
+    <div class="left">
+      <button class="default" ng-click="downloadReport()">
+        <span class="fa fa-download"></span>
+        <span translate="specimen_kit.buttons.download_report">Download Report</span>
+      </button>
+    </div>
+  </div>
+  <div class="clearfix">
+    <div class="col-xs-8">
+      <ul class="os-key-values os-one-col">
+        <li class="item">
+          <strong class="key key-sm" translate="specimen_kit.sender">Sender</strong>
+          <span class="value value-md">{{kit.sender | osUserDisplayName}}</span>
+        </li>
+
+        <li class="item">
+          <strong class="key key-sm" translate="specimen_kit.sending_date">Sending Date</strong>
+          <span class="value value-md">{{kit.sendingDate | date: global.dateFmt | osNoValue}}</span>
+        </li>
+
+        <li class="item">
+          <strong class="key key-sm" translate="specimen_kit.sending_site">Sending Site</strong>
+          <span class="value value-md">{{kit.sendingSite}}</span>
+        </li>
+
+        <li class="item">
+          <strong class="key key-sm" translate="specimen_kit.collection_site">Collection Site</strong>
+          <span class="value value-md">{{kit.receivingSite}}</span>
+        </li>
+      </ul>
+
+      <div class="os-section os-line-section" ng-if="!!kit.comments">
+        <strong class="key key-sm">
+          <span translate="specimen_kit.comments">Comments</span>
+          <span>&nbsp;</span>
+        </strong>
+        <span class="value value-md">{{kit.comments}}</span>
+      </div>
+    </div>
+
+    <div class="col-xs-4">
+      <os-audit-overview object-name="'specimen_kit'" object-id="kit.id"></os-audit-overview>
+    </div>
+  </div>
+</div>

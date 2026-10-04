@@ -1,0 +1,662 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Set primary specimen ID" dbms="mysql">
+    <sql>
+      update
+        catissue_specimen s
+        inner join catissue_specimen_hierarchy h on h.descendent_id = s.identifier
+        inner join catissue_specimen p on p.identifier = h.ancestor_id and p.parent_specimen_id is null
+      set
+        s.primary_specimen_id = p.identifier
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Set primary specimen ID" dbms="oracle">
+    <sql>
+      merge into
+        catissue_specimen s
+      using (
+        select
+          h.descendent_id, h.ancestor_id
+        from
+          catissue_specimen_hierarchy h
+          inner join catissue_specimen p on p.identifier = h.ancestor_id and p.parent_specimen_id is null
+      ) h on (h.descendent_id = s.identifier)
+      when matched then
+        update set
+          s.primary_specimen_id = h.ancestor_id
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Move specimen collection and received details">
+    <sql>
+      insert into
+        os_spmn_coll_recv_details(
+          primary_specimen_id,
+          collection_container_id,
+          collection_procedure_id,
+          collection_user_id,
+          collection_time,
+          collection_comments,
+          received_quality_id,
+          received_user_id,
+          received_time,
+          received_comments
+        )
+      select
+        s.identifier,
+        s.collection_container_id,
+        s.collection_procedure_id,
+        s.collection_user_id,
+        s.collection_time,
+        s.collection_comments,
+        s.received_quality_id,
+        s.received_user_id,
+        s.received_time,
+        s.received_comments
+      from
+        catissue_specimen s
+      where
+        s.parent_specimen_id is null and
+        s.lineage = 'New'
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop specimen collection and received detail columns">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="CATISSUE_SPECIMEN" columnName="COLLECTION_CONTAINER_ID"/>
+    </preConditions>
+
+    <dropForeignKeyConstraint baseTableName="CATISSUE_SPECIMEN" constraintName="FK_SPECIMEN_CONTAINER_ID"/>
+    <dropForeignKeyConstraint baseTableName="CATISSUE_SPECIMEN" constraintName="FK_SPECIMEN_PROCEDURE_ID"/>
+    <dropForeignKeyConstraint baseTableName="CATISSUE_SPECIMEN" constraintName="FK_SPECIMEN_COLLECTOR_ID"/>
+    <dropForeignKeyConstraint baseTableName="CATISSUE_SPECIMEN" constraintName="FK_SPECIMEN_RECV_QUALITY_ID"/>
+    <dropForeignKeyConstraint baseTableName="CATISSUE_SPECIMEN" constraintName="FK_SPECIMEN_RECEIVER_ID"/>
+
+    <dropColumn tableName="CATISSUE_SPECIMEN" columnName="COLLECTION_CONTAINER_ID"/>
+    <dropColumn tableName="CATISSUE_SPECIMEN" columnName="COLLECTION_PROCEDURE_ID"/>
+    <dropColumn tableName="CATISSUE_SPECIMEN" columnName="COLLECTION_USER_ID"/>
+    <dropColumn tableName="CATISSUE_SPECIMEN" columnName="COLLECTION_TIME"/>
+    <dropColumn tableName="CATISSUE_SPECIMEN" columnName="COLLECTION_COMMENTS"/>
+    <dropColumn tableName="CATISSUE_SPECIMEN" columnName="RECEIVED_QUALITY_ID"/>
+    <dropColumn tableName="CATISSUE_SPECIMEN" columnName="RECEIVED_USER_ID"/>
+    <dropColumn tableName="CATISSUE_SPECIMEN" columnName="RECEIVED_TIME"/>
+    <dropColumn tableName="CATISSUE_SPECIMEN" columnName="RECEIVED_COMMENTS"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Set formatted container position" dbms="mysql">
+    <sql>
+      drop temporary table if exists os_pos_fmt_pos
+    </sql>
+
+    <sql>
+      create temporary table os_pos_fmt_pos as
+      select
+        p.identifier,
+        (
+          case when c.pos_labeling_mode = 'LINEAR' and p.pos_one is not null and p.pos_two is not null
+          then
+            case when c.pos_assignment like 'HZ_%'
+            then
+              concat('', ((p.pos_two - 1) * c.no_of_cols) + p.pos_one)
+            else
+              concat('', ((p.pos_two - 1) * c.no_of_rows) + p.pos_one)
+            end
+          when p.pos_two_str is not null and p.pos_one_str is not null
+          then
+            concat(p.pos_two_str, concat(', ', p.pos_one_str))
+          else
+            null
+          end
+        ) as formatted_position
+      from
+        os_container_positions p
+        inner join os_storage_containers c on c.identifier = p.storage_container_id
+    </sql>
+
+    <sql>
+      update
+        os_container_positions p
+        inner join os_pos_fmt_pos f on f.identifier = p.identifier
+      set
+        p.formatted_position = f.formatted_position
+    </sql>
+
+    <sql>
+      drop temporary table os_pos_fmt_pos
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Set formatted container position" dbms="oracle">
+    <sql>
+      merge into
+        os_container_positions p
+      using
+        os_storage_containers c
+      on
+        (c.identifier = p.storage_container_id)
+      when matched then
+        update set
+          p.formatted_position =
+            case when c.pos_labeling_mode = 'LINEAR' and p.pos_one is not null and p.pos_two is not null
+            then
+              case when c.pos_assignment like 'HZ_%'
+              then
+                concat('', ((p.pos_two - 1) * c.no_of_cols) + p.pos_one)
+              else
+                concat('', ((p.pos_two - 1) * c.no_of_rows) + p.pos_one)
+              end
+            when p.pos_two_str is not null and p.pos_one_str is not null
+            then
+              concat(p.pos_two_str, concat(', ', p.pos_one_str))
+            else
+              null
+            end
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update specimen position container fields in saved queries">
+    <sql>
+      update
+        catissue_saved_queries
+      set
+        query_def =
+          replace(
+            replace(
+              replace(
+                replace(
+                  replace(
+                    replace(
+                      replace(
+                        replace(
+                          query_def,
+                          'Specimen.specimenPosition.containerName',
+                          'Specimen.specimenPosition.container.name'
+                        ),
+                        'Specimen.specimenPosition.containerDisplayName',
+                        'Specimen.specimenPosition.container.displayName'
+                      ),
+                      'Specimen.specimenPosition.containerBarcode',
+                      'Specimen.specimenPosition.container.barcode'
+                    ),
+                    'Specimen.specimenPosition.containerSite',
+                    'Specimen.specimenPosition.container.site'
+                  ),
+                  'Specimen.checkoutPosition.containerName',
+                  'Specimen.checkoutPosition.container.name'
+                ),
+                'Specimen.checkoutPosition.containerDisplayName',
+                'Specimen.checkoutPosition.container.displayName'
+              ),
+              'Specimen.checkoutPosition.containerBarcode',
+              'Specimen.checkoutPosition.container.barcode'
+            ),
+            'Specimen.checkoutPosition.containerSite',
+            'Specimen.checkoutPosition.container.site'
+          )
+      where
+        query_def like '%Specimen.specimenPosition.containerName%' or
+        query_def like '%Specimen.specimenPosition.containerDisplayName%' or
+        query_def like '%Specimen.specimenPosition.containerBarcode%' or
+        query_def like '%Specimen.specimenPosition.containerSite%' or
+        query_def like '%Specimen.checkoutPosition.containerName%' or
+        query_def like '%Specimen.checkoutPosition.containerDisplayName%' or
+        query_def like '%Specimen.checkoutPosition.containerBarcode%' or
+        query_def like '%Specimen.checkoutPosition.containerSite%'
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update specimen position and checkout container fields in system workflows">
+    <customChange class="com.krishagni.catissueplus.core.upgrade.UpdateSystemWorkflowContainerFields" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update specimen position container fields in CP workflows">
+    <sql>
+      update
+        os_cp_workflows
+      set
+        workflows =
+          replace(
+            replace(
+              replace(
+                replace(
+                  replace(
+                    replace(
+                      replace(
+                        replace(
+                          workflows,
+                          'Specimen.specimenPosition.containerName',
+                          'Specimen.specimenPosition.container.name'
+                        ),
+                        'Specimen.specimenPosition.containerDisplayName',
+                        'Specimen.specimenPosition.container.displayName'
+                      ),
+                      'Specimen.specimenPosition.containerBarcode',
+                      'Specimen.specimenPosition.container.barcode'
+                    ),
+                    'Specimen.specimenPosition.containerSite',
+                    'Specimen.specimenPosition.container.site'
+                  ),
+                  'Specimen.checkoutPosition.containerName',
+                  'Specimen.checkoutPosition.container.name'
+                ),
+                'Specimen.checkoutPosition.containerDisplayName',
+                'Specimen.checkoutPosition.container.displayName'
+              ),
+              'Specimen.checkoutPosition.containerBarcode',
+              'Specimen.checkoutPosition.container.barcode'
+            ),
+            'Specimen.checkoutPosition.containerSite',
+            'Specimen.checkoutPosition.container.site'
+          )
+      where
+        workflows like '%Specimen.specimenPosition.containerName%' or
+        workflows like '%Specimen.specimenPosition.containerDisplayName%' or
+        workflows like '%Specimen.specimenPosition.containerBarcode%' or
+        workflows like '%Specimen.specimenPosition.containerSite%' or
+        workflows like '%Specimen.checkoutPosition.containerName%' or
+        workflows like '%Specimen.checkoutPosition.containerDisplayName%' or
+        workflows like '%Specimen.checkoutPosition.containerBarcode%' or
+        workflows like '%Specimen.checkoutPosition.containerSite%'
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update specimen position container fields in CP group workflows">
+    <sql>
+      update
+        os_cp_groups
+      set
+        workflows =
+          replace(
+            replace(
+              replace(
+                replace(
+                  replace(
+                    replace(
+                      replace(
+                        replace(
+                          workflows,
+                          'Specimen.specimenPosition.containerName',
+                          'Specimen.specimenPosition.container.name'
+                        ),
+                        'Specimen.specimenPosition.containerDisplayName',
+                        'Specimen.specimenPosition.container.displayName'
+                      ),
+                      'Specimen.specimenPosition.containerBarcode',
+                      'Specimen.specimenPosition.container.barcode'
+                    ),
+                    'Specimen.specimenPosition.containerSite',
+                    'Specimen.specimenPosition.container.site'
+                  ),
+                  'Specimen.checkoutPosition.containerName',
+                  'Specimen.checkoutPosition.container.name'
+                ),
+                'Specimen.checkoutPosition.containerDisplayName',
+                'Specimen.checkoutPosition.container.displayName'
+              ),
+              'Specimen.checkoutPosition.containerBarcode',
+              'Specimen.checkoutPosition.container.barcode'
+            ),
+            'Specimen.checkoutPosition.containerSite',
+            'Specimen.checkoutPosition.container.site'
+          )
+      where
+        workflows is not null and
+        (
+          workflows like '%Specimen.specimenPosition.containerName%' or
+          workflows like '%Specimen.specimenPosition.containerDisplayName%' or
+          workflows like '%Specimen.specimenPosition.containerBarcode%' or
+          workflows like '%Specimen.specimenPosition.containerSite%' or
+          workflows like '%Specimen.checkoutPosition.containerName%' or
+          workflows like '%Specimen.checkoutPosition.containerDisplayName%' or
+          workflows like '%Specimen.checkoutPosition.containerBarcode%' or
+          workflows like '%Specimen.checkoutPosition.containerSite%'
+        )
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Seed resolved specimen units for query">
+    <sql>
+      insert into
+        os_query_spmn_units (
+          cp_id,
+          class_id,
+          type_id,
+          unit_key,
+          quantity_unit_id,
+          conc_unit_id
+        )
+      select
+        cp.identifier,
+        st.parent_identifier,
+        st.identifier,
+        concat(cp.identifier, concat(':', concat(st.parent_identifier, concat(':', st.identifier)))),
+        coalesce(cp_type.quantity_unit_id, cp_class.quantity_unit_id, sys_type.quantity_unit_id, sys_class.quantity_unit_id),
+        coalesce(cp_type.concentration_unit_id, cp_class.concentration_unit_id, sys_type.concentration_unit_id, sys_class.concentration_unit_id)
+      from
+        catissue_collection_protocol cp
+        inner join catissue_permissible_value st on st.public_id = 'specimen_type' and st.parent_identifier is not null
+        left join os_specimen_type_units cp_type on
+          cp_type.cp_id = cp.identifier and
+          cp_type.specimen_class_id = st.parent_identifier and
+          cp_type.specimen_type_id = st.identifier
+        left join os_specimen_type_units cp_class on
+          cp_class.cp_id = cp.identifier and
+          cp_class.specimen_class_id = st.parent_identifier and
+          cp_class.specimen_type_id is null
+        left join os_specimen_type_units sys_type on
+          sys_type.cp_id is null and
+          sys_type.specimen_class_id = st.parent_identifier and
+          sys_type.specimen_type_id = st.identifier
+        left join os_specimen_type_units sys_class on
+          sys_class.cp_id is null and
+          sys_class.specimen_class_id = st.parent_identifier and
+          sys_class.specimen_type_id is null
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Set specimen unit key" dbms="mysql">
+    <sql>
+      update
+        catissue_specimen s
+        inner join os_query_spmn_units u on
+          u.cp_id = s.collection_protocol_id and
+          u.class_id = s.specimen_class_id and
+          u.type_id = s.specimen_type_id
+      set
+        s.unit_key = u.unit_key
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Set specimen unit key" dbms="oracle">
+    <sql>
+      merge into
+        catissue_specimen s
+      using
+        os_query_spmn_units u
+      on (
+        u.cp_id = s.collection_protocol_id and
+        u.class_id = s.specimen_class_id and
+        u.type_id = s.specimen_type_id
+      )
+      when matched then
+        update set
+          s.unit_key = u.unit_key
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Validate default specimen carts migration">
+    <preConditions onFail="HALT">
+      <sqlCheck expectedResult="0">
+        select
+          count(*)
+        from
+          catissue_user usr
+          inner join catissue_specimenlist_tags existing_cart on
+            lower(existing_cart.tag_label) = lower(
+              concat(
+                trim(concat(coalesce(usr.first_name, ''), concat(' ', coalesce(usr.last_name, '')))),
+                concat('''s Default Cart (', concat(usr.identifier, ')'))
+              )
+            )
+      </sqlCheck>
+
+      <sqlCheck expectedResult="0">
+        select
+          count(*)
+        from
+          catissue_specimenlist_tags default_cart
+          inner join catissue_user usr on usr.identifier = default_cart.user_id
+        where
+          default_cart.tag_label = concat('$$$$user_', usr.identifier) and
+          length(
+            concat(
+              trim(concat(coalesce(usr.first_name, ''), concat(' ', coalesce(usr.last_name, '')))),
+              concat('''s Default Cart (', concat(usr.identifier, ')'))
+            )
+          ) > 255
+      </sqlCheck>
+    </preConditions>
+
+    <sql>
+      select count(*) from catissue_specimenlist_tags where 1 = 0
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Migrate default specimen carts" dbms="mysql">
+    <sql>
+      update
+        catissue_specimenlist_tags cart
+        inner join catissue_user usr on usr.identifier = cart.user_id
+      set
+        cart.default_cart = 1,
+        cart.tag_label = concat(
+          trim(concat(coalesce(usr.first_name, ''), concat(' ', coalesce(usr.last_name, '')))),
+          concat('''s Default Cart (', concat(usr.identifier, ')'))
+        )
+      where
+        cart.tag_label = concat('$$$$user_', cart.user_id)
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Migrate default specimen carts" dbms="oracle">
+    <sql>
+      merge into
+        catissue_specimenlist_tags cart
+      using (
+        select
+          default_cart.identifier,
+          concat(
+            trim(concat(coalesce(usr.first_name, ''), concat(' ', coalesce(usr.last_name, '')))),
+            concat('''s Default Cart (', concat(usr.identifier, ')'))
+          ) as cart_name
+        from
+          catissue_specimenlist_tags default_cart
+          inner join catissue_user usr on usr.identifier = default_cart.user_id
+        where
+          default_cart.tag_label = concat('$$$$user_', default_cart.user_id)
+      ) migrated_cart
+      on
+        (migrated_cart.identifier = cart.identifier)
+      when matched then
+        update set
+          cart.default_cart = 1,
+          cart.tag_label = migrated_cart.cart_name
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Initialize CP group workflows inheritance">
+    <customChange class="com.krishagni.catissueplus.core.upgrade.InitializeCpGroupWorkflowsInheritance" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Soft delete redundant specimen disposal events">
+    <sql>
+      update
+        catissue_form_record_entry
+      set
+        activity_status = 'CLOSED'
+      where
+        identifier in (
+          select
+            identifier
+          from
+            (
+              select
+                re.identifier
+              from
+                catissue_form_record_entry re
+                inner join catissue_form_context fc on fc.identifier = re.form_ctxt_id
+                inner join catissue_disposal_event_param d on d.identifier = re.record_id
+                inner join catissue_specimen s on s.identifier = re.object_id
+                inner join dyextn_containers f on f.identifier = fc.container_id
+              where
+                f.name = 'SpecimenDisposalEvent' and
+                re.activity_status = 'ACTIVE' and
+                (
+                  (s.activity_status is null or s.activity_status != 'Closed') or
+                  exists (
+                    select
+                      1
+                    from
+                      catissue_disposal_event_param latest
+                      inner join catissue_form_record_entry latest_re on latest_re.record_id = latest.identifier
+                      inner join catissue_form_context latest_fc on latest_fc.identifier = latest_re.form_ctxt_id
+                      inner join dyextn_containers latest_f on latest_f.identifier = latest_fc.container_id
+                    where
+                      latest_f.name = 'SpecimenDisposalEvent' and
+                      latest_re.object_id = re.object_id and
+                      (
+                        latest.event_timestamp > d.event_timestamp or
+                        (d.event_timestamp is null and latest.event_timestamp is not null) or
+                        (
+                          (
+                            latest.event_timestamp = d.event_timestamp or
+                            (latest.event_timestamp is null and d.event_timestamp is null)
+                          ) and
+                          latest.identifier > d.identifier
+                        )
+                      )
+                  )
+                )
+            ) records_to_update
+        )
+    </sql>
+
+    <sql>
+      update
+        catissue_form_record_entry
+      set
+        activity_status = 'ACTIVE'
+      where
+        identifier in (
+          select
+            identifier
+          from
+            (
+              select
+                re.identifier
+              from
+                catissue_form_record_entry re
+                inner join catissue_form_context fc on fc.identifier = re.form_ctxt_id
+                inner join dyextn_containers f on f.identifier = fc.container_id
+                inner join catissue_disposal_event_param d on d.identifier = re.record_id
+                inner join catissue_specimen s on s.identifier = re.object_id
+              where
+                f.name = 'SpecimenDisposalEvent' and
+                s.activity_status = 'Closed' and
+                not exists (
+                  select
+                    1
+                  from
+                    catissue_disposal_event_param latest
+                    inner join catissue_form_record_entry latest_re on latest_re.record_id = latest.identifier
+                    inner join catissue_form_context latest_fc on latest_fc.identifier = latest_re.form_ctxt_id
+                    inner join dyextn_containers latest_f on latest_f.identifier = latest_fc.container_id
+                  where
+                    latest_f.name = 'SpecimenDisposalEvent' and
+                    latest_re.object_id = re.object_id and
+                    (
+                      latest.event_timestamp > d.event_timestamp or
+                      (d.event_timestamp is null and latest.event_timestamp is not null) or
+                      (
+                        (
+                          latest.event_timestamp = d.event_timestamp or
+                          (latest.event_timestamp is null and d.event_timestamp is null)
+                        ) and
+                        latest.identifier > d.identifier
+                      )
+                    )
+                )
+            ) records_to_update
+        )
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Report disposed specimens without disposal events">
+    <customChange class="com.krishagni.catissueplus.core.upgrade.ReportDisposedSpecimensWithoutDisposalEvent" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Associate uploaded custom form files missed during 12.2 upgrade" dbms="mysql">
+    <sql>
+      update
+        dyextn_form_files dfile
+        inner join (
+          select
+            fc.container_id as form_id, re.record_id, fc.entity_type as object_type, re.object_id
+          from
+            catissue_form_record_entry re
+            inner join catissue_form_context fc on fc.identifier = re.form_ctxt_id
+
+          union all
+
+          select form_id, record_id, 'CollectionProtocolExtension', cp_id from os_cp_cust_fields
+
+          union all
+
+          select form_id, record_id, 'ParticipantExtension', cpr_id from os_cpr_cust_fields
+
+          union all
+
+          select form_id, record_id, 'VisitExtension', visit_id from os_visit_cust_fields
+
+          union all
+
+          select form_id, record_id, 'SpecimenExtension', specimen_id from os_spmn_cust_fields
+
+          union all
+
+          select form_id, record_id, 'OrderExtension', order_id from os_order_cust_fields
+        ) rec on rec.form_id = dfile.form_id and rec.record_id = dfile.record_id
+      set
+        dfile.object_type = rec.object_type,
+        dfile.object_id = rec.object_id
+      where
+        dfile.object_id is null
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Associate uploaded custom form files missed during 12.2 upgrade" dbms="oracle">
+    <sql>
+      merge into
+        dyextn_form_files dfile
+      using (
+        select
+          fc.container_id as form_id, re.record_id, fc.entity_type as object_type, re.object_id
+        from
+          catissue_form_record_entry re
+          inner join catissue_form_context fc on fc.identifier = re.form_ctxt_id
+
+        union all
+
+        select form_id, record_id, 'CollectionProtocolExtension', cp_id from os_cp_cust_fields
+
+        union all
+
+        select form_id, record_id, 'ParticipantExtension', cpr_id from os_cpr_cust_fields
+
+        union all
+
+        select form_id, record_id, 'VisitExtension', visit_id from os_visit_cust_fields
+
+        union all
+
+        select form_id, record_id, 'SpecimenExtension', specimen_id from os_spmn_cust_fields
+
+        union all
+
+        select form_id, record_id, 'OrderExtension', order_id from os_order_cust_fields
+      ) rec on (rec.form_id = dfile.form_id and rec.record_id = dfile.record_id)
+      when matched then
+        update set
+          dfile.object_type = rec.object_type,
+          dfile.object_id = rec.object_id
+        where
+          dfile.object_id is null
+    </sql>
+  </changeSet>
+</databaseChangeLog>

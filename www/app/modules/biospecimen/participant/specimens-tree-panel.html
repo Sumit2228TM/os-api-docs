@@ -1,0 +1,48 @@
+<div ng-switch on="!ctx.specimens || ctx.specimens.length == 0 || viewState.onlyOldPendingSpmns">
+  <div ng-switch-when="true">
+    <div>No specimens to display</div>
+  </div>
+  <table ng-switch-when="false" class="os-table os-table-hover os-table-tree os-table-muted-hdr">
+    <tbody class="os-table-body" os-imaging>
+      <tr id="specimen-{{specimen.id || 'na'}}-{{specimen.reqId || 'na'}}" class="row"
+        ng-class="{'selected': (!!specimen.id && specimen.id == viewState.selectedSpmn.id) || (!specimen.id && specimen.reqId == viewState.selectedSpmn.reqId), 'os-pooled-specimen': !!specimen.pooledSpecimen}"
+        ng-repeat="specimen in ctx.specimens | openedTreeNodes"
+        ng-if="!specimen.$$hideN">
+        <td class="col os-word-break" style="border: none;">
+          <div ng-style="{'padding-left': (specimen.hasChildren ? specimen.depth * 20 : specimen.depth * 20 + 16) + 'px'}">
+            <span style="display: table-cell;" ng-style="{'min-width': (specimen.hasChildren ? 40 : 24) + 'px'}"
+              ng-include="'modules/biospecimen/participant/specimens-tree-node-status.html'">
+            </span>
+
+            <span class="os-tree-image-icon" style="display: table-cell;"
+              ng-style="!!specimen.imageId && {'color': 'red'}"
+              ng-if="!!specimen.imageId || !!specimen.$$childrenHaveImg">
+              <span class="fa fa-picture-o"></span>
+            </span>
+
+            <a style="display: table-cell;" ui-sref="specimen-detail.overview({
+              eventId: specimen.eventId, visitId: specimen.visitId, specimenId: specimen.id, srId: specimen.reqId})"
+              ng-click="selectSpecimen(specimen)">
+              <span ng-switch on="!!ctx.descTmpl">
+                <span ng-switch-when="true">
+                  <os-html-template template="ctx.descTmpl"></os-html-template>
+                </span>
+                <span ng-switch-when="false">
+                  <span ng-if="!!specimen.label">
+                    <span>{{specimen.label}}</span>
+                    <span ng-if="!!specimen.barcode">({{specimen.barcode}})</span>
+                  </span>
+                  <span ng-if="!specimen.label">
+                    <span>{{specimen.type}}</span>
+                    <span>({{specimen.specimenClass}})</span>
+                  </span>
+                </span>
+              </span>
+            </a>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+

@@ -1,0 +1,65 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<object-schema>
+  <name>cpr</name>
+
+  <record> 
+    <name>com.krishagni.catissueplus.core.biospecimen.events.CollectionProtocolRegistrationDetail</name>
+    
+    <field>
+      <caption>#getMessage("participant_identifier")</caption>
+      <attribute>id</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("participant_cp_short_title")</caption>
+      <attribute>cpShortTitle</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("participant_ppid")</caption>
+      <attribute>ppid</attribute>
+    </field>
+
+    <field>
+      <type>dateOnly</type>
+      <caption>#getMessage("participant_registration_date")</caption>
+      <attribute>registrationDate</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("participant_reg_site")</caption>
+      <attribute>site</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("participant_external_id")</caption>
+      <attribute>externalSubjectId</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("participant_activity_status")</caption>
+      <attribute>activityStatus</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("common_data_entry_status")</caption>
+      <attribute>dataEntryStatus</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("common_reason")</caption>
+      <attribute>opComments</attribute>
+    </field>
+
+    <record>
+      <attribute>participant</attribute>
+   
+      #parse( 'com/krishagni/catissueplus/core/biospecimen/schema/participant-static-fields.xml' )
+
+      <record type="customFields" entityType="ParticipantExtension">
+        <attribute>extensionDetail</attribute>
+      </record>
+    </record>
+  </record>
+</object-schema>

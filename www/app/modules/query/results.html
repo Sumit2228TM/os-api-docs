@@ -1,0 +1,171 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content-wrapper">
+      <div class="os-page-header-content">
+        <ul os-breadcrumbs>
+          <li>
+            <a ui-sref="query-list" translate="queries.list">Queries</a>
+          </li>
+        </ul>
+        <h3>
+          <span ng-if="!queryCtx.id" translate="queries.new_query">
+            New Query
+          </span>
+          <span ng-if="!!queryCtx.id">
+            {{queryCtx.title}}
+          </span>
+        </h3>
+      </div>
+    </div>
+    <div class="os-page-header-actions-wrapper">
+      <div class="os-page-header-actions" ng-switch on="!!resultsCtx.counters.waiting">
+        <div ng-switch-when="true">
+          <span translate="common.loading">Loading ...</span>
+        </div>
+        <div ng-switch-when="false">
+          <div class="os-query-result-counters" ng-if="!resultsCtx.counters.error">
+            <span class="counter" title="{{'queries.participants' | translate}}">
+              <span class="fa fa-users"></span>
+              <span>{{resultsCtx.counters.cprCnt | number}}</span>
+            </span>
+            <span class="counter" title="{{'queries.visits' | translate}}">
+              <span class="fa fa-calendar"></span>
+              <span>{{resultsCtx.counters.visitCnt | number}}</span>
+            </span>
+            <span class="counter" title="{{'queries.specimens' | translate}}">
+              <span class="fa fa-flask"></span>
+              <span>{{resultsCtx.counters.specimenCnt | number}}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left os-query-btn">
+      <div dropdown class="os-inline-btn">
+        <button class="btn btn-default dropdown-toggle default">
+          <span translate="common.buttons.actions">Actions</span>
+          <span class="fa fa-caret-down"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a ng-show="permOpts.updateAllowed" ng-click="editFilters()">
+              <span class="fa fa-pencil"></span>
+              <span translate="common.buttons.edit">Edit Filters</span>
+            </a>
+          </li>
+          <li ng-show="(permOpts.createAllowed || permOpts.updateAllowed) && queryCtx.isValid && queryCtx.filters.length > 0">
+            <a ng-click="saveQuery()">
+              <span class="fa fa-save"></span>
+              <span translate="common.buttons.save">Save</span>
+            </a>
+          </li>
+          <li>
+            <a ng-click="defineView()">
+              <span class="fa fa-columns"></span>
+              <span translate="queries.define_view">Columns</span>
+            </a>
+          </li>
+          <li>
+            <a ng-click="rerun()">
+              <span class="fa fa-repeat"></span>
+              <span translate="queries.rerun">Rerun</span>
+            </a>
+          </li>
+          <li>
+            <a ng-show="permOpts.eximAllowed" ng-click="downloadResults()">
+              <span class="fa fa-download"></span>
+              <span translate="common.buttons.export">Export</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <span ng-if="showAddToSpecimenList">
+        <button class="btn default" ng-if="!resultsCtx.selectAll" ng-click="selectAllRows()">
+          <span class="fa fa-check"></span>
+          <span translate="queries.select_all">Select All</span>
+        </button>
+        <button class="btn default" ng-if="resultsCtx.selectAll" ng-click="unSelectAllRows()">
+          <span class="fa fa-remove"></span>
+            <span translate="queries.unselect_all">Unselect All</span>
+          </button>
+        </button>
+
+        <os-specimen-ops title="queries.specimens" specimens="getSelectedSpecimens()"
+          init-list="rerun()" before-nav="saveCtx(navTo)">
+        </os-specimen-ops>
+
+        <os-assign-to-spmn-list on-add-to-list="addSelectedSpecimensToSpecimenList(list)">
+        </os-assign-to-spmn-list>
+      </span>
+
+      <os-plugin-hooks view-name="'query-results'" sec-name="'page-header'"></os-plugin-hooks>
+
+      <os-help class="os-btns btn default" link="query_results_help_link"></os-help>
+
+      <div style="display: inline-block;" ng-if="selectedRows.length > 0">
+        <div class="alert alert-info os-lean-box">
+          <span> {{'common.items_selected_info' | translate: {count: selectedRows.length} }} </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="os-query-container">
+    <div class="os-query-results-wrapper clearfix">
+      <div class="col-xs-3 os-full-height-container os-scrollbar" style="overflow-y: auto;"
+        ng-if="resultsCtx.hasFacets">
+        <ng-include src="'modules/query/facets.html'"></ng-include>
+      </div>
+
+      <div class="os-full-height-container" ng-class="{true: 'col-xs-9', false: 'col-xs-12'}[resultsCtx.hasFacets]">
+        <div class="grid-panel os-full-size-container">
+          <div class="os-alert-container inline" ng-if="resultsCtx.waitingForRecords">
+            <div class="alert alert-info">
+              <span translate="queries.waiting_for_records">Loading records, please wait for a moment ...</span>
+            </div>
+          </div>
+
+          <div class="os-alert-container inline" ng-if="!resultsCtx.waitingForRecords &&
+              (!resultsCtx.rows || resultsCtx.rows.length == 0) && !resultsCtx.error">
+            <div class="alert alert-info">
+              <span translate="queries.no_data">No records match the search criteria...</span>
+            </div>
+          </div>
+
+          <div class="os-alert-container inline" ng-if="!resultsCtx.waitingForRecords && resultsCtx.error">
+            <div class="alert alert-danger" ng-repeat="error in resultsCtx.errorData">
+              <span ng-bind-html="error.message"></span>
+            </div>
+          </div>
+
+          <div class="os-alert-container inline" ng-if="resultsCtx.moreData">
+            <div class="alert alert-warning">
+              <span translate="queries.export_to_get_all" translate-values="queryCtx.reporting">
+                Export to view all records.
+              </span>
+              <a href="https://openspecimen.atlassian.net/wiki/x/ogYR" target="_blank" rel="noopener"
+                translate="queries.know_why_export_has_more_data" translate-values="queryCtx.reporting">
+                Click here to know why exported data file have more records.
+              </a>
+            </div>
+          </div>
+
+          <div class="os-full-size-container" ng-style="resultsCtx.moreData && {'height': 'calc(100% - 102px)'}"
+            ng-if="!resultsCtx.waitingForRecords && !resultsCtx.error">
+            <div class="os-full-size-container" ng-if="queryCtx.reporting.type == 'crosstab'">
+              <div class="os-full-size-container" os-pivot-table="resultsCtx.pivotTableOpts"> </div>
+            </div>
+
+            <div class="os-full-size-container" ng-if="queryCtx.reporting.type != 'crosstab'">
+              <div class="os-query-results-grid" ng-grid="resultsCtx.gridOpts"> </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

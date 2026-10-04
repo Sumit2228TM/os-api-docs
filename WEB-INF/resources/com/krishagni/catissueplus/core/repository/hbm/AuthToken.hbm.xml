@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.auth.domain.AuthToken" table="OS_AUTH_TOKENS"
+    entity-name="com.krishagni.catissueplus.core.auth.domain.AuthToken">
+
+    <id name="token" column="TOKEN"/>
+
+    <many-to-one name="user" column="USER_ID"/>
+
+    <property name="ipAddress" not-null="true" column="IP_ADDRESS"/>
+    
+    <many-to-one name="loginAuditLog" not-null="true" column="LOGIN_AUDIT_LOG_ID" unique-key="true"/>
+    
+    <query name="getByKey">
+        from com.krishagni.catissueplus.core.auth.domain.AuthToken t where t.token = :token
+    </query>
+    
+    <sql-query name="deleteInactiveAuthTokens">
+      <![CDATA[
+        delete from
+          os_auth_tokens
+        where
+          login_audit_log_id in (
+            select
+              login_audit_log_id
+            from (
+              select
+                cl.login_audit_log_id
+              from
+                os_user_api_calls_log cl
+                inner join os_auth_tokens t1 on t1.login_audit_log_id = cl.login_audit_log_id
+              group by
+                cl.login_audit_log_id
+              having
+                max(call_end_time) < :latestCallTime
+            ) td
+          )
+      ]]>
+    </sql-query>
+
+    <sql-query name="getUserTokens">
+      <return-scalar column="token" type="string" />
+      <return-scalar column="last_active_time" type="timestamp" />
+
+      <![CDATA[
+        select
+          t.token as token, max(l.call_end_time) as last_active_time
+        from
+          os_user_api_calls_log l
+          inner join os_auth_tokens t on t.login_audit_log_id = l.login_audit_log_id
+        where
+          t.user_id = :userId
+        group by
+          t.token
+      ]]>
+    </sql-query>
+    
+    <query name="deleteAuthTokensByUserId">
+      delete
+      from
+        com.krishagni.catissueplus.core.auth.domain.AuthToken t
+      where
+        t.user.id in (:ids)
+    </query>
+
+    <query name="deleteAuthTokens">
+      delete from
+        com.krishagni.catissueplus.core.auth.domain.AuthToken t
+      where
+        t.token in (:tokens)
+    </query>
+  </class>
+</hibernate-mapping>

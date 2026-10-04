@@ -1,0 +1,55 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li ng-repeat="breadcrumb in exportDetail.breadcrumbs">
+          <a ui-sref="{{breadcrumb.state}}({{breadcrumb.params}})">
+            <span translate="{{breadcrumb.title}}"></span>
+          </a>
+        </li>
+      </ul>
+      <h3>
+        <span translate="{{exportDetail.title}}"></span>
+      </h3> 
+    </div>
+  </div>
+
+  <div class="container">
+    <form name="expForm" os-form-validator="expForm" class="os-no-label-form form-horizontal" novalidate>
+      <div class="form-group">
+        <label class="col-xs-3 control-label">
+          <span translate="export.select_record_type">Select Record Type</span>
+        </label>
+        <div class="col-xs-6">
+          <os-select name="objectType" ng-model="exportDetail.type" on-select="onTypeSelect($select.selected)"
+            list="exportDetail.types" select-prop="type" display-prop="title" group-by="'group'">
+          </os-select>
+        </div>
+      </div>
+
+      <div class="form-group" ng-if="exportDetail.type.$$input.var">
+        <label class="col-xs-3 control-label">
+          <span>{{exportDetail.type.$$input.varName | translate}}
+        </label>
+        <div class="col-xs-6">
+          <textarea name="inputCsv" class="form-control" ng-model="exportDetail.inputCsv"
+            placeholder="{{exportDetail.type.$$input.varDesc | translate}}">
+          </textarea>
+        </div>
+      </div>
+
+      <div class="os-divider"></div>
+
+      <div class="form-group">
+        <div class="col-xs-offset-3 col-xs-6">
+          <button class="btn btn-primary" os-form-submit="export()">
+            <span translate="common.buttons.export">Export</span>
+          </button>
+          <button class="btn os-btn-text" ng-click="back()">
+            <span translate="common.buttons.discard">Discard</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

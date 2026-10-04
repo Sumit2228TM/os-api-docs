@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Print rule sort order">
+    <addColumn tableName="OS_PRINT_RULES">
+      <column name="SORT_ORDER" type="${int.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Field to track the active configuration properties">
+    <addColumn tableName="OS_CFG_PROPS">
+      <column name="ACTIVITY_STATUS" type="${text.type}(32)" defaultValue="Active" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add reason PV in the specimen disposal event table">
+    <addColumn tableName="CATISSUE_DISPOSAL_EVENT_PARAM">
+      <column name="REASON_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_DISPOSE_REASON_PV" referencedTableName="CATISSUE_PERMISSIBLE_VALUE"
+           referencedColumnNames="IDENTIFIER" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Auth domain property to specify whether logins are allowed from a specified domain">
+    <addColumn tableName="OS_AUTH_DOMAINS">
+      <column name="ALLOW_LOGINS" type="${boolean.type}" defaultValueBoolean="true">
+        <constraints nullable="false" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Convert the blank / empty string MRNs to null">
+    <sql>
+      update CATISSUE_PART_MEDICAL_ID set MEDICAL_RECORD_NUMBER = null where trim(MEDICAL_RECORD_NUMBER) = ''
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add unique key constraint on participant / PMI site and MRN" dbms="mysql">
+    <addUniqueConstraint constraintName="OS_PMI_SITE_MRN_UQ" tableName="CATISSUE_PART_MEDICAL_ID"
+      columnNames="SITE_ID, MEDICAL_RECORD_NUMBER" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add unique key constraint on participant / PMI site and MRN" dbms="oracle">
+    <sql>
+      create unique index OS_PMI_SITE_MRN_UQ on CATISSUE_PART_MEDICAL_ID(
+        case when
+          SITE_ID is not null and MEDICAL_RECORD_NUMBER is not null
+        then
+          SITE_ID || '-' || lower(MEDICAL_RECORD_NUMBER)
+        end
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track the print rule that generated the print job item">
+    <addColumn tableName="OS_LABEL_PRINT_JOB_ITEMS">
+      <column name="RULE_ID" type="${int.type}">
+        <constraints foreignKeyName="FK_LABEL_PRINT_JOB_ITEM_RULE" referencedTableName="OS_PRINT_RULES" referencedColumnNames="IDENTIFIER" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique key constraint on PV" dbms="mysql">
+    <addUniqueConstraint constraintName="OS_PERMISSIBLE_VALUE_UQ"
+      tableName="CATISSUE_PERMISSIBLE_VALUE" columnNames="PUBLIC_ID, VALUE" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique key constraint on PV" dbms="oracle">
+    <sql>
+      create unique index OS_PERMISSIBLE_VALUE_UQ on CATISSUE_PERMISSIBLE_VALUE(PUBLIC_ID, LOWER(VALUE));
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop existing index on PV, if any">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="CATISSUE_PERMISSIBLE_VALUE" indexName="PV_ATTR_VALUE_IDX" />
+    </preConditions>
+
+    <dropIndex tableName="CATISSUE_PERMISSIBLE_VALUE" indexName="PV_ATTR_VALUE_IDX" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Form status table for query">
+    <createTable tableName="OS_FORM_RECORD_STATUSES">
+      <column name="IDENTIFIER" type="${int.type}">
+        <constraints nullable="false" />
+      </column>
+      <column name="FORM_ID" type="${int.type}">
+        <constraints nullable="false" />
+      </column>
+      <column name="RECORD_ID" type="${int.type}">
+        <constraints nullable="false" />
+      </column>
+      <column name="FORM_STATUS" type="${text.type}(255)">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Covering index on form record status table">
+    <createIndex tableName="OS_FORM_RECORD_STATUSES" indexName="OS_FORM_RECORD_STATUSES_IDX">
+      <column name="RECORD_ID" type="${int.type}" />
+      <column name="FORM_ID" type="${int.type}" />
+      <column name="FORM_STATUS" type="${text.type}(255)" />
+      <column name="IDENTIFIER" type="${int.type}" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to insert form status in the query table" dbms="mysql" runOnChange="true">
+    <sql>
+      drop trigger if exists os_ins_entity_form_status;
+    </sql>
+
+    <sql endDelimiter="//">
+      create trigger os_ins_entity_form_status after insert on catissue_form_record_entry
+      for each row
+      begin
+        declare formId bigint;
+
+        select
+          container_id into formId
+        from
+          catissue_form_context
+        where
+          identifier = new.form_ctxt_id;
+
+        insert into os_form_record_statuses
+          (form_id, record_id, form_status, identifier)
+        values
+          (formId, new.record_id, new.form_status, new.identifier);
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to update form status in the query table" dbms="mysql" runOnChange="true">
+    <sql>
+      drop trigger if exists os_update_entity_form_status;
+    </sql>
+
+    <sql endDelimiter="//">
+      create trigger os_update_entity_form_status after update on catissue_form_record_entry
+      for each row
+      begin
+        declare formId bigint;
+
+        select
+          container_id into formId
+        from
+          catissue_form_context
+        where
+          identifier = new.form_ctxt_id;
+
+        update
+          os_form_record_statuses
+        set
+          form_status = new.form_status
+        where
+          form_id = formId and
+          record_id = new.record_id and
+          identifier = new.identifier;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to insert form status in the query table" dbms="oracle" runOnChange="true">
+    <sql endDelimiter="//">
+      create or replace trigger os_ins_entity_form_status after insert on catissue_form_record_entry
+      for each row
+      declare
+        formId number;
+      begin
+        select
+          container_id into formId
+        from
+          catissue_form_context
+        where
+          identifier = :new.form_ctxt_id;
+
+        insert into os_form_record_statuses
+          (form_id, record_id, form_status, identifier)
+        values
+          (formId, :new.record_id, :new.form_status, :new.identifier);
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to update form status in the query table" dbms="oracle" runOnChange="true">
+    <sql endDelimiter="//">
+      create or replace trigger os_update_entity_form_status after update on catissue_form_record_entry
+      for each row
+      declare
+        formId number;
+      begin
+        select
+          container_id into formId
+        from
+          catissue_form_context
+        where
+          identifier = :new.form_ctxt_id;
+
+        update
+          os_form_record_statuses
+        set
+          form_status = :new.form_status
+        where
+          form_id = formId and
+          record_id = :new.record_id and
+          identifier = :new.identifier;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add covering index on the key sequence generator table to avoid DB lookups">
+    <createIndex tableName="KEY_SEQ_GENERATOR" indexName="OS_SEQ_KEY_IDX">
+      <column name="KEY_TYPE" type="${text.type}(255)" />
+      <column name="KEY_VALUE" type="${text.type}(255)" />
+      <column name="KEY_SEQUENCE_ID" type="${int.type}" />
+    </createIndex>
+  </changeSet>
+</databaseChangeLog>

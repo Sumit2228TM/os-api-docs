@@ -1,0 +1,50 @@
+{
+  "id": null,
+  "title": "Specimen kit report query",
+  "createdBy": null,
+  "lastUpdatedBy": null,
+  "lastRunOn": null,
+  "lastUpdated": null,
+  "lastRunCount": null,
+  "cpId": -1,
+  "drivingForm": null,
+  "filters": [
+    {
+      "id": 1,
+      "field": "SpecimenKit.id",
+      "op": "EXISTS",
+      "values": [
+        null
+      ],
+      "expr": null,
+      "desc": null,
+      "parameterized": false
+    }
+  ],
+  "queryExpression": [
+    {
+      "nodeType": "FILTER",
+      "value": 1
+    }
+  ],
+  "selectList": [
+    "Participant.ppid",
+    "SpecimenCollectionGroup.collectionProtocolEvent.collectionPointLabel",
+    "SpecimenCollectionGroup.clinicalDiagnoses.value",
+    "SpecimenCollectionGroup.site",
+    "Specimen.label",
+    "Specimen.type",
+    "Specimen.tissueSite",
+    "Specimen.tissueSide",
+    "Specimen.collectionStatus",
+    "Specimen.pathologicalStatus",
+    "Specimen.initialQty"
+  ],
+  "reporting": {
+    "type": "none",
+    "params": {}
+  },
+  "folders": null,
+  "wideRowMode": "DEEP",
+  "deletedOn": null
+}

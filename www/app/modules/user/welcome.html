@@ -1,0 +1,11 @@
+<div class="os-center-box os-sign-up-box" ng-if="!!videoSettings">
+  <div class="os-header">
+    <h3 translate="user.welcome_title">Welcome to OpenSpecimen</h3>
+  </div>
+  <div class="os-welcome-box">
+    <div ng-include src="'modules/user/welcome-video-player.html'"></div>
+    <div>
+      <a ui-sref="sign-up" translate="user.proceed_sign_up">Proceed to Sign Up</a>
+    </div>
+  </div>
+</div>

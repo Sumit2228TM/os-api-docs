@@ -1,0 +1,270 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.Visit" table="CATISSUE_SPECIMEN_COLL_GROUP" batch-size="100"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.Visit">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">CATISSUE_SPECIMEN_COLL_GRP_SEQ</param>
+      </generator>
+    </id>
+
+    <many-to-one name="clinicalStatus" column="CLINICAL_STATUS_ID" lazy="false" fetch="join"/>
+
+    <property name="activityStatus" column="ACTIVITY_STATUS" />
+
+    <property name="name" column="NAME" />
+
+    <property name="status" column="COLLECTION_STATUS" />
+		
+    <property name="sprName" lazy="true" column="SPR_NAME"/>
+    
+    <property name="sprLocked" column="SPR_LOCKED"/>
+		
+    <property name="comments" type="string" column="COMMENTS"/>
+
+    <property name="surgicalPathologyNumber" column="SURGICAL_PATHOLOGY_NUMBER" />
+
+    <property name="visitDate" type="timestamp" column="COLLECTION_TIMESTAMP" />
+
+    <many-to-one name="missedReason" column="MISSED_REASON_ID" lazy="false" fetch="join"/>
+
+    <set name="clinicalDiagnoses" table="OS_VISIT_CLIN_DIAGNOSES">
+      <key column="VISIT_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.administrative.domain.PermissibleValue" column="CLINICAL_DIAGNOSIS_ID"/>
+    </set>
+
+    <many-to-one name="registration" column="COLLECTION_PROTOCOL_REG_ID" />
+
+    <many-to-one name="cpEvent" column="COLLECTION_PROTOCOL_EVENT_ID" />
+
+    <many-to-one name="site" column="SITE_ID" />
+
+    <set name="specimens" table="CATISSUE_SPECIMEN" inverse="true" cascade="persist,merge">
+      <key column="SPECIMEN_COLLECTION_GROUP_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.Specimen" />
+      <filter name="activeEntity"/>
+    </set>
+
+    <many-to-one name="missedBy" column="MISSED_BY"/>
+    
+    <many-to-one name="cohort" column="COHORT_ID" lazy="false" fetch="join"/>
+
+    <property name="extensionRev" column="EXTENSION_REV"/>
+
+    <property name="creationTime" column="CREATION_TIME"/>
+
+    <many-to-one name="creator" column="CREATOR"/>
+
+    <property name="updateTime" column="UPDATE_TIME"/>
+
+    <many-to-one name="updater" column="UPDATER"/>
+
+    <filter name="activeEntity"/>
+
+    <query name="getVisitsByIds">
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Visit
+      where
+        id in (:ids)
+    </query>
+
+    <query name="getVisitByName">
+      from 
+        com.krishagni.catissueplus.core.biospecimen.domain.Visit 
+      where 
+        name in (:names)
+    </query>
+
+    <query name="getVisitBySpr">
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Visit
+      where
+        surgicalPathologyNumber = :sprNumber
+    </query>
+
+    <query name="getLatestVisitByCprId">
+      select
+        visit
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Visit visit
+        join visit.registration cpr
+      where
+        cpr.id = :cprId and
+        visit.status = 'Complete'
+      order by
+        visit.visitDate desc, visit.id desc
+    </query>
+
+    <query name="getVisitsByEmpiOrMrn">
+      select
+        distinct v
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.Visit v
+        join v.registration reg
+        join reg.collectionProtocol cp
+        join reg.participant p
+        left join p.pmis pmi
+      where
+        (lower(p.empi) = :empiOrMrn or lower(pmi.medicalRecordNumber) = :empiOrMrn) and
+        cp.id = :cpId
+    </query>
+
+    <sql-query name="getVisitStats">
+      <return-scalar column="visitId" type="long"/>
+      <return-scalar column="totalPendingSpmns" type="int"/>
+      <return-scalar column="pendingPrimarySpmns" type="int"/>
+      <return-scalar column="plannedPrimarySpmnsColl" type="int"/>
+      <return-scalar column="unplannedPrimarySpmnsColl" type="int"/>
+      <return-scalar column="missedPrimarySpmnsColl" type="int"/>
+      <return-scalar column="storedSpmns" type="int"/>
+      <return-scalar column="notStoredSpmns" type="int"/>
+      <return-scalar column="distributedSpmns" type="int"/>
+      <return-scalar column="closedSpmns" type="int"/>
+
+      select
+        t.visit_id as visitId,
+        count(distinct case when t.status = 'Pending' then t.id else null end)
+          as totalPendingSpmns,
+        count(distinct case when t.lineage = 'New' and t.status = 'Pending' then t.id else null end)
+          as pendingPrimarySpmns,
+        count(distinct case when t.lineage = 'New' and t.planned = 'Y' and t.status = 'Collected' then t.id else null end)
+          as plannedPrimarySpmnsColl,
+        count(distinct case when t.lineage = 'New' and t.planned = 'N' and t.status = 'Collected' then t.id else null end)
+          as unplannedPrimarySpmnsColl,
+        count(distinct case when t.lineage = 'New' and (t.status = 'Missed Collection' or t.status = 'Not Collected') then t.id else null end)
+          as missedPrimarySpmnsColl,
+        count(distinct case when t.spmn_stored = 'Y' then t.id else null end) as storedSpmns,
+        count(distinct case when t.activity_status != 'Closed' and t.status = 'Collected' and
+              t.spmn_stored = 'N' and t.spmn_distributed = 'N' then t.id else null end)
+          as notStoredSpmns,
+        count(distinct case when t.spmn_distributed = 'Y' then t.id else null end)
+          as distributedSpmns,
+        count(distinct case when t.activity_status = 'Closed' and t.spmn_distributed = 'N' then t.id else null end)
+          as closedSpmns
+      from (
+        select
+          v.identifier as visit_id,
+          case when s.lineage is not null then s.lineage else req.lineage end as lineage,
+          s.activity_status as activity_status,
+          case when s.collection_status is not null then s.collection_status else 'Pending' end as status,
+          'Y' as planned,
+          case when p.identifier is null then 'N' else 'Y' end as spmn_stored,
+          case when oi.identifier is null then 'N' else 'Y' end as spmn_distributed,
+          case when s.identifier is not null then concat('s', s.identifier) else concat('sr', req.identifier) end as id
+        from
+          catissue_specimen_coll_group v
+          inner join catissue_cp_req_specimen req
+            on req.collection_protocol_event_id = v.collection_protocol_event_id and
+               req.activity_status != 'Disabled'
+          left join catissue_specimen s
+            on s.specimen_collection_group_id = v.identifier and
+               s.req_specimen_id = req.identifier and
+               s.activity_status != 'Disabled'
+          left join os_container_positions p
+            on p.occupying_specimen_id = s.identifier
+          left join os_order_items oi
+            on oi.specimen_id = s.identifier
+          left join os_orders o
+            on o.identifier = oi.order_id and
+               o.status = 'EXECUTED' and
+               o.activity_status != 'Disabled'
+        where
+          v.identifier in (:visitIds) and
+          (req.activity_status = 'Active' or s.identifier is not null)
+
+      union
+        select
+          s.specimen_collection_group_id as visit_id,
+          s.lineage as lineage,
+          s.activity_status as activity_status,
+          s.collection_status as status,
+          'N' as planned,
+          case when p.identifier is null then 'N' else 'Y' end as spmn_stored,
+          case when oi.identifier is null then 'N' else 'Y' end as spmn_distributed,
+          concat('s', s.identifier) as id
+        from
+          catissue_specimen s
+          left join os_container_positions p
+            on p.occupying_specimen_id = s.identifier
+          left join os_order_items oi
+            on oi.specimen_id = s.identifier
+          left join os_orders o
+            on o.identifier = oi.order_id and
+               o.status = 'EXECUTED' and
+               o.activity_status != 'Disabled'
+        where
+          s.specimen_collection_group_id in (:visitIds) and
+          s.activity_status != 'Disabled' and
+          s.req_specimen_id is null
+      ) t
+      group by
+        t.visit_id
+    </sql-query>
+
+    <sql-query name="getAnticipatedVisitStats">
+      <return-scalar column="eventId" type="long"/>
+      <return-scalar column="totalSpmns" type="int"/>
+      <return-scalar column="primarySpmns" type="int"/>
+
+      select
+        cpe.identifier as eventId,
+        count(req.identifier) as totalSpmns,
+        count(case when req.lineage = 'New' then req.identifier else null end) as primarySpmns
+      from
+        catissue_coll_prot_event cpe
+        inner join catissue_cp_req_specimen req on req.collection_protocol_event_id = cpe.identifier
+      where
+        cpe.identifier in (:eventIds) and
+        cpe.activity_status != 'Disabled' and
+        req.activity_status = 'Active'
+      group by
+        cpe.identifier
+    </sql-query>
+
+    <sql-query name="getCustomFieldRecordId">
+      <return-scalar column="recordId" type="long" />
+
+      select
+        record_id as recordId
+      from
+        os_visit_cust_fields
+      where
+        visit_id = :visitId and
+        form_id = :formId and
+        form_ctxt_id = :formCtxtId
+    </sql-query>
+
+    <sql-query name="getCustomFieldRecordIds">
+      <return-scalar column="visitId" type="long" />
+      <return-scalar column="recordId" type="long" />
+
+      select
+        visit_id as visitId, record_id as recordId
+      from
+        os_visit_cust_fields
+      where
+        visit_id in (:visitIds) and
+        form_id = :formId and
+        form_ctxt_id = :formCtxtId
+    </sql-query>
+
+    <sql-query name="insertCustomFieldRecord">
+      insert into
+        os_visit_cust_fields(visit_id, form_id, form_ctxt_id, record_id)
+      values
+        (:visitId, :formId, :formCtxtId, :recordId)
+    </sql-query>
+
+    <sql-query name="insertCustomFieldRecordStatus">
+      insert into
+        os_form_record_statuses (identifier, form_id, record_id, form_status)
+      values
+        (:visitId, :formId, :recordId, 'COMPLETE')
+    </sql-query>
+  </class>
+</hibernate-mapping>

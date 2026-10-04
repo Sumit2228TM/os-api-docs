@@ -1,0 +1,34 @@
+<form name="defrag" class="form-horizontal" os-form-validator="defrag" novalidate>
+  <div class="os-modal">
+    <div class="os-modal-header">
+      <span>{{'container.defrag_container' | translate: container}}</span>
+    </div>
+    <div class="os-modal-body">
+      <div class="form-group">
+        <div class="col-xs-12">
+          <span translate="container.move_aliquots_together">
+            Do you want same specimen aliquots stored in containers to be moved together?
+          </span>
+        </div>
+        <div class="col-xs-12">
+          <label class="radio-inline">
+            <input type="radio" name="mode" ng-model="aliquotsInSameContainer" ng-value="true">
+            <span translate="common.yes">Yes</span>
+          </label>
+          <label class="radio-inline">
+            <input type="radio" name="mode" ng-model="aliquotsInSameContainer" ng-value="false">
+            <span translate="common.no">No</span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="os-modal-footer">
+      <button class="btn os-btn-text" ng-click="cancel()">
+        <span translate="common.buttons.discard">Cancel</span>
+      </button>
+      <button class="btn btn-primary" ng-click="submit()">
+        <span translate="common.buttons.submit">Submit</span>
+      </button>
+    </div>
+  </div>
+</form>

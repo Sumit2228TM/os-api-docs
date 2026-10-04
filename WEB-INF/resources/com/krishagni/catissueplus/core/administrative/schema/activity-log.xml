@@ -1,0 +1,49 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<object-schema>
+  <name>containerActivityLog</name>
+  <record>
+    <name>com.krishagni.catissueplus.core.administrative.events.ContainerActivityLogDetail</name>
+
+    <field>
+      <caption>#getMessage("storage_container_name")</caption>
+      <attribute>containerName</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("cont_activity_name")</caption>
+      <attribute>scheduledActivityName</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("cont_activity_task")</caption>
+      <attribute>taskName</attribute>
+    </field>
+
+    <record>
+      <caption>#getMessage("cont_activity_performed_by")</caption>
+      <attribute>performedBy</attribute>
+
+      <field>
+        <caption>#getMessage("cont_activity_user_email")</caption>
+        <attribute>emailAddress</attribute>
+      </field>
+    </record>
+
+    <field>
+      <caption>#getMessage("cont_activity_date")</caption>
+      <attribute>activityDate</attribute>
+      <type>date</type>
+    </field>
+
+    <field>
+      <caption>#getMessage("cont_activity_time_taken")</caption>
+      <attribute>timeTaken</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("cont_activity_comments")</caption>
+      <attribute>comments</attribute>
+    </field>
+  </record>
+</object-schema>

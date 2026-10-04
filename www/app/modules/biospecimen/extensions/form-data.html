@@ -1,0 +1,75 @@
+<div>
+  <ul class="os-key-values bg-col"
+    ng-class="{'os-one-col': showColumn == 1, 'os-two-cols': showColumn == 2, 'vertical': verticalLayout}">
+    <li class="item" ng-repeat="field in data.fields | filter: {type: '!subForm'}" ng-show="!field.$$osSlHide">
+      <strong class="key key-sm strong">
+        <span os-unsafe-html="field.caption"></span>
+      </strong>
+      <span class="value value-md" ng-show="field.type != 'label'">
+        <span ng-include src="'modules/biospecimen/extensions/field-value.html'"></span>
+      </span>
+    </li>
+  </ul>
+
+  <div class="os-section" ng-repeat="sf in data.fields | filter: {type: 'subForm'}" 
+    ng-init="sfCollapse=false" ng-if="sf.value && sf.value.length > 0" style="padding: 0px 5px;">
+    <button class="os-btn-section-collapse os-btn-transparent" ng-click="sfCollapse=!sfCollapse">
+      <span ng-if="!sfCollapse" class="fa fa-chevron-circle-down"></span>
+      <span ng-if="sfCollapse" class="fa fa-chevron-circle-right"></span>
+    </button>
+    <h3 class="os-sub-section-title">
+      <span os-unsafe-html="sf.caption"></span>
+    </h3>
+    <div collapse="sfCollapse">
+      <table class="os-table os-table-muted-hdr os-border">
+        <thead class="os-table-head">
+          <tr class="row">
+            <th class="col" ng-repeat="field in sf.value[0].fields">
+              <span os-unsafe-html="field.caption"></span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="os-table-body">
+          <tr class="row" ng-repeat="sfr in sf.value">
+            <td class="col" ng-repeat="field in sfr.fields">
+              <span ng-include src="'modules/biospecimen/extensions/field-value.html'"></span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script type="text/ng-template" id="modules/biospecimen/extensions/field-value.html">
+  <span ng-switch on="!!field.value || field.value == 0">
+    <span ng-switch-when="true" ng-switch on="field.type">
+      <span ng-switch-when="fileUpload" ng-init="file=field.value">
+        <a href="{{filesUrl}}/{{file.fileId}}?contentType={{file.contentType}}&filename={{file.filename}}" target="_blank" rel="noopener">
+          {{file.filename}}
+        </a>
+      </span>
+      <span ng-switch-when="signature">
+        <img src="{{filesUrl}}/{{field.value}}">
+      </span>
+      <span ng-switch-when="datePicker">
+        <span ng-show="field.format.indexOf('HH:mm') >= 0">
+          {{field.value | date: $root.global.dateTimeFmt}}
+        </span>
+        <span ng-show="field.format.indexOf('HH:mm') < 0">
+          {{field.value | date: $root.global.dateFmt}}
+        </span>
+      </span>
+      <span ng-switch-when="booleanCheckbox">
+        {{field.value | osBoolValue : 'common.yes' : 'common.no' : 'common.not_specified'}}
+      </span>
+      <span ng-switch-default ng-switch on="!!field.displayValue">
+        <span ng-switch-when="true"><pre ng-bind-html="field.displayValue"></pre></span>
+        <span ng-switch-default><pre>{{field.value | osArrayJoin}}</pre></span>
+      </span>
+    </span>
+    <span ng-switch-default>
+      <span>{{field.value | osNoValue}}</span>
+    </span>
+  </span>
+</script>

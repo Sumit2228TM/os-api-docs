@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.ContainerTransferEvent" table="OS_CONTAINER_TRANSFER_EVENTS"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.ContainerTransferEvent">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_CONT_TRANSFER_EVENT_SEQ</param>
+      </generator>
+    </id>
+
+    <many-to-one name="container" column="CONTAINER_ID"/>
+
+    <many-to-one name="fromSite" column="FROM_SITE_ID"/>
+
+    <many-to-one name="fromContainer" column="FROM_CONTAINER_ID"/>
+
+    <property name="fromRow" column="FROM_ROW"/>
+
+    <property name="fromColumn" column="FROM_COLUMN"/>
+
+    <property name="fromRowOrdinal" column="FROM_ROW_ORDINAL"/>
+
+    <property name="fromColumnOrdinal" column="FROM_COLUMN_ORDINAL"/>
+
+    <property name="fromPosition" column="FROM_POSITION"/>
+
+    <many-to-one name="toSite" column="TO_SITE_ID"/>
+
+    <many-to-one name="toContainer" column="TO_CONTAINER_ID"/>
+
+    <property name="toRow" column="TO_ROW"/>
+
+    <property name="toColumn" column="TO_COLUMN"/>
+
+    <property name="toRowOrdinal" column="TO_ROW_ORDINAL"/>
+
+    <property name="toColumnOrdinal" column="TO_COLUMN_ORDINAL"/>
+
+    <property name="toPosition" column="TO_POSITION"/>
+
+    <many-to-one name="user" column="USER_ID"/>
+
+    <property name="time" column="TRANSFER_TIME"/>
+
+    <property name="reason" column="REASON"/>
+  </class>
+</hibernate-mapping>

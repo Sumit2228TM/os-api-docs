@@ -1,0 +1,116 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3>
+        <span translate="user.groups">User Groups</span>
+      </h3>
+    </div>
+    <div class="os-page-header-actions">
+      <os-list-pager opts="ctx.pagerOpts"></os-list-pager>
+    </div>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left">
+      <button class="default" ui-sref="user-list">
+        <span class="fa fa-user"></span>
+        <span translate="user.list">Users</span>
+      </button>
+    </div>
+
+    <div class="right">
+      <button class="default" os-right-drawer-toggle>
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th class="col">
+            <span translate="user.group_name">Name</span>
+          </th>
+          <th class="col">
+            <span translate="user.group_description">Description</span>
+          </th>
+          <th class="col">
+            <span translate="user.institute">Institute</span>
+          </th>
+          <th class="col">
+            <span translate="user.group_users_count">Users</span>
+          </th>
+          <th class="col">
+            <span>&nbsp;</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-if="ctx.emptyState.loading || ctx.emptyState.empty">
+          <td class="col" colspan="100%">
+            <os-empty-list state="ctx.emptyState"></os-empty-list>
+          </td>
+        </tr>
+        <tr class="row" ng-repeat="group in ctx.groups" os-row-click="viewGroup(group)">
+          <td class="col">
+            <a class="os-click-esc" ui-sref="user-list({groupId: group.id})">
+              <span>{{group.name}}</span>
+            </a>
+          </td>
+          <td class="col">
+            <span>{{group.description}}</span>
+          </td>
+          <td class="col">
+            <span>{{group.institute}}</span>
+          </td>
+          <td class="col">
+            <span>{{group.noOfUsers | number}}</span>
+          </td>
+          <td class="col os-click-esc">
+            <button class="btn btn-xs btn-default" ng-show="userResource.updateAllowed"
+              ui-sref="user-group-addedit({groupId: group.id})">
+              <span class="fa fa-pencil"></span>
+            </button>
+            <button class="btn btn-xs btn-default" ng-show="userResource.updateAllowed"
+              ng-click="deleteGroup(group)">
+              <span class="fa fa-trash"></span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div os-right-drawer ng-include="'modules/administrative/user/search-group.html'"></div>
+</div>
+
+<script type="text/ng-template" id="modules/administrative/user/search-group.html">
+  <div>
+    <div class="os-search">
+      <div class="os-head">
+        <h3 class="os-title">
+          <span translate="common.filters.title">Filters</span>
+        </h3>
+      </div>
+
+      <div class="os-body">
+        <div class="form-group">
+          <input os-md-input type="text" ng-model="ctx.filterOpts.query" class="form-control"
+            placeholder="{{'user.group_name' | translate}}">
+        </div>
+
+        <div class="form-group" show-if-admin>
+          <os-institutes ng-model="ctx.filterOpts.institute" md-type="true"
+            placeholder="{{'user.institute' | translate}}">
+          </os-institutes>
+        </div>
+
+        <os-clear-filters opts="ctx.filterOpts"></os-clear-filters>
+      </div>
+    </div>
+
+    <os-list-page-size opts="ctx.pagerOpts" on-change="pageSizeChanged()"></os-list-page-size>
+  </div>
+</script>

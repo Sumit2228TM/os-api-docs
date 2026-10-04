@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="ckhilosiya" id="Audit table for specimen list">
+    <createTable tableName="CATISSUE_SPECIMENLIST_TAGS_AUD">
+      <column name="REV" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+
+      <column name="REVTYPE" type="${smallint.type}"/>
+
+      <column name="IDENTIFIER" type="${int.type}"/>
+
+      <column name="TAG_LABEL" type="${text.type}(255)"/>
+      <column name="name_MOD" type="${bit.type}"/>
+
+      <column name="USER_ID" type="${int.type}"/>
+      <column name="owner_MOD" type="${bit.type}"/>
+
+      <column name="DELETED_ON" type="${nullable.ts.type}"/>
+      <column name="deletedOn_MOD" type="${bit.type}"/>
+
+      <column name="DESCRIPTION" type="${clob.type}"/>
+      <column name="description_MOD" type="${bit.type}"/>
+
+      <column name="CREATED_ON" type="${timestamp.type}"/>
+      <column name="createdOn_MOD" type="${bit.type}"/>
+
+      <column name="LAST_UPDATED_ON" type="${nullable.ts.type}"/>
+      <column name="lastUpdatedOn_MOD" type="${bit.type}"/>
+
+      <column name="specimens_MOD" type="${bit.type}"/>
+      <column name="sharedWith_MOD" type="${bit.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="ckhilosiya" id="Audit specimen list in order">
+    <addColumn tableName="OS_ORDERS_AUD">
+      <column name="SPECIMEN_LIST_ID" type="${int.type}"/>
+      <column name="specimenList_MOD" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track visit collection mode setting changes">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="VISIT_COLLECTION_MODE" type="${text.type}(16)"/>
+      <column name="visitCollectionMode_MOD" type="${bit.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit and track changes to container slot blocking">
+    <addColumn tableName="OS_CONTAINER_POSITIONS_AUD">
+      <column name="BLOCKED" type="${boolean.type}"/>
+      <column name="blocked_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

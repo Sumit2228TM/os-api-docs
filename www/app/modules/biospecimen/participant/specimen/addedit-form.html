@@ -1,0 +1,481 @@
+
+<ng-form name="sform">
+  <div>
+    <div class="form-group" ng-if="!inputSpmn.id && opts.requirements.length > 0">
+      <label class="col-xs-3 control-label">
+        <span translate="specimens.requirement">Requirement</span>
+      </label>
+      <div class="col-xs-6">
+        <os-select name="reqType" ng-model="inputSpmn.$reqType" list="opts.requirements"
+          display-prop="title" on-select="onReqSelect($item)" required>
+        </os-select>
+        <div os-field-error field="sform.reqType"></div>
+      </div>
+    </div>
+
+    <div ng-switch on="opts.hasDict" ng-if="!opts.requirements || opts.requirements.length == 0 || !!inputSpmn.id || inputSpmn.$reqType">
+      <div ng-switch-when="true">
+        <sde-form-fields name="spmn" base-fields="opts.sysDict" fields="opts.cpDict"
+          obj="spmnCtx.obj" in-objs="spmnCtx.inObjs" ex-objs="spmnCtx.exObjs" opts="spmnCtx.opts">
+        </sde-form-fields>
+
+        <span ng-if="spmnCtx.opts.verticalLayout">
+          <span ng-init="opts.verticalLayout=true"></span>
+        </span>
+      </div>
+      <div ng-switch-default>
+        <div ng-include="'modules/biospecimen/participant/specimen/static-addedit.html'">
+      </div>
+    </div>
+
+    <div ng-if="!inputSpmn.id && (!inputSpmn.reqId || opts.cp.specimenCentric)">
+      <div ng-if="!inputSpmn.reqId && opts.allSpmnUpdate && opts.showCreateAliquots != false && opts.showCreateAliquots != 'false'">
+        <div ng-include="'modules/biospecimen/participant/specimen/add-aliquots-tmpl.html'"></div>
+      </div>
+      <div ng-if="inputSpmn.reqId && inputSpmn.children.length > 0 && opts.cp.specimenCentric">
+        <div ng-include="'modules/biospecimen/participant/specimen/add-children-tmpl.html'"></div>
+      </div>
+
+      <div ng-if="opts.allowMultipleSpecimens != false && opts.allowMultipleSpecimens != 'false'">
+        <fieldset ng-if="spmnCtx.opts.verticalLayout">
+          <legend translate="specimens.multiple">Multiple Specimens</legend>
+          <div class="row" ng-if="!spmnCtx.manualSpecLabelReq">
+            <div class="col-xs-6">
+              <input type="text" name="count" ng-model="inputSpmn.$$count" class="form-control"
+                ng-pattern="/^[1-9][0-9]*$/" placeholder="{{'specimens.num_of_specimens' | translate}}">
+              <div os-field-error field="sform.count"></div>
+            </div>
+          </div>
+
+          <div class="row" ng-if="spmnCtx.manualSpecLabelReq">
+            <div class="col-xs-6">
+              <textarea name="labels" ng-model="inputSpmn.$$labels" class="form-control"
+                placeholder="{{'specimens.labels' | translate}}" rows="2" required>
+              </textarea>
+              <div os-field-error field="sform.labels"></div>
+            </div>
+          </div>
+        </fieldset>
+
+        <div ng-if="!spmnCtx.opts.verticalLayout">
+          <div class="os-section-divider">
+            <span translate="specimens.multiple">Multiple Specimens</span>
+          </div>
+
+          <div class="form-group" ng-if="spmnCtx.manualSpecLabelReq">
+            <label class="col-xs-3 control-label">
+              <span translate="specimens.labels">Labels</span>
+            </label>
+            <div class="col-xs-6">
+              <textarea name="labels" ng-model="inputSpmn.$$labels" class="form-control"
+                placeholder="{{'specimens.labels' | translate}}" rows="2" required>
+              </textarea>
+              <div os-field-error field="sform.labels"></div>
+            </div>
+          </div>
+
+          <div class="form-group" ng-if="!spmnCtx.manualSpecLabelReq">
+            <label class="col-xs-3 control-label">
+              <span translate="specimens.num_of_specimens">Count</span>
+            </label>
+            <div class="col-xs-6">
+              <input type="text" name="count" ng-model="inputSpmn.$$count" class="form-control"
+                ng-pattern="/^[1-9][0-9]*$/" placeholder="{{'specimens.count' | translate}}">
+              <div os-field-error field="sform.count"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-form>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimen/static-addedit.html">
+  <div>
+    <div class="form-group" ng-if="spmnCtx.manualSpecLabelReq &&
+      (!!inputSpmn.id || (!!inputSpmn.reqId && !opts.cp.specimenCentric) ||
+       opts.allowMultipleSpecimens == false || opts.allowMultipleSpecimens == 'false')">
+
+      <label class="col-xs-3 control-label" translate="specimens.label">Label</label>
+      <div class="col-xs-6">
+        <input type="text" name="label" ng-model="inputSpmn.label" class="form-control"
+          ng-disabled="inputSpmn.labelFmt && !opts.cp.manualSpecLabelEnabled"
+          ng-required="inputSpmn.status != 'Missed Collection' && inputSpmn.status != 'Not Collected'"
+          placeholder="{{'specimens.label' | translate}}"/>
+        <div os-field-error field="sform.label"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.additional_label">Additional Label</label>
+      <div class="col-xs-6">
+        <input ng-model="inputSpmn.additionalLabel" class="form-control" ng-disabled="!!opts.additionalLabelAutoGen"
+          type="text" placeholder="{{'specimens.additional_label' | translate}}">
+      </div>
+    </div>
+
+    <div class="form-group" ng-if="opts.barcodingEnabled">
+      <label class="col-xs-3 control-label" translate="specimens.barcode">Barcode</label>
+      <div class="col-xs-6">
+        <input ng-model="inputSpmn.barcode" class="form-control" ng-disabled="!!opts.spmnBarcodesAutoGen"
+          type="text" placeholder="{{'specimens.barcode' | translate}}">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.collection_status">Collection Status</label>
+      <div class="col-xs-6">
+        <os-select name="collectionStatus" ng-model="inputSpmn.status" list="specimenStatuses"
+          required placeholder="{{'specimens.collection_status' | translate}}">
+        </os-select>
+        <div os-field-error field="sform.collectionStatus"></div>
+      </div>
+    </div>
+
+    <div ng-if="inputSpmn.lineage != 'Aliquot' && !inputSpmn.poolSpecimen">
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="specimens.type">Specimen Type</label>
+        <div class="col-xs-6">
+          <os-specimen-types name="type" specimen="inputSpmn" required placeholder="{{'specimens.type' | translate}}">
+          </os-specimen-types>
+          <div os-field-error field="sform.type"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" ng-if="opts.imagingEnabled && inputSpmn.status == 'Collected'">
+      <label class="col-xs-3 control-label" translate="specimens.image_id">Image ID/URL</label>
+      <div class="col-xs-6">
+        <input ng-model="inputSpmn.imageId" class="form-control"
+          type="text" placeholder="{{'specimens.image_id' | translate}}">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.initial_qty">Initial Quantity</label>
+      <div class="col-xs-6">
+        <os-spmn-measure name="qty" specimen="inputSpmn" quantity="inputSpmn.initialQty"
+          ng-required="inputSpmn.lineage == 'Aliquot' && opts.aliquotQtyReq"
+          placeholder="{{'specimens.initial_qty' | translate}}">
+        </os-spmn-measure>
+        <div os-field-error field="sform.qty"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.available_qty">Available Quantity</label>
+      <div class="col-xs-6"> 
+        <os-spmn-measure name="aqty" specimen="inputSpmn" quantity="inputSpmn.availableQty"
+          ng-required="inputSpmn.lineage == 'Aliquot' && opts.aliquotQtyReq"
+          placeholder="{{'specimens.available_qty' | translate}}">
+        </os-spmn-measure>
+        <div os-field-error field="sform.aqty"></div>
+      </div>
+    </div>
+
+    <div class="form-group" ng-if="inputSpmn.status == 'Collected'">
+      <label class="col-xs-3 control-label" translate="specimens.created_on">Created On</label>
+      <div class="col-xs-6">
+        <div class="os-date-time clearfix">
+          <div class="os-col-65 input os-no-padding">
+            <os-date-picker name="createdOn" date="inputSpmn.createdOn"
+              placeholder="{{'specimens.created_on' | translate}}" required>
+            </os-date-picker>
+          </div>
+          <div class="os-col-35">
+            <timepicker ng-model="inputSpmn.createdOn" class="os-time-no-wheels" show-meridian="false">
+            </timepicker>
+          </div>
+        </div>
+        <div os-field-error field="sform.createdOn"></div>
+      </div>
+    </div>
+
+    <div class="form-group" ng-if="inputSpmn.lineage != 'New' && inputSpmn.status == 'Collected'">
+      <label class="col-xs-3 control-label" translate="specimens.created_by">Created By</label>
+      <div class="col-xs-6">
+        <os-users name="createdBy" ng-model="inputSpmn.createdBy" default-current-user exclude-contacts
+          placeholder="{{'specimens.created_by' | translate}}" required>
+        </os-users>
+        <div os-field-error field="sform.createdBy"></div>
+      </div>
+    </div>
+
+    <div class="form-group" ng-if="!inputSpmn.poolSpecimen">
+      <label class="col-xs-3 control-label" translate="specimens.concentration">Concentration</label>
+      <div class="col-xs-6"> 
+        <os-spmn-measure name="concentration" specimen="inputSpmn" quantity="inputSpmn.concentration"
+          measure="concentration" placeholder="{{'specimens.concentration' | translate}}">
+        </os-spmn-measure>
+        <div os-field-error field="sform.concentration"></div>
+      </div>
+    </div>
+
+    <div class="form-group" ng-if="opts.storeSpmn && inputSpmn.status == 'Collected'
+      && inputSpmn.activityStatus == 'Active'">
+      <label class="col-xs-3 control-label" translate="specimens.location">Location</label>
+      <div class="col-xs-6">
+        <os-storage-position entity="inputSpmn" cp-id="opts.cpr.cpId" virtual="spmnCtx.isVirtual"></os-storage-position>
+      </div>
+    </div>
+
+    <div class="form-group"  
+      ng-if="(inputSpmn.lineage != 'Aliquot' && !inputSpmn.poolSpecimen) && biohazards.length > 0">
+      <label class="col-xs-3 control-label" translate="specimens.biohazards">Biohazards</label>
+      <div class="col-xs-6">
+        <os-pvs name="biohazards" ng-model="inputSpmn.biohazards" attribute="specimen-biohazard"
+          multiple placeholder="{{'specimens.biohazards' | translate}}">
+        </os-pvs>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.freeze_thaw_cycles">Freeze/Thaw Cycles</label>
+      <div class="col-xs-6">
+        <input name="freezeThawCycles" ng-model="inputSpmn.freezeThawCycles"
+          class="form-control" type="text" placeholder="{{'specimens.freeze_thaw_cycles' | translate}}"
+          ng-pattern="/^[0-9]*$/">
+        <div os-field-error field="sform.freezeThawCycles"></div>
+      </div>
+    </div>
+
+    <div ng-if="inputSpmn.lineage != 'Aliquot' && !inputSpmn.poolSpecimen">
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="specimens.pathology_status">Pathology Status</label>
+        <div class="col-xs-6">
+          <os-pvs name="pathology" ng-model="inputSpmn.pathology" attribute="pathology-status"
+            required placeholder="{{'specimens.pathology_status' | translate}}">
+          </os-pvs>
+          <div os-field-error field="sform.pathology"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="specimens.anatomic_site">Anatomic Site</label>
+        <div class="col-xs-6">
+          <os-pvs name="anatomicSite" ng-model="inputSpmn.anatomicSite" attribute="anatomic-site" 
+            show-only-leaf-values="true" required placeholder="{{'specimens.anatomic_site' | translate}}">
+          </os-pvs>
+          <div os-field-error field="sform.anatomicSite"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-xs-3 control-label" translate="specimens.laterality">Laterality</label>
+        <div class="col-xs-6">
+          <os-pvs name="laterality" ng-model="inputSpmn.laterality" attribute="laterality"
+            required placeholder="{{'specimens.laterality' | translate}}">
+          </os-pvs>
+          <div os-field-error field="sform.laterality"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label">
+        <span translate="specimens.comments">Comments</span>
+      </label>
+      <div class="col-xs-6">
+        <textarea ng-model="inputSpmn.comments" class="form-control"
+          placeholder="{{'specimens.comments' | translate}}" rows="2">
+        </textarea>
+      </div>
+    </div>
+
+    <div ng-if="inputSpmn.lineage == 'New' && !inputSpmn.pooledSpecimen">
+      <div>
+        <div class="os-section-divider">
+          <span translate="specimens.col_event.title">Collection Details</span>
+        </div>
+
+        <div class="form-group">
+          <label class="col-xs-3 control-label"  translate="specimens.col_event.user_time">User and Time</label>
+          <div class="col-xs-3">
+            <os-users  name="collector" ng-model="inputSpmn.collectionEvent.user" 
+              default-current-user placeholder="{{'specimens.col_event.user' | translate}}" required>
+            </os-users>
+            <div os-field-error field="sform.collector"></div>
+          </div>
+          <div class="os-date-time clearfix"
+            ng-init="inputSpmn.collectionEvent.time = (inputSpmn.collectionEvent.time || spmnCtx.currentDate)">
+            <div class="col-xs-2 input">
+              <os-date-picker name="collectionDate" date="inputSpmn.collectionEvent.time"
+                placeholder="{{'specimens.col_event.date' | translate}}" required>
+              </os-date-picker>
+              <div os-field-error field="sform.collectionDate"></div>
+            </div>
+            <div class="col-xs-1 os-timepicker">
+              <timepicker ng-model="inputSpmn.collectionEvent.time" class="os-time-no-wheels" show-meridian="false">
+              </timepicker>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-xs-3 control-label" translate="specimens.col_event.collection_container">
+            Collection Container
+          </label>
+          <div class="col-xs-6">
+            <os-pvs name="collectionContainer" ng-model="inputSpmn.collectionEvent.container" attribute="collection-container"
+              placeholder="{{'specimens.col_event.collection_container' | translate}}" required>
+            </os-pvs>
+            <div os-field-error field="sform.collectionContainer"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-xs-3 control-label" translate="specimens.col_event.collection_proc">Collection Procedure</label>
+          <div class="col-xs-6">
+            <os-pvs name="collectionProcedure" ng-model="inputSpmn.collectionEvent.procedure" attribute="collection-procedure"
+              placeholder="{{'specimens.col_event.collection_proc' | translate}}" required>
+            </os-pvs>
+            <div os-field-error field="sform.collectionProcedure"></div>
+          </div>
+        </div>
+
+        <div class="os-section-divider">
+          <span translate="specimens.recv_event.title">Received Details</span>
+        </div>
+
+        <div class="form-group">
+          <label class="col-xs-3 control-label"  translate="specimens.recv_event.user">User and Time</label>
+          <div class="col-xs-3">
+            <os-users name="receiver" ng-model="inputSpmn.receivedEvent.user" 
+              default-current-user placeholder="{{'specimens.recv_event.user_time' | translate}}" required>
+            </os-users>
+            <div os-field-error field="sform.receiver"></div>
+          </div>
+
+          <div class="os-date-time clearfix"
+            ng-init="inputSpmn.receivedEvent.time = (inputSpmn.receivedEvent.time || spmnCtx.currentDate)">
+            <div class="col-xs-2 input">
+              <os-date-picker name="receiveDate" date="inputSpmn.receivedEvent.time"
+                placeholder="{{'specimens.recv_event.date' | translate}}" required>
+              </os-date-picker>
+              <div os-field-error field="sform.receiveDate"></div>
+            </div>
+            <div class="col-xs-1 os-timepicker">
+              <timepicker ng-model="inputSpmn.receivedEvent.time" class="os-time-no-wheels"show-meridian="false">
+              </timepicker>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-xs-3 control-label" translate="specimens.recv_event.received_quality">Received Quality</label>
+          <div class="col-xs-6">
+            <os-pvs name="receivedQuality" ng-model="inputSpmn.receivedEvent.receivedQuality" attribute="received-quality"
+              placeholder="{{'specimens.recv_event.received_quality' | translate}}" required>
+            </os-pvs>
+            <div os-field-error field="sform.receivedQuality"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="os-entity-extn-form-fields" ng-if="!!extnOpts">
+      <div class="os-section-divider">
+        <span translate="specimens.custom_fields">Additional Fields</span>
+      </div>
+      <div class='os-extn-form' os-de-form opts="extnOpts" ctrl="deFormCtrl" extended-obj="inputSpmn"></div>
+    </div>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimen/add-aliquots-tmpl.html">
+  <div class="os-section-divider">
+    <span translate="specimens.aliquot_details">Aliquot Details</span>
+  </div>
+
+  <div class="form-group">
+    <div class="col-xs-9 os-text-checkbox" ng-class="{'col-xs-offset-3': !spmnCtx.opts.verticalLayout}">
+      <div class="checkbox">
+        <os-checkbox ng-model="spmnCtx.createAliquots" ng-click="toggleAliquots()"></os-checkbox>
+      </div>
+      <div class="message os-ctrl-padding-top">
+        <span translate="specimens.create_aliquots_q">Do you want to create aliquots?</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group" ng-if="!!spmnCtx.createAliquots">
+    <div ng-class="{'col-xs-offset-3 col-xs-8': !spmnCtx.opts.verticalLayout, 'col-xs-12': spmnCtx.opts.verticalLayout}">
+      <table class="os-table os-table-tree bulk-edit os-border os-table-muted-hdr">
+        <thead class="os-table-head">
+          <tr class="row">
+            <th class="col col-xs-3">
+              <span translate="specimens.type">Type</span>
+            </th>
+            <th class="col col-xs-2">
+              <span translate="specimens.aliquot_cnt">Count</span>
+            </th>
+            <th class="col col-xs-2">
+              <span translate="specimens.qty">Quantity</span>
+            </th>
+            <th class="col col-xs-4">
+              <span translate="specimens.pathology_status">Pathology</span>
+            </th>
+            <th class="col col-xs-1">
+              <span>&nbsp;</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="os-table-body">
+          <tr class="row" ng-form="aform" ng-repeat="aliquot in spmnCtx.aliquots">
+            <td class="col">
+              <os-specimen-types name="type" md-input specimen="aliquot" ng-click="addIfLastAliquot($index)"
+                ng-required="specimen.noOfAliquots || specimen.qtyPerAliquot || specimen.pathology">
+              </os-specimen-types>
+              <div os-field-error field="aform.type"></div>
+            </td>
+            <td class="col">
+              <input name="noOfAliquots" os-md-input ng-model="aliquot.noOfAliquots"
+                ng-pattern="/^[1-9][0-9]*$/" ng-focus="addIfLastAliquot($index)"
+                ng-required="aliquot.type || aliquot.qtyPerAliquot || aliquot.pathology">
+              <div os-field-error field="aform.noOfAliquots"></div>
+            </td>
+            <td class="col">
+              <os-spmn-measure name="qty" md-input="true" specimen="aliquot"
+                quantity="aliquot.qtyPerAliquot" ng-focus="addIfLastAliquot($index)">
+              </os-spmn-measure>
+            </td>
+            <td class="col">
+              <os-pvs name="pathology" os-md-input ng-model="aliquot.pathology" attribute="pathology-status"
+                ng-click="addIfLastAliquot($index)">
+              </os-pvs>
+            </td>
+            <td class="col">
+              <button class="btn btn-xs btn-default" ng-click="removeAliquot($index)">
+                <span class="fa fa-times"></span>
+              </button>
+            </td>
+          </tr>
+          <tr class="row">
+            <td class="col" colspan="4">
+              <button class="btn os-btn-text" ng-click="addAnotherAliquot()">
+                <span translate="common.buttons.add_another">Add Another</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimen/add-children-tmpl.html">
+  <div class="os-section-divider">
+    <span translate="specimens.aliquot_details">Aliquot Details</span>
+  </div>
+
+  <div class="form-group">
+    <div class="col-xs-9 os-text-checkbox" ng-class="{'col-xs-offset-3': !spmnCtx.opts.verticalLayout}">
+      <div class="checkbox">
+        <os-checkbox ng-model="spmnCtx.createChildren"></os-checkbox>
+      </div>
+      <div class="message os-ctrl-padding-top">
+        <span translate="specimens.create_children_q">Do you want to create child specimens?</span>
+      </div>
+    </div>
+  </div>
+</script>

@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenCollectionReceiveDetail"
+    table="OS_SPMN_COLL_RECV_DETAILS" batch-size="100"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenCollectionReceiveDetail">
+
+    <id name="id" column="PRIMARY_SPECIMEN_ID" type="long">
+      <generator class="assigned"/>
+    </id>
+
+    <many-to-one name="primarySpecimen" column="PRIMARY_SPECIMEN_ID" insert="false" update="false"/>
+
+    <many-to-one name="collContainer" column="COLLECTION_CONTAINER_ID" lazy="false" fetch="join"/>
+
+    <many-to-one name="collProcedure" column="COLLECTION_PROCEDURE_ID" lazy="false" fetch="join"/>
+
+    <many-to-one name="collector" column="COLLECTION_USER_ID"/>
+
+    <property name="collTime" column="COLLECTION_TIME"/>
+
+    <property name="collComments" column="COLLECTION_COMMENTS"/>
+
+    <many-to-one name="recvQuality" column="RECEIVED_QUALITY_ID" lazy="false" fetch="join"/>
+
+    <many-to-one name="receiver" column="RECEIVED_USER_ID"/>
+
+    <property name="recvTime" column="RECEIVED_TIME"/>
+
+    <property name="recvComments" column="RECEIVED_COMMENTS"/>
+  </class>
+</hibernate-mapping>

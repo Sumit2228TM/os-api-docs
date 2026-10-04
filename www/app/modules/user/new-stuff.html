@@ -1,0 +1,20 @@
+<div ng-controller="NewStuffCtrl" class="os-new-stuff">
+  <div class="header">
+    <div class="left">
+      <span translate="new_stuff.announcements">Announcements</span>
+    </div>
+    <div class="right">
+      <button class="btn btn-xs btn-default" ng-click="close()">
+        <span class="fa fa-times"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+    <span>{{'new_stuff.congrats' | translate: global.appProps}}</span>
+    <br><br>
+    <p>
+      <a href="{{ctx.notesLink}}" target="_blank" rel="noopener"><span translate="new_stuff.click_here">Click here</span></a> <span translate="new_stuff.read_more">to read more about the new features and enhancements in this release.</span>
+    </p>
+  </div>
+</div>

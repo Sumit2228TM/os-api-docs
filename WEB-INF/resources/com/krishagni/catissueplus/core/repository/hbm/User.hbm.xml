@@ -1,0 +1,297 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.User" table="CATISSUE_USER"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.User" >
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">CATISSUE_USER_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="emailAddress" column="EMAIL_ADDRESS" unique="true"/>
+
+    <property name="phoneNumber" column="PHONE_NUMBER"/>
+
+    <property name="firstName"  column="FIRST_NAME"/>
+
+    <property name="lastName" column="LAST_NAME"/>
+
+    <property name="loginName" column="LOGIN_NAME" not-null="true"/>
+
+    <property name="creationDate" column="START_DATE"/>
+
+    <property name="activityStatus" column="ACTIVITY_STATUS"/>
+
+    <property name="address" column="address"/>
+
+    <many-to-one name="institute" column="INSTITUTE_ID" lazy="false" fetch="join"/>
+
+    <many-to-one name="primarySite" column="PRIMARY_SITE_ID" lazy="false" fetch="join"/>
+
+    <many-to-one name="authDomain" column="DOMAIN_ID" lazy="false" fetch="join"/>
+	
+    <property name="password" column="PASSWORD"/>
+	    
+    <set name="passwords" inverse="true" cascade="persist,merge">
+      <key column="USER_ID"/>
+      <one-to-many  class="com.krishagni.catissueplus.core.administrative.domain.Password" />
+    </set>
+		
+    <property name="comments" column="STATUS_COMMENT"/>
+
+    <property name="type" column="TYPE" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.administrative.domain.User$Type</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+ 
+    <property name="manageForms" column="MANAGE_FORMS"/>
+
+    <property name="manageWfs" column="MANAGE_WFS"/>
+
+    <property name="managePrintJobs" column="MANAGE_PRINT_JOBS" />
+
+    <property name="dnd" column="DND"/>
+
+    <property name="apiUser" column="API_USER"/>
+
+    <property name="ipRange" column="IP_RANGE"/>
+
+    <property name="timeZone" column="TIME_ZONE"/>
+
+    <property name="forcePasswordReset" column="FORCE_PASSWORD_RESET" />
+
+    <many-to-one name="defaultPrinter" column="DEFAULT_PRINTER_ID" lazy="false" fetch="join" />
+
+    <property name="downloadLabelsPrintFile" column="DOWNLOAD_LABELS_PRINT_FILE" />
+
+    <set name="roles" inverse="true" cascade="none">
+      <key column="SUBJECT_ID"/>
+      <one-to-many class="com.krishagni.rbac.domain.SubjectRole"/>
+    </set>
+
+    <set name="acl" inverse="true" cascade="none">
+      <key column="SUBJECT_ID"/>
+      <one-to-many class="com.krishagni.rbac.domain.SubjectAccess"/>
+    </set>
+
+    <set name="groups" table="OS_USER_GROUP_USERS" cascade="none">
+      <key column="USER_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.administrative.domain.UserGroup" column="GROUP_ID">
+        <filter name="activeEntity" condition="activity_status != 'Disabled'"/>
+      </many-to-many>
+    </set>
+
+    <filter name="activeEntity"/>
+    
+    <sql-query name="getDependentEntities">
+      <return-scalar column="entityName" type="string"/>
+      <return-scalar column="count" type="int"/>    
+    
+      select 
+        de.entityName as entityName, de.count as count
+      from
+        (
+          select
+            'site' as entityName, count(s.identifier) as count  
+          from 
+            catissue_site s
+            inner join catissue_site_coordinators sc on sc.site_id = s.identifier 
+          where
+            s.activity_status != 'Disabled' and
+            sc.user_id = :userId
+
+          union all
+
+          select 
+            'collection_protocol' as entityName, count(cp.identifier) as count 
+          from 
+            catissue_collection_protocol cp
+            left join catissue_coll_coordinators cc 
+              on cc.collection_protocol_id = cp.identifier and cp.principal_investigator_id != :userId
+          where 
+            cp.activity_status != 'Disabled' and
+            (cp.principal_investigator_id = :userId or cc.user_id = :userId)
+
+          union all
+
+          select 
+            'distribution_protocol' as entityName, count(dp.identifier) as count 
+          from
+            catissue_distribution_protocol dp 
+          where
+            dp.activity_status != 'Disabled' and
+            dp.principal_investigator_id = :userId
+
+          union all
+
+          select
+            'specimen' as entityName, count(s.identifier) as count
+          from
+            catissue_specimen s
+            inner join catissue_form_record_entry re on re.object_id = s.identifier
+            inner join catissue_form_context fc on fc.identifier = re.form_ctxt_id
+            inner join dyextn_containers c on c.identifier = fc.container_id
+            left join catissue_coll_event_param ce on ce.identifier = re.record_id
+            left join catissue_received_event_param rv on rv.identifier = re.record_id
+          where
+            re.activity_status = 'ACTIVE' and
+            fc.deleted_on is null and
+            c.name in ('SpecimenCollectionEvent', 'SpecimenReceivedEvent') and
+            s.activity_status != 'Disabled' and
+            c.deleted_on is null and
+            (ce.user_id = :userId or rv.user_id = :userId)
+        ) de
+      where 
+        de.count > 0
+    </sql-query>
+
+    <query name="getActiveUsersEmailIds">
+      select
+        distinct user.emailAddress
+      from
+        com.krishagni.catissueplus.core.auth.domain.LoginAuditLog log
+        join log.user user
+      where
+        log.loginTime between :startDate and :endDate and
+        log.loginSuccessful is true and
+        user.activityStatus != 'Disabled'
+    </query>
+    
+    <query name="getPasswordsUpdatedBeforeDate">
+      select
+        user.id, user.firstName, user.lastName, user.emailAddress, max(passwd.updationDate)
+      from
+        com.krishagni.catissueplus.core.administrative.domain.Password passwd
+        join passwd.user user
+        join user.authDomain domain
+      where
+        user.activityStatus = 'Active' and
+        domain.name = 'openspecimen'
+      group by
+        user.id, user.firstName, user.lastName, user.emailAddress
+      having
+        max(passwd.updationDate) &lt;= :updateDate
+    </query>
+    
+    <query name="getInactiveUsers">
+      select
+        iu
+      from
+        com.krishagni.catissueplus.core.administrative.domain.User iu
+      where
+        iu.type != 'CONTACT' and
+        iu.id in (
+          select
+            user.id
+          from
+            com.krishagni.catissueplus.core.auth.domain.LoginAuditLog log
+            right join log.user user
+          where
+            user.type != 'CONTACT' and
+            user.activityStatus = 'Active' and
+            ((log.loginSuccessful is null and user.creationDate &lt;= :lastLoginTime) or log.loginSuccessful = true)
+          group by
+            user.id
+          having
+            max(log.loginTime) &lt;= :lastLoginTime or max(log.loginTime) is null
+        )
+    </query>
+
+    <query name="getLatestLoginTimes">
+      select
+        user.id as userId, max(log.loginTime) as loginTime
+      from
+        com.krishagni.catissueplus.core.auth.domain.LoginAuditLog log
+        join log.user user
+      where
+        user.id in (:userIds)
+      group by
+        user.id
+    </query>
+    
+    <query name="updateStatus">
+      update
+        com.krishagni.catissueplus.core.administrative.domain.User user
+      set
+        user.activityStatus = :activityStatus
+      where
+        user.id in (:userIds)
+    </query>
+
+    <query name="getEmailIdStatuses">
+      select
+        u.emailAddress, u.dnd, u.activityStatus
+      from
+        com.krishagni.catissueplus.core.administrative.domain.User u
+      where
+        u.emailAddress in (:emailIds)
+    </query>
+
+    <sql-query name="getForms">
+      <return-scalar column="formCtxtId" type="long"/>
+      <return-scalar column="formId" type="long"/>
+      <return-scalar column="formName" type="string"/>
+      <return-scalar column="formCaption" type="string"/>
+      <return-scalar column="entityId" type="long"/>
+      <return-scalar column="entityType" type="string"/>
+      <return-scalar column="creationTime" type="timestamp"/>
+      <return-scalar column="modificationTime" type="timestamp"/>
+      <return-scalar column="userId" type="long"/>
+      <return-scalar column="userFirstName" type="string"/>
+      <return-scalar column="userLastName" type="string"/>
+      <return-scalar column="multirecord" type="boolean"/>
+      <return-scalar column="sysForm" type="boolean"/>
+      <return-scalar column="recordCnt" type="integer"/>
+
+      select
+        fc.identifier as formCtxtId, fc.container_id as formId, c.name as formName, c.caption as formCaption,
+        fc.entity_id as entityId, fc.entity_type as entityType, c.create_time as creationTime,
+        case when c.last_modify_time is null then c.create_time else c.last_modify_time end as modificationTime,
+        u.identifier as userId, u.first_name as userFirstName, u.last_name as userLastName,
+        fc.is_multirecord as multirecord, fc.is_sys_form as sysForm,
+        count(r.identifier) as recordCnt
+      from
+        catissue_form_context fc
+        inner join dyextn_containers c on c.identifier = fc.container_id
+        inner join catissue_user u on u.identifier = c.created_by
+        left join catissue_user usrEntity on usrEntity.institute_id = fc.entity_id
+        left join catissue_form_record_entry r
+          on r.form_ctxt_id = fc.identifier and r.object_id = :userId and r.activity_status = 'ACTIVE'
+      where
+        c.deleted_on is null and
+        fc.deleted_on is null and
+        fc.entity_type = :entityType and (usrEntity.identifier = :userId or fc.entity_id = -1)
+      group by
+        fc.identifier, fc.container_id, c.name, c.caption, fc.entity_id, fc.entity_type,
+        c.create_time, c.last_modify_time, u.identifier, u.first_name, u.last_name,
+        fc.is_multirecord, fc.is_sys_form
+    </sql-query>
+
+    <sql-query name="getFormRecords">
+      select
+        institute.identifier as instituteId, institute.name as instituteName,
+        usr.identifier as userId, usr.email_address as emailId, re.record_id as recordId, re.form_status as formStatus
+      from
+        catissue_user usr
+        inner join catissue_institution institute on institute.identifier = usr.institute_id
+        inner join catissue_form_context fc on (fc.entity_id = institute.identifier or fc.entity_id = -1) and fc.entity_type = :entityType
+        inner join catissue_form_record_entry re on re.form_ctxt_id = fc.identifier and re.object_id = usr.identifier
+      where
+        usr.activity_status != 'Disabled' and
+        institute.activity_status != 'Disabled' and
+        fc.deleted_on is null and
+        re.activity_status = 'ACTIVE' and
+        fc.container_id = :formId
+      order by
+        usr.identifier, re.record_id
+    </sql-query>
+
+  </class>
+</hibernate-mapping>

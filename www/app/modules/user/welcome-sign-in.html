@@ -1,0 +1,16 @@
+<div class="os-modal">
+  <div class="os-modal-header">
+    <span translate="user.welcome_title">Welcome to OpenSpecimen</span>
+  </div>
+  <div class="os-modal-body">
+    <div ng-include src="'modules/user/welcome-video-player.html'"></div>
+  </div>
+  <div class="os-modal-footer">
+    <button class="btn os-btn-secondary" ng-click="watchLater()">
+      <span translate="user.watch_later">Watch Later</span>
+    </button>
+    <button class="btn btn-primary" ng-click="gotIt()">
+      <span translate="user.got_it">Ok, Got It</span>
+    </button>
+  </div>
+</div>

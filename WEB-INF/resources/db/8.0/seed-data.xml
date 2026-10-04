@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Initialise the short name of the existing keyword search entities">
+    <sql>update os_search_entity_ranks set short_name = 'cp' where entity = 'collection_protocol'</sql>
+    <sql>update os_search_entity_ranks set short_name = 'participant' where entity = 'collection_protocol_registration'</sql>
+    <sql>update os_search_entity_ranks set short_name = 'visit' where entity = 'visit'</sql>
+    <sql>update os_search_entity_ranks set short_name = 'specimen' where entity = 'specimen'</sql>
+    <sql>update os_search_entity_ranks set short_name = 'container' where entity = 'storage_container'</sql>
+    <sql>update os_search_entity_ranks set short_name = 'site' where entity = 'site'</sql>
+    <sql>update os_search_entity_ranks set short_name = 'user' where entity = 'user'</sql>
+    <sql>update os_search_entity_ranks set short_name = 'dp' where entity = 'distribution_protocol'</sql>
+    <sql>update os_search_entity_ranks set short_name = 'order' where entity = 'distribution_order'</sql>
+    <sql>update os_search_entity_ranks set short_name = 'shipment' where entity = 'shipment'</sql>
+    <sql>update os_search_entity_ranks set short_name = 'cart' where entity = 'specimen_list'</sql>
+    <sql>update os_search_entity_ranks set short_name = 'institute' where entity = 'institute'</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="On demand task to delete forms" dbms="mysql">
+    <sql>
+      select identifier into @userId from catissue_user where login_name = '$system';
+
+      insert into os_scheduled_jobs
+        (identifier, name, created_by, start_date, end_date, scheduled_minute, activity_status,
+         repeat_schedule, type, task_impl_fqn,
+         rt_args_provided, rt_args_help_text)
+      values
+        (default, 'Delete forms', @userId, now(), null, 1, 'Active',
+         'ONDEMAND', 'INTERNAL', 'com.krishagni.catissueplus.core.de.services.impl.DeleteFormsTask',
+         1, 'Comma separated list of form names to be deleted');
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="On demand task to delete forms" dbms="oracle">
+    <sql endDelimiter="//">
+      declare
+        userId number;
+      begin
+        select identifier into userId from catissue_user where login_name like '$system';
+
+        insert into os_scheduled_jobs
+          (identifier, name, created_by, start_date, end_date, scheduled_minute, activity_status,
+           repeat_schedule, type, command, task_impl_fqn,
+           rt_args_provided, rt_args_help_text)
+        values
+          (os_scheduled_jobs_seq.nextval, 'Delete forms', userId, sysdate, null, 1, 'Active',
+           'ONDEMAND', 'INTERNAL', null, 'com.krishagni.catissueplus.core.de.services.impl.DeleteFormsTask',
+           1, 'Comma separated list of form names to be deleted');
+      end;
+      //
+    </sql>
+  </changeSet>
+</databaseChangeLog>

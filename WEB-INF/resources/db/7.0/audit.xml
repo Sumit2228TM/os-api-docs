@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Participant email address">
+    <addColumn tableName="CATISSUE_PARTICIPANT_AUD">
+      <column name="EMAIL_ADDRESS" type="${text.type}(255)"/>
+      <column name="emailAddress_Mod" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

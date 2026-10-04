@@ -1,0 +1,83 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<form>
+  <view>
+    <name>SpecimenChildrenEvent</name>
+    <caption>#getMessage("children_event")</caption>
+    <table>OS_CHILD_SPMN_EVENTS</table>
+    <primaryKey>IDENTIFIER</primaryKey>
+
+    <row>
+      <radioButton>
+        <name>lineage</name>
+        <udn>lineage</udn>
+        <caption>#getMessage("children_event_lineage")</caption>
+        <column>LINEAGE</column>
+        <options>
+          <option><value>Derived</value></option>
+          <option><value>Aliquot</value></option>
+        </options>
+        <mandatory>true</mandatory>
+      </radioButton>
+    </row>
+
+    <row>
+      <userField>
+        <name>user</name>
+        <udn>user</udn>
+        <caption>#getMessage("specimen_event_user")</caption>
+        <column>USER_ID</column>
+        <showInGrid>true</showInGrid>
+        <mandatory>true</mandatory>
+      </userField>
+    </row>
+
+    <row>
+      <datePicker>
+        <name>time</name>
+        <udn>time</udn>
+        <caption>#getMessage("specimen_event_date_time")</caption>
+        <column>CREATION_TIME</column>
+        <format>MM-dd-yyyy HH:mm</format>
+        <showInGrid>true</showInGrid>
+        <default>current_date</default>
+        <mandatory>true</mandatory>
+      </datePicker>
+    </row>
+
+    <row>
+      <subForm>
+        <name>children</name>
+        <udn>children</udn>
+        <caption>#getMessage("children_event_specimens")</caption>
+        <table>CATISSUE_SPECIMEN</table>
+        <foreignKey>PARENT_EVENT_ID</foreignKey>
+        <parentKey>IDENTIFIER</parentKey>
+        <row>
+          <textField>
+            <name>label</name>
+            <udn>label</udn>
+            <caption>#getMessage("children_event_label")</caption>
+            <column>LABEL</column>
+            <recordUrl>#/object-state-params-resolver?stateName=ParticipantsListItemSpecimenDetail.Overview&amp;objectName=specimen&amp;key=label&amp;value={{$value}}</recordUrl>
+          </textField>
+          <textField>
+            <name>barcode</name>
+            <udn>barcode</udn>
+            <caption>#getMessage("children_event_barcode")</caption>
+            <column>BARCODE</column>
+            <recordUrl>#/object-state-params-resolver?stateName=ParticipantsListItemSpecimenDetail.Overview&amp;objectName=specimen&amp;key=barcode&amp;value={{$value}}</recordUrl>
+          </textField>
+          <pvField>
+            <name>type</name>
+            <udn>type</udn>
+            <caption>#getMessage("children_event_type")</caption>
+            <column>SPECIMEN_TYPE_ID</column>
+            <attribute>specimen_type</attribute>
+            <mandatory>true</mandatory>
+          </pvField>
+        </row>
+      </subForm>
+    </row>
+  </view>
+</form>

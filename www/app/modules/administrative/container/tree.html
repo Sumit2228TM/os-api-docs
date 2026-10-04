@@ -1,0 +1,18 @@
+<table class="os-table os-table-hover os-table-tree os-table-muted-hdr">
+  <tbody class="os-table-body">
+    <tr id="container-{{container.id}}" class="row" ng-class="{'selected': container.id == ctx.container.id}"
+      os-row-click="selectContainer(container)" ng-repeat="container in ctx.containerTree | openedTreeNodes">
+      <td class="col" style="border: none;">
+        <div ng-style="{'padding-left': (container.hasChildren ? container.depth * 16 : container.depth * 16 + 16) + 'px'}">
+          <a ng-if="container.hasChildren" class="fa"
+            ng-class="{'fa-chevron-circle-down': container.isOpened, 'fa-chevron-circle-right': !container.isOpened}"
+            ng-click="loadChildren(container)">
+          </a>
+          <a ng-click="selectContainer(container)">
+            <span>{{container.name}}</span>
+          </a>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+</table>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Participant custom fields record IDs">
+    <sql>
+      insert into
+        os_participant_cust_fields (participant_id, form_ctxt_id, form_id, record_id)
+      select
+        p.identifier as participant_id, fc.identifier as form_ctxt_id, fc.container_id as form_id, re.record_id
+      from
+        catissue_form_record_entry re
+        inner join catissue_form_context fc on fc.identifier = re.form_ctxt_id
+        inner join catissue_participant p on p.identifier = re.object_id
+      where
+        fc.entity_type = 'ParticipantExtension' and
+        fc.deleted_on is null and
+        re.activity_status = 'ACTIVE'
+    </sql>
+  </changeSet>
+</databaseChangeLog>

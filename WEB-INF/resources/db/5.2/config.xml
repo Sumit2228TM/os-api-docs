@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Instead of every minute, make the store list executor run every night at 11:50 pm">
+    <sql>
+      update
+        os_scheduled_jobs
+      set
+        scheduled_minute = 0,
+        scheduled_hour = 23,
+        repeat_schedule = 'DAILY'
+      where
+        task_impl_fqn = 'com.krishagni.catissueplus.core.administrative.services.impl.ContainerStoreListExecutor'
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job to process failed external app messages" dbms="mysql">
+    <sql>
+      select identifier into @userId from catissue_user where login_name = '$system';
+
+      insert into os_scheduled_jobs
+        (identifier, name, created_by, start_date, repeat_schedule, scheduled_minute, scheduled_hour, activity_status,
+         type, command, task_impl_fqn, rt_args_provided)
+      values
+        (default, 'Process failed external app messages', @userId, now(), 'DAILY', 10, 00, 'Active',
+         'INTERNAL', null, 'com.krishagni.catissueplus.core.common.service.impl.PendingMessagesProcessorTask', 0)
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job to process failed external app messages" dbms="oracle">
+    <sql endDelimiter="//">
+      declare
+        userId number;
+      begin
+        select identifier into userId from catissue_user where login_name like '$system';
+
+        insert into os_scheduled_jobs
+          (identifier, name, created_by, start_date, repeat_schedule, scheduled_minute, scheduled_hour, activity_status,
+           type, command, task_impl_fqn, rt_args_provided)
+        values
+          (OS_SCHEDULED_JOBS_SEQ.nextval, 'Process failed external app messages', userId, SYSDATE, 'DAILY', 10, 00, 'Active',
+           'INTERNAL', null, 'com.krishagni.catissueplus.core.common.service.impl.PendingMessagesProcessorTask', 0);
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Config setting to specify max. no of retries to process failed external app messages">
+    <sql>
+      call add_cfg_prop(
+        'common', 'max_eapp_msg_retries',
+        'max_eapp_msg_retries', 'max_eapp_msg_retries_desc',
+        'INT', '5'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Config setting to specify how long the external app messages should be retained in the database">
+    <sql>
+      call add_cfg_prop(
+        'common', 'eapp_msg_retention_period',
+        'eapp_msg_retention_period', 'eapp_msg_retention_period_desc',
+        'INT', '90'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job to purge old external app messages" dbms="mysql">
+    <sql>
+      select identifier into @userId from catissue_user where login_name = '$system';
+
+      insert into os_scheduled_jobs
+        (identifier, name, created_by, start_date, scheduled_minute, scheduled_hour, repeat_schedule, activity_status,
+         type, task_impl_fqn, rt_args_provided)
+      values
+        (default, 'Purge old external app messages', @userId, now(), 30, 00, 'DAILY', 'Active',
+         'INTERNAL', 'com.krishagni.catissueplus.core.common.service.impl.PurgeOldMessagesTask', 0)
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job to purge old external app messages" dbms="oracle">
+    <sql endDelimiter="//">
+      declare
+        userId number;
+      begin
+        select identifier into userId from catissue_user where login_name like '$system';
+
+        insert into os_scheduled_jobs
+          (identifier, name, created_by, start_date, scheduled_minute, scheduled_hour, repeat_schedule, activity_status,
+           type, task_impl_fqn, rt_args_provided)
+        values
+          (OS_SCHEDULED_JOBS_SEQ.nextval, 'Purge old external app messages', userId, SYSDATE, 30, 00, 'DAILY', 'Active',
+           'INTERNAL', 'com.krishagni.catissueplus.core.common.service.impl.PurgeOldMessagesTask', 0);
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Remove unused catalog settings">
+    <sql>
+      delete from
+        os_cfg_settings
+      where property_id in (
+        select
+          p.identifier
+        from
+          os_cfg_props p
+          inner join os_modules m on m.identifier = p.module_id
+        where
+          m.name = 'catalog' and
+          p.name in ('default_query', 'default_spmn_centric_query')
+      );
+
+      delete from
+        os_cfg_props
+      where
+        module_id in (select identifier from os_modules where name = 'catalog') and
+        name in ('default_query', 'default_spmn_centric_query')
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Config setting to delay the user searches">
+    <sql>
+      call add_cfg_prop(
+        'common', 'search_delay',
+        'search_delay', 'search_delay_desc',
+        'INT', '1000'
+      );
+    </sql>
+  </changeSet>
+</databaseChangeLog>

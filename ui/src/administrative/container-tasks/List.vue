@@ -1,0 +1,150 @@
+<template>
+  <os-page>
+    <os-page-head>
+      <span>
+        <h3 v-t="'container_tasks.list'">Container Tasks</h3>
+      </span>
+
+      <template #right>
+        <os-list-size
+          :list="ctx.tasks"
+          :page-size="ctx.pageSize"
+          :list-size="ctx.tasksCount"
+          @updateListSize="getTasksCount"
+        />
+      </template>
+    </os-page-head>
+
+    <os-page-body>
+      <os-page-toolbar>
+        <template #default>
+          <os-button-link left-icon="plus" :label="$t('common.buttons.create')" :url="createTaskUrl"
+            v-if="ctx.allowEdits" />
+
+          <os-button-link left-icon="box-open" :label="$t('container_tasks.view_containers')"
+            :url="containersUrl" />
+        </template>
+
+        <template #right>
+          <os-button left-icon="search" :label="$t('common.buttons.search')" @click="openSearch" />
+        </template>
+      </os-page-toolbar>
+
+      <os-list-view
+        :data="ctx.tasks"
+        :schema="listSchema"
+        :query="ctx.query"
+        :allowSelection="false"
+        :loading="ctx.loading"
+        @filtersUpdated="loadTasks"
+        @rowClicked="onTaskRowClick"
+        showRowActions="ctx.allowEdits"
+        ref="listView">
+
+        <template #rowActions="slotProps">
+          <os-button-group>
+            <os-button size="small" left-icon="archive" v-os-tooltip.bottom="$t('common.buttons.archive')"
+              @click="confirmArchiveTask(slotProps.rowObject)" />
+          </os-button-group>
+        </template>
+      </os-list-view>
+    </os-page-body>
+  </os-page>
+
+  <os-confirm ref="confirmArchiveTaskDialog">
+    <template #title>
+      <span v-t="'container_tasks.confirm_archive'">Confirm Archive Task</span>
+    </template>
+    <template #message>
+      <span v-t="{path: 'container_tasks.confirm_archive_task', args: ctx.toArchive}">Are you sure you want to archive the container maintenance task: <b>{{ctx.toArchive.name}}</b>?</span>
+    </template>
+  </os-confirm>
+</template>
+
+<script>
+
+import listSchema   from '@/administrative/schemas/container-tasks/list.js';
+
+import containerSvc from '@/administrative/services/Container.js';
+import routerSvc    from '@/common/services/Router.js';
+
+export default {
+  props: ['filters'],
+
+  data() {
+    return {
+      ctx: {
+        tasks: [],
+        tasksCount: -1,
+        loading: true,
+        query: this.filters,
+      },
+
+      listSchema,
+    };
+  },
+
+  created() {
+    this.ctx.allowEdits = this.$ui.currentUser.admin || this.$ui.currentUser.instituteAdmin;
+  },
+
+  computed: {
+    createTaskUrl: function() {
+      return routerSvc.getUrl('ContainerTaskAddEdit', {taskId: -1});
+    },
+
+    containersUrl: function() {
+      return routerSvc.getUrl('ContainersList');
+    }
+  },
+
+  methods: {
+    openSearch: function() {
+      this.$refs.listView.toggleShowFilters();
+    },
+
+    loadTasks: async function({filters, uriEncoding, pageSize}) {
+      this.ctx.filterValues = filters;
+      this.ctx.pageSize     = pageSize;
+
+      await this.reloadTasks();
+      routerSvc.goto('ContainerTasksList', {}, {filters: uriEncoding});
+      return this.ctx.tasks;
+    },
+
+    reloadTasks: async function() {
+      this.ctx.loading = true;
+      const opts = {maxResults: this.ctx.pageSize};
+      const tasks = await containerSvc.getTasks(Object.assign(opts, this.ctx.filterValues || {}));
+      this.ctx.tasks = tasks.map(task => ({ task }));
+      this.ctx.loading = false;
+    },
+
+    getTasksCount: async function() {
+      const { count } = await containerSvc.getTasksCount({...this.ctx.filterValues});
+      this.ctx.tasksCount = count;
+    },
+
+    onTaskRowClick: function({task}) {
+      if (!this.ctx.allowEdits) {
+        return;
+      }
+
+      routerSvc.goto('ContainerTaskAddEdit', {taskId: task.id});
+    },
+
+    confirmArchiveTask: function({task}) {
+      this.ctx.toArchive = task;
+      this.$refs.confirmArchiveTaskDialog.open().then(
+        (resp) => {
+          if (resp != 'proceed') {
+            return;
+          }
+
+          containerSvc.archiveTask(task).then(() => this.reloadTasks());
+        }
+      );
+    }
+  }
+}
+</script>

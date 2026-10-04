@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Specimen cart source and record ID">
+    <addColumn tableName="CATISSUE_SPECIMENLIST_TAGS_AUD">
+      <column name="SOURCE_ENTITY_TYPE" type="${text.type}(64)" />
+      <column name="sourceEntityType_MOD" type="${boolean.type}" />
+      <column name="SOURCE_ENTITY_ID" type="${int.type}" />
+      <column name="sourceEntityId_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Lab services">
+    <createTable tableName="OS_LAB_SERVICES_AUD">
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${smallint.type}" />
+      <column name="CODE" type="${text.type}(32)" />
+      <column name="code_MOD" type="${boolean.type}" />
+      <column name="DESCRIPTION" type="${text.type}(255)" />
+      <column name="description_MOD" type="${boolean.type}" />
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)" />
+      <column name="activityStatus_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Lab services rate lists">
+    <createTable tableName="OS_LAB_SERVICES_RATE_LISTS_AUD">
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${smallint.type}" />
+      <column name="NAME" type="${text.type}(32)" />
+      <column name="name_MOD" type="${boolean.type}" />
+      <column name="DESCRIPTION" type="${text.type}(255)" />
+      <column name="description_MOD" type="${boolean.type}" />
+      <column name="START_DATE" type="${date.type}" />
+      <column name="startDate_MOD" type="${boolean.type}" />
+      <column name="END_DATE" type="${date.type}" />
+      <column name="endDate_MOD" type="${boolean.type}" />
+      <column name="CREATOR_ID" type="${int.type}" />
+      <column name="creator_MOD" type="${boolean.type}" />
+      <column name="CREATION_TIME" type="${timestamp.type}" />
+      <column name="creationTime_MOD" type="${boolean.type}" />
+      <column name="UPDATER_ID" type="${int.type}" />
+      <column name="updater_MOD" type="${boolean.type}" />
+      <column name="UPDATE_TIME" type="${nullable.ts.type}" />
+      <column name="updateTime_MOD" type="${boolean.type}" />
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)" />
+      <column name="activityStatus_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Lab service rates collection">
+    <addColumn tableName="OS_LAB_SERVICES_RATE_LISTS_AUD">
+      <column name="serviceRates_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Lab service rate lists CPs collection">
+    <addColumn tableName="OS_LAB_SERVICES_RATE_LISTS_AUD">
+      <column name="cps_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Lab service rate">
+    <createTable tableName="OS_LAB_SERVICE_RATES_AUD">
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${smallint.type}" />
+      <column name="RATE_LIST_ID" type="${int.type}" />
+      <column name="rateList_MOD" type="${boolean.type}" />
+      <column name="SERVICE_ID" type="${int.type}" />
+      <column name="service_MOD" type="${boolean.type}" />
+      <column name="RATE" type="${decimal.type}(10, 2)" />
+      <column name="rate_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Lab service rate lists CPs">
+    <createTable tableName="OS_LAB_SVCS_RATE_LIST_CPS_AUD">
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${smallint.type}" />
+      <column name="RATE_LIST_ID" type="${int.type}" />
+      <column name="rateList_MOD" type="${boolean.type}" />
+      <column name="CP_ID" type="${int.type}" />
+      <column name="cp_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Anticipated specimen lab services">
+    <createTable tableName="OS_CP_SR_LAB_SERVICES_AUD">
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${smallint.type}" />
+      <column name="SR_ID" type="${int.type}" />
+      <column name="requirement_MOD" type="${boolean.type}" />
+      <column name="SERVICE_ID" type="${int.type}" />
+      <column name="service_MOD" type="${boolean.type}" />
+      <column name="UNITS" type="${int.type}" />
+      <column name="units_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen lab services">
+    <createTable tableName="OS_SPECIMEN_LAB_SERVICES_AUD">
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${smallint.type}" />
+      <column name="SPECIMEN_ID" type="${int.type}" />
+      <column name="specimen_MOD" type="${boolean.type}" />
+      <column name="SERVICE_ID" type="${int.type}" />
+      <column name="service_MOD" type="${boolean.type}" />
+      <column name="UNITS" type="${int.type}" />
+      <column name="units_MOD" type="${boolean.type}" />
+      <column name="SERVICE_DATE" type="${nullable.ts.type}" />
+      <column name="serviceDate_MOD" type="${boolean.type}" />
+      <column name="SERVICED_BY" type="${int.type}" />
+      <column name="servicedBy_MOD" type="${boolean.type}" />
+      <column name="COMMENTS" type="${text.type}(255)" />
+      <column name="comments_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Lab service rate lists currency">
+    <addColumn tableName="OS_LAB_SERVICES_RATE_LISTS_AUD">
+      <column name="CURRENCY" type="${text.type}(16)" />
+      <column name="currency_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Move collection details to the owning table or entity - specimen">
+    <addColumn tableName="CATISSUE_SPECIMEN_AUD">
+      <column name="COLLECTION_CONTAINER_ID" type="${int.type}" />
+      <column name="collectionContainer_MOD" type="${boolean.type}" />
+      <column name="COLLECTION_PROCEDURE_ID" type="${int.type}" />
+      <column name="collectionProcedure_MOD" type="${boolean.type}" />
+      <column name="COLLECTION_USER_ID" type="${int.type}" />
+      <column name="collectionUser_MOD" type="${boolean.type}" />
+      <column name="COLLECTION_TIME" type="${nullable.ts.type}"  />
+      <column name="collectionTime_MOD" type="${boolean.type}" />
+      <column name="COLLECTION_COMMENTS" type="${text.type}(512)" />
+      <column name="collectionComments_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Move received details to the owning table or entity - specimen">
+    <addColumn tableName="CATISSUE_SPECIMEN_AUD">
+      <column name="RECEIVED_QUALITY_ID" type="${int.type}" />
+      <column name="receivedQuality_MOD" type="${boolean.type}" />
+      <column name="RECEIVED_USER_ID" type="${int.type}" />
+      <column name="receivedUser_MOD" type="${boolean.type}" />
+      <column name="RECEIVED_TIME" type="${nullable.ts.type}" defaultValue="null" />
+      <column name="receivedTime_MOD" type="${boolean.type}" />
+      <column name="RECEIVED_COMMENTS" type="${text.type}(512)" />
+      <column name="receivedComments_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Record specimen location at time of distribution">
+    <addColumn tableName="OS_ORDER_ITEMS_AUD">
+      <column name="SPECIMEN_LOCATION" type="${text.type}(255)" />
+      <column name="specimenLocation_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

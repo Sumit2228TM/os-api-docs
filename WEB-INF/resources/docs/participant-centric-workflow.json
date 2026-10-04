@@ -1,0 +1,979 @@
+[
+    {
+     "name": "dictionary",
+     "data": {
+       "fields": [
+         {
+           "name": "cpr.registrationDate",
+           "caption": "Registration Date",
+           "type": "date",
+           "optional": false,
+           "defaultValue": "current_date"
+         },
+         { "name" : "cpr.externalSubjectId",
+           "caption" : "External Subject ID",
+           "type" : "text",
+           "optional" : true
+         },
+         {
+            "name" : "cpr.site",
+            "caption" : "Registration Site",
+            "type" : "dropdown",
+            "optional" : true,
+            "listSource" : {
+              "apiUrl" : "collection-protocols/{{cp.id}}/sites",
+              "displayProp" : "name",
+              "selectProp" : "name",
+              "queryParams" : {
+              }
+            }
+          },
+         {
+           "name": "cpr.ppid",
+           "caption": "PPID",
+           "type": "text",
+           "optional": false,
+           "showIf": {
+             "op": "OR",
+             "rules": [
+               {
+                 "field": "cp.ppidFmt",
+                 "op": "not_exist"
+               },
+               {
+                 "field": "cp.manualPpidEnabled",
+                 "op": "exists"
+               }
+             ]
+           }
+         },
+         {
+           "name": "cpr.participant.firstName",
+           "caption": "First Name",
+           "type": "text",
+           "optional": true
+         },
+         {
+           "name": "cpr.participant.middleName",
+           "caption": "Middle Name",
+           "type": "text",
+           "optional": true
+         },
+         {
+           "name": "cpr.participant.lastName",
+           "caption": "Last Name",
+           "type": "text",
+           "optional": true
+         },
+         {
+           "name": "cpr.participant.birthDate",
+           "caption": "Birth Date",
+           "type": "date",
+           "dateOnly": true,
+           "optional": true
+         },
+         {
+           "name": "cpr.participant.uid",
+           "caption": "Social Security Number",
+           "type": "text",
+           "optional": true
+         },
+         {
+           "name": "cpr.participant.empi",
+           "caption": "Master Patient Index",
+           "type": "text",
+           "optional": true
+         },
+         {
+           "name": "cpr.participant.gender",
+           "caption": "Gender",
+           "type": "pvs",
+           "attr": "gender",
+           "optional": true
+         },
+         {
+           "name": "cpr.participant.vitalStatus",
+           "caption": "Vital Status",
+           "type": "pvs",
+           "attr": "vital-status",
+           "optional": true
+         },
+         {
+           "name": "cpr.participant.deathDate",
+           "caption": "Death Date",
+           "type": "date",
+           "optional": true,
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "cpr.participant.vitalStatus",
+                 "op": "==",
+                 "value": "'Dead'"
+               }
+             ]
+           },
+           "showInOverviewIf": "useShowIf"
+         },
+         {
+           "name": "cpr.participant.races",
+           "caption": "Race",
+           "type": "pvs",
+           "attr": "race",
+           "optional": true,
+           "multiple": true
+         },
+         {
+           "name": "cpr.participant.ethnicities",
+           "caption": "Ethnicity",
+           "type": "pvs",
+           "attr": "ethnicity",
+           "optional": true,
+           "multiple": true
+         },
+         {
+           "name": "cpr.participant.pmis",
+           "type": "collection",
+           "fields": [
+             {
+               "name": "siteName",
+               "caption": "Site",
+               "type": "dropdown",
+               "multiple": false,
+               "optional": true,
+               "listSource": {
+                 "apiUrl": "sites",
+                 "displayProp": "name",
+                 "selectProp": "name",
+                 "queryParams": {
+                   "dynamic": {
+                     "operation": "op"
+                   },
+                   "static": {
+                     "resource": "ParticipantPhi"
+                   },
+                   "search": "name"
+                 }
+               }
+             },
+             {
+               "name": "mrn",
+               "caption": "MRN",
+               "type": "text",
+               "optional": true
+             }
+           ]
+         },
+         {
+           "name": "visit.name",
+           "caption": "Visit Name",
+           "type": "text",
+           "optional": true,
+           "showIf": {
+             "op": "OR",
+             "rules": [
+               {
+                 "field": "cp.visitNameFmt",
+                 "op": "not_exist"
+               },
+               {
+                 "field": "cp.manualVisitNameEnabled",
+                 "op": "exists"
+               }
+             ]
+           }
+         },
+         {
+           "name": "visit.status",
+           "caption": "Status",
+           "type": "dropdown",
+           "optional": true,
+           "listSource": {
+             "options": [
+               {
+                 "value": "Pending"
+               },
+               {
+                 "value": "Missed Collection"
+               },
+               {
+                 "value": "Not Collected"
+               },
+               {
+                 "value": "Complete"
+               }
+             ],
+             "displayProp": "value",
+             "selectProp": "value"
+           }
+         },
+         {
+           "name": "visit.missedBy",
+           "caption": "Missed By",
+           "type": "user",
+           "defaultValue": "current_user",
+           "optional": true,
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "visit.status",
+                 "op": "==",
+                 "value": "'Missed Collection'"
+               }
+             ]
+           },
+           "showInOverviewIf": "useShowIf"
+         },
+         {
+           "name": "visit.missedReason",
+           "caption": "Missed Reason",
+           "type": "pvs",
+           "attr": "missed-visit-reason",
+           "optional": true,
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "visit.status",
+                 "op": "==",
+                 "value": "'Missed Collection'"
+               }
+             ]
+           },
+           "showInOverviewIf": "useShowIf"
+         },
+         {
+           "name": "visit.visitDate",
+           "caption": "Visit Date",
+           "type": "date",
+           "defaultValue": "current_date",
+           "optional": false
+         },
+         {
+           "name": "visit.site",
+           "caption": "Site",
+           "type": "dropdown",
+           "multiple": false,
+           "optional": false,
+           "listSource": {
+             "apiUrl": "sites",
+             "displayProp": "name",
+             "selectProp": "name",
+             "queryParams": {
+               "dynamic": {
+                 "operation": "op"
+               },
+             "search": "name"
+             }
+           },
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "visit.status",
+                 "op": "!=",
+                 "value": "'Missed Collection'"
+               }
+             ]
+           }
+         },
+         {
+           "name": "visit.clinicalDiagnoses",
+           "caption": "Clinical Diagnoses",
+           "type": "pvs",
+           "attr": "clinical_diagnosis",
+           "optional": true,
+           "multiple": true,
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "visit.status",
+                 "op": "!=",
+                 "value": "'Missed Collection'"
+               }
+             ]
+           }
+         },
+         {
+           "name": "visit.clinicalStatus",
+           "caption": "Clinical Status",
+           "type": "pvs",
+           "attr": "clinical-status",
+           "optional": true,
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "visit.status",
+                 "op": "!=",
+                 "value": "'Missed Collection'"
+               }
+             ]
+           }
+         },
+         {
+           "name": "visit.surgicalPathologyNumber",
+           "caption": "Surgical Pathology Number",
+           "type": "text",
+           "optional": true,
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "visit.status",
+                 "op": "!=",
+                 "value": "'Missed Collection'"
+               }
+             ]
+           }
+         },
+         {
+           "name": "visit.comments",
+           "caption": "Comments",
+           "type": "textarea",
+           "optional": true
+         },
+         {
+           "name": "specimen.label",
+           "caption": "Label",
+           "type": "text",
+           "optional": true,
+           "showIf": {
+             "op": "OR",
+             "rules": [
+               {
+                 "field": "specimen.labelFmt",
+                 "op": "not_exist"
+               },
+               {
+                 "field": "cp.manualSpecLabelEnabled",
+                 "op": "exists"
+               }
+             ]
+           }
+         },
+         {
+           "name": "specimen.barcode",
+           "caption": "Barcode",
+           "type": "text",
+           "optional": true,
+           "showIf": {
+             "op": "OR",
+             "rules": [
+               {
+                 "field": "cp.barcodingEnabled",
+                 "op": "==",
+                 "value": "true"
+               }
+             ]
+           },
+           "showInOverviewIf": "useShowIf"
+         },
+         {
+           "name": "specimen.lineage",
+           "caption": "Lineage",
+           "type": "radio",
+           "optional": false,
+           "options": [
+             {
+               "value": "New",
+               "caption": "New"
+             },
+             {
+               "value": "Derived",
+               "caption": "Derived"
+             },
+             {
+               "value": "Aliquot",
+               "caption": "Aliquot"
+             }
+           ]
+         },
+         {
+           "name": "specimen.status",
+           "caption": "Collection Status",
+           "type": "dropdown",
+           "optional": true,
+           "listSource": {
+             "selectProp": "value",
+             "displayProp": "value",
+             "options": [
+               {
+                 "value": "Collected"
+               },
+               {
+                 "value": "Missed Collection"
+               },
+               {
+                 "value": "Not Collected"
+               },
+               {
+                 "value": "Pending"
+               }
+             ]
+           }
+         },
+         {
+           "name": "specimen.type",
+           "caption": "Type",
+           "type": "specimen-type",
+           "specimen": "specimen",
+           "optional": false,
+           "defaultValue": "Not Specified",
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "specimen.lineage",
+                 "op": "!=",
+                 "value": "'Aliquot'"
+               }
+             ]
+           }
+         },
+         {
+           "name": "specimen.anatomicSite",
+           "caption": "Anatomical Site",
+           "type": "pvs",
+           "attr": "anatomic_site",
+           "optional": true,
+           "defaultValue": "Not Specified",
+           "showOnlyLeafValues": true,
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "specimen.lineage",
+                 "op": "!=",
+                 "value": "'Aliquot'"
+               }
+             ]
+           }
+         },
+         {
+           "name": "specimen.laterality",
+           "caption": "Laterality",
+           "type": "pvs",
+           "attr": "laterality",
+           "optional": true,
+           "defaultValue": "Not Specified",
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "specimen.lineage",
+                 "op": "!=",
+                 "value": "'Aliquot'"
+               }
+             ]
+           }
+         },
+         {
+           "name": "specimen.pathology",
+           "caption": "Pathology Status",
+           "type": "pvs",
+           "attr": "pathology_status",
+           "optional": true,
+           "defaultValue": "Not Specified",
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "specimen.lineage",
+                 "op": "!=",
+                 "value": "'Aliquot'"
+               }
+             ]
+           }
+         },
+         {
+           "name": "specimen.initialQty",
+           "caption": "Initial Quantity",
+           "type": "specimen-quantity",
+           "specimen": "specimen",
+           "optional": true
+         },
+         {
+           "name": "specimen.availableQty",
+           "caption": "Available Quantity",
+           "type": "specimen-quantity",
+           "specimen": "specimen",
+           "optional": true
+         },
+         {
+           "name": "specimen.concentration",
+           "caption": "Concentration",
+           "type": "specimen-quantity",
+           "specimen": "specimen",
+           "measure": "concentration",
+           "pattern": "/^([0-9]+|[0-9]*\\.?[0-9]+[e]?[+-]?[0-9]*)$/",
+           "optional": true
+         },
+         {
+           "name": "specimen.parentLabel",
+           "caption": "Parent Specimen",
+           "type": "text",
+           "optional": false,
+           "url": "specimen({specimenId: specimen.parentId})",
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "specimen.lineage",
+                 "op": "!=",
+                 "value": "'New'"
+               }
+             ]
+           },
+           "modelOpts": {
+             "updateOn": "blur"
+           },
+           "showInOverviewIf": "useShowIf"
+         },
+         {
+           "name": "specimen.biohazards",
+           "caption": "Biohazards",
+           "type": "pvs",
+           "multiple": true,
+           "attr": "specimen-biohazard",
+           "optional": true,
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "specimen.lineage",
+                 "op": "==",
+                 "value": "'New'"
+               }
+             ]
+           },
+           "showInOverviewIf": "useShowIf"
+         },
+         {
+           "name": "specimen.storageLocation",
+           "caption": "Location",
+           "type": "storage-position",
+           "optional": true,
+           "cpId": "specimen.cpId",
+           "entity": "specimen",
+           "url": "container-detail.locations({containerId: specimen.storageLocation.id})",
+           "subFields": [
+             {
+               "name": "name",
+               "caption": "Container Name"
+             },
+             {
+               "name": "positionY",
+               "caption": "Container Row"
+             },
+             {
+               "name": "positionX",
+               "caption": "Container Column"
+             }
+           ]
+         },
+         {
+           "name": "specimen.createdOn",
+           "caption": "Created On",
+           "type": "datetime",
+           "optional": false,
+           "defaultValue": "current_date",
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "specimen.lineage",
+                 "op": "!=",
+                 "value": "'New'"
+               }
+             ]
+           },
+           "showInOverviewIf": "useShowIf"
+         },
+         {
+           "name": "specimen.freezeThawCycles",
+           "caption": "Freeze Thaw Cycles",
+           "type": "text",
+           "optional": true,
+           "pattern": "/^[0-9][0-9]*$/"
+         },
+         {
+           "name": "specimen.incrParentFreezeThaw",
+           "caption": "Increment parent specimen's Freeze/Thaw cycles?",
+           "type": "radio",
+           "optional": true,
+           "options": [
+             { "caption": "Yes", "value": 1 },
+             { "caption": "No", "value": 0 }
+           ],
+           "showInOverviewIf": "!!specimen.incrParentFreezeThaw"
+         },
+         {
+           "name": "specimen.comments",
+           "caption": "Comments",
+           "type": "textarea",
+           "optional": true
+         },
+         {
+           "name": "specimen.collectionEvent.time",
+           "caption": "Collection Date & Time",
+           "type": "datetime",
+           "defaultValue": "current_date",
+           "optional": true,
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "specimen.lineage",
+                 "op": "==",
+                 "value": "'New'"
+               },
+               {
+                 "field": "specimen.reqId",
+                 "op": "not_exist"
+               }
+             ]
+           },
+           "showInOverviewIf": "useShowIf"
+         },
+         {
+           "name": "specimen.collectionEvent.user",
+           "caption": "Collector",
+           "type": "user",
+           "defaultValue": "current_user",
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "specimen.lineage",
+                 "op": "==",
+                 "value": "'New'"
+               },
+               {
+                 "field": "specimen.reqId",
+                 "op": "not_exist"
+               }
+             ]
+           },
+           "showInOverviewIf": "useShowIf",
+           "subFields": [
+             {
+               "name": "emailAddress",
+               "caption": "Collector Email Address"
+             }
+           ]
+         },
+         {
+           "name": "specimen.collectionEvent.container",
+           "caption": "Collection Container",
+           "type": "pvs",
+           "attr": "collection-container",
+           "optional": true,
+           "defaultValue": "Not Specified",
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "specimen.lineage",
+                 "op": "==",
+                 "value": "'New'"
+               },
+               {
+                 "field": "specimen.reqId",
+                 "op": "not_exist"
+               }
+             ]
+           },
+           "showInOverviewIf": "useShowIf"
+         },
+         {
+           "name": "specimen.collectionEvent.procedure",
+           "caption": "Collection Procedure",
+           "type": "pvs",
+           "attr": "collection-procedure",
+           "defaultValue": "Not Specified",
+           "optional": true,
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "specimen.lineage",
+                 "op": "==",
+                 "value": "'New'"
+               },
+               {
+                 "field": "specimen.reqId",
+                 "op": "not_exist"
+               }
+             ]
+           },
+           "showInOverviewIf": "useShowIf"
+         },
+         {
+           "name": "specimen.receivedEvent.user",
+           "caption": "Receiver",
+           "type": "user",
+           "defaultValue": "current_user",
+           "showIf": {
+             "op": "AND",
+             "rules": [{
+               "field": "specimen.lineage",
+               "op": "==",
+               "value": "'New'"
+             },
+             {
+               "field": "specimen.reqId",
+               "op": "not_exist"
+             }
+           ]
+           },
+           "showInOverviewIf": "useShowIf",
+           "subFields": [{
+             "name": "emailAddress",
+             "caption": "Collector Email Address"
+           }]
+         },
+         {
+           "name": "specimen.receivedEvent.time",
+           "caption": "Received Date & Time",
+           "type": "datetime",
+           "defaultValue": "current_date",
+           "optional": true,
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "specimen.lineage",
+                 "op": "==",
+                 "value": "'New'"
+               },
+               {
+                 "field": "specimen.reqId",
+                 "op": "not_exist"
+               }
+             ]
+           },
+           "showInOverviewIf": "useShowIf"
+         },
+         {
+           "name": "specimen.receivedEvent.receivedQuality",
+           "caption": "Received Quality",
+           "type": "pvs",
+           "attr": "received-quality",
+           "defaultValue": "Acceptable",
+           "optional": true,
+           "showIf": {
+             "op": "AND",
+             "rules": [
+               {
+                 "field": "specimen.lineage",
+                 "op": "==",
+                 "value": "'New'"
+               },
+               {
+                 "field": "specimen.reqId",
+                 "op": "not_exist"
+               }
+             ]
+           },
+           "showInOverviewIf": "useShowIf"
+         },
+         {
+           "name": "specimen.externalIds",
+           "type": "collection",
+           "fields": [
+             {
+               "name": "name",
+               "caption": "External Name",
+               "type": "text",
+               "optional": true
+             },
+             {
+               "name": "value",
+               "caption": "External Value",
+               "type": "text",
+               "optional": true
+             }
+           ]
+         },
+         {
+           "name": "specimen.events.SpecimenFrozenEvent.time",
+           "caption": "Frozen Time",
+           "type": "datetime",
+           "defaultValue": "current_date"
+         },
+         {
+           "name": "specimen.events.SpecimenFrozenEvent.user",
+           "caption": "Frozen By",
+           "type": "user",
+           "defaultValue": "current_user"
+         },
+         {
+           "name": "specimen.events.SpecimenFrozenEvent.frozenMethod",
+           "caption": "Frozen Method",
+           "type": "pvs",
+           "attr": "frozen_method",
+           "defaultValue": "Liquid Nitrogen"
+         },
+         {
+           "name": "specimen.events.SpecimenFrozenEvent.comments",
+           "caption": "Frozen Comments",
+           "type": "textarea"
+         }
+       ]
+     }
+   },
+   {
+       "name": "participant-list-view",
+       "data": {
+           "columns": [
+               {
+                   "expr": "Participant.ppid",
+                   "caption": "Participant Protocol ID",
+                   "metainfo": {
+                       "showLink": "true"
+                   }
+               },
+               {
+                   "expr": "concat_ws(\" \", Participant.firstName, Participant.lastName)",
+                   "caption": "Name"
+               },
+               {
+                   "expr": "Participant.empi",
+                   "caption": "Master Patient Index"
+               },
+               {
+                   "expr": "Participant.regDate",
+                   "caption": "Registration Date"
+               },
+               {
+                   "expr": "concat(years_between(current_date(), Participant.dateOfBirth), \" yrs\")",
+                   "caption": "Age"
+               }
+           ],
+           "criteria": "Participant.id exists",
+           "orderBy": [
+               {
+                   "expr": "Participant.regDate",
+                   "direction": "desc"
+               }
+           ],
+           "filters": [
+               {
+                   "expr": "Participant.ppid",
+                   "caption": "Participant Protocol ID",
+                   "searchType": "contains"
+               },
+               {
+                   "expr": "concat_ws(\" \", Participant.firstName, Participant.lastName)",
+                   "caption": "Name",
+                   "metainfo": {
+                       "phi": "true"
+                   }
+               },
+               {
+                   "expr": "Participant.empi",
+                   "caption": "Master Patient Index",
+                   "searchType": "contains",
+                   "metainfo": {
+                       "phi": "true"
+                   }
+               },
+               {
+                   "expr": "Participant.regDate",
+                   "caption": "Registration Date"
+               },
+               {
+                   "expr": "years_between(current_date(), Participant.dateOfBirth)",
+                   "caption": "Age",
+                   "temporal": "true",
+                   "metainfo": {
+                       "phi": "true"
+                   }
+               }
+           ]
+       }
+   },
+   {
+       "name": "specimen-list-view",
+       "data": {
+           "columns": [
+               {
+                   "expr": "Specimen.label",
+                   "caption": "Label",
+                   "metainfo": {
+                       "showLink": "true"
+                   }
+               },
+               {
+                   "expr": "Specimen.createdOn",
+                   "caption": "Created On"
+               },
+               {
+                   "expr": "Specimen.type",
+                   "caption": "Type"
+               },
+               {
+                   "expr": "Specimen.tissueSite",
+                   "caption": "Anatomic Site"
+               },
+               {
+                   "expr": "Specimen.pathologicalStatus",
+                   "caption": "Pathology Status"
+               },
+               {
+                   "expr": "Specimen.availableQty",
+                   "caption": "Quantity",
+                   "metainfo": {
+                       "showUnit": "true",
+                       "measure": "quantity"
+                   }
+               },
+               {
+                   "expr": "concat(Specimen.specimenPosition.container.name, concat_ws(\"\", concat(\" (\", Specimen.specimenPosition.formattedPos, \")\")))",
+                   "caption": "Location"
+               }
+           ],
+           "criteria": "Specimen.collectionStatus = \"Collected\" and Specimen.activityStatus = \"Active\"",
+           "orderBy": [
+               {
+                   "expr": "Specimen.createdOn",
+                   "direction": "desc"
+               }
+           ],
+           "filters": [
+               {
+                   "expr": "Specimen.label",
+                   "caption": "Label",
+                   "searchType": "contains"
+               },
+               {
+                   "expr": "Specimen.lineage",
+                   "caption": "Lineage"
+               },
+               {
+                   "expr": "Specimen.createdOn",
+                   "caption": "Created On"
+               },
+               {
+                   "expr": "Specimen.type",
+                   "caption": "Type"
+               },
+               {
+                   "expr": "Specimen.tissueSite",
+                   "caption": "Anatomic Site"
+               },
+               {
+                   "expr": "Specimen.pathologicalStatus",
+                   "caption": "Pathology Status"
+               },
+               {
+                   "expr": "Specimen.availableQty",
+                   "caption": "Quantity"
+               }
+           ]
+       }
+   }
+]

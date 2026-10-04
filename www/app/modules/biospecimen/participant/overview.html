@@ -1,0 +1,460 @@
+<div>
+  <div class="os-page-commands">
+    <div class="left">
+      <button ng-if="partCtx.showEdit" show-if-allowed="participantResource.updateOpts" class="default"
+        ui-sref="participant-addedit({cprId: cpr.id, cpId: cpr.cpId})">
+        <span class="fa fa-pencil"></span>
+        <span translate="common.buttons.edit">Edit</span>
+      </button>
+      <a ng-if="cpsForReg.length > 0" class="btn default" ui-sref="participant-newreg">
+        <span class="fa fa-plus"></span>
+        <span translate="participant.reg_another_protocol">
+          Register to Another Protocol
+        </span>
+      </a>
+      <button ng-if="partCtx.showAnonymize && !cpViewCtx.isCoordinator"
+        show-if-allowed="participantResource.updateOpts" class="default" ng-click="anonymize()">
+        <span class="fa fa-warning"></span>
+        <span translate="participant.buttons.anonymize">Anonymize</span>
+      </button>
+      <button ng-if="!cpViewCtx.isCoordinator && occurredVisits.length > 0 &&
+        (!specimenAllowedOps || specimenAllowedOps.update)" class="default"
+        ng-click="printSpecimenLabels()" title="{{'specimens.tooltip.print' | translate}}">
+        <span class="fa fa-print"></span>
+        <span translate="specimens.buttons.print">Print</span>
+      </button>
+      <button show-if-allowed="participantResource.deleteOpts" class="default" ng-click="deleteReg()">
+        <span class="fa fa-trash"></span>
+        <span translate="common.buttons.delete">Delete</span>
+      </button>
+
+      <os-plugin-hooks view-name="'participant-detail'" sec-name="'page-commands'">
+      </os-plugin-hooks>
+    </div>
+  </div>
+
+  <div class="clearfix">
+    <div class="col-xs-8">
+      <os-plugin-hooks view-name="'participant-detail'" sec-name="'summary'" 
+        default-tmpl="'modules/biospecimen/participant/summary.html'">
+      </os-plugin-hooks>
+
+      <div class="os-section" ng-init="opCollapsed=false" ng-if="cpr.participant.registeredCps.length >= 1">
+        <button class="os-btn-section-collapse os-btn-transparent" ng-click="opCollapsed=!opCollapsed">
+          <span ng-if="!opCollapsed" class="fa fa-chevron-circle-down"></span>
+          <span ng-if="opCollapsed" class="fa fa-chevron-circle-right"></span>
+        </button>
+        <h3 class="os-sub-section-title" translate="participant.other_cps">Other Protocols</h3>
+        <div collapse="opCollapsed">
+          <span ng-repeat="cp in cpr.participant.registeredCps | filter: isOtherProtocol">
+            <a ui-sref="participant-detail.overview({cpId: cp.cpId, cprId: cp.cprId})">{{cp.cpShortTitle}}</a>
+            {{$last ? '' : ','}}
+          </span>
+        </div>
+      </div>
+
+      <div class="os-section" ng-init="ovCollapsed=false" ng-if="occurredVisits.length > 0">
+        <button class="os-btn-section-collapse os-btn-transparent" ng-click="ovCollapsed=!ovCollapsed">
+          <span ng-if="!ovCollapsed" class="fa fa-chevron-circle-down"></span>
+          <span ng-if="ovCollapsed" class="fa fa-chevron-circle-right"></span>
+        </button>
+        <h3 class="os-sub-section-title" translate="visits.occurred_visits">Occurred Visits</h3>
+        <div collapse="ovCollapsed">
+          <div ng-switch on="occurredVisitsCols.length > 0">
+            <div ng-switch-when="true">
+              <div ng-include src="'modules/biospecimen/participant/overview-occurred-visits-sde.html'"></div>
+            </div>
+            <div ng-switch-default>
+              <div ng-include src="'modules/biospecimen/participant/overview-occurred-visits.html'"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="os-section" ng-init="ovCollapsed=false" ng-if="missedVisits.length > 0">
+        <button class="os-btn-section-collapse os-btn-transparent" ng-click="ovCollapsed=!ovCollapsed">
+          <span ng-if="!ovCollapsed" class="fa fa-chevron-circle-down"></span>
+          <span ng-if="ovCollapsed" class="fa fa-chevron-circle-right"></span>
+        </button>
+        <h3 class="os-sub-section-title" translate="visits.missed_or_not_collected_visits">Missed Visits</h3>
+        <div collapse="ovCollapsed">
+          <div class="os-table os-table-muted-hdr os-border" ng-if="missedVisits.length > 0">
+            <div class="os-table-head">
+              <div class="row">
+                <div class="col col-xs-4" translate="visits.title">Visit</div>
+                <div class="col col-xs-3" translate="common.date">Date</div>
+                <div class="col col-xs-4" translate="visits.reason">Reason</div>
+                <div class="col col-xs-1">&nbsp;</div>
+              </div>
+            </div>
+            <div class="os-table-body">
+              <div ng-repeat="visit in missedVisits">
+                <div class="row title">
+                  <div class="col col-xs-4">
+                    <a ui-sref="participant-detail.visits({visitId: visit.id, eventId: visit.eventId})">
+                      <os-event-desc event-point="visit.eventPoint" event-point-unit="visit.eventPointUnit"
+                        event-label="visit.eventLabel"></os-event-desc>
+                    </a>
+                  </div>
+                  <div class="col col-xs-3">
+                    {{visit.visitDate | date: global.dateFmt}}
+                  </div>
+                  <div class="col col-xs-4">
+                    {{visit.missedReason | osNoValue}}
+                  </div>
+                  <div class="col col-xs-1 os-more-options">
+                    <div dropdown>
+                      <button class="dropdown-toggle">
+                        <span class="fa fa-ellipsis-v"></span>
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                        <li>
+                          <a ui-sref="visit-detail.overview({visitId: visit.id, eventId: visit.eventId})">
+                            <i class="fa fa-eye"></i>
+                            <span translate="visits.ctx_menu.view_visit">View Visit</span>
+                          </a>
+                        </li>
+                        <li show-if-allowed="visitResource.updateOpts">
+                          <a ng-click="newVisit(visit)">
+                            <i class="fa fa-repeat"></i>
+                            <span translate="visits.ctx_menu.new_visit">New Visit</span>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="os-section" ng-init="avCollapsed=false" ng-if="anticipatedVisits.length > 0">
+        <button class="os-btn-section-collapse os-btn-transparent" ng-click="avCollapsed=!avCollapsed">
+          <span ng-if="!avCollapsed" class="fa fa-chevron-circle-down"></span>
+          <span ng-if="avCollapsed" class="fa fa-chevron-circle-right"></span>
+        </button>
+        <h3 class="os-sub-section-title" translate="visits.anticipated_visits">Anticipated Visits</h3>
+        <div collapse="avCollapsed">
+          <table class="os-table os-table-muted-hdr os-border">
+            <thead class="os-table-head">
+              <tr class="row">
+                <td class="col" ng-class="{'col-xs-4': cpViewCtx.spmnReadAllowed}">
+                  <span translate="visits.title">Visit</span>
+                </td>
+                <td class="col" ng-class="{'col-xs-3': cpViewCtx.spmnReadAllowed}">
+                  <span translate="common.date">Date</span>
+                </td>
+                <td class="col col-xs-3" ng-show="cpViewCtx.spmnReadAllowed">
+                  <span translate="visits.anticipated_specimens">Anticipated Specimens</span>
+                </td>
+                <td class="col col-xs-2">
+                  <span>&nbsp;</span>
+                  <button class="btn btn-xs btn-primary" ng-show="cpr.hasConsented && avSelected"
+                    ng-click="collect(null)">
+                    <span translate="specimens.buttons.collect">Collect</span>
+                  </button>
+                </td>
+              </tr>
+            </thead>
+            <tbody class="os-table-body">
+              <tr class="row" ng-repeat="visit in anticipatedVisits">
+                <td class="col">
+                  <div style="padding: 0px 8px;" class="os-select-specimen-cb" ng-show="cpr.hasConsented && partCtx.workflowId > 0">
+                    <os-checkbox ng-change="toggleAvSelect(visit)" ng-model="visit.selected"></os-checkbox>
+                  </div>
+
+                  <a ui-sref="visit-detail.overview({visitId: visit.id, eventId: visit.eventId})">
+                    <os-event-desc event-point="visit.eventPoint" event-point-unit="visit.eventPointUnit"
+                      event-label="visit.eventLabel"></os-event-desc>
+                  </a>
+                </td>
+                <td class="col" ng-switch on="!!visit.id && !!visit.visitDate">
+                  <span ng-switch-when="true">{{visit.visitDate | date: global.dateFmt | osNoValue}}</span>
+                  <span ng-switch-default>{{visit.anticipatedVisitDate | date: global.dateFmt | osNoValue}}</span>
+                </td>
+                <td class="col" ng-show="cpViewCtx.spmnReadAllowed">
+                  <span>{{visit.pendingPrimarySpmns}}</span>
+                </td>
+                <td class="col">
+                  <div class="os-more-option-btns" ng-show="cpr.hasConsented && !avSelected">
+                    <span dropdown ng-if="!partCtx.workflowId || partCtx.workflowId <= 0">
+                      <button class="btn btn-xs btn-default dropdown-toggle">
+                        <span translate="specimens.buttons.collect">Collect</span>
+                        <span class="fa fa-caret-down"></span>
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-right">
+                        <li show-if-allowed="visitResource.updateOpts">
+                          <a ui-sref="visit-addedit({visitId: visit.id, eventId: visit.eventId})">
+                            <span class="fa fa-list-alt"></span>
+                            <span translate="visits.title">Visit</span>
+                          </a>
+                        </li>
+                        <li show-if-allowed="specimenResource.updateOpts">
+                          <a ng-click="collect(visit)">
+                            <span class="fa fa-flask"></span>
+                            <span translate="specimens.list">Specimens</span>
+                          </a>
+                        </li>
+                      </ul>
+                    </span>
+                    <span ng-if="partCtx.workflowId > 0">
+                      <button class="btn btn-xs btn-default" ng-click="collect(visit)">
+                        <span translate="specimens.buttons.collect">Collect</span>
+                      </button>
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xs-4">
+      <os-audit-overview objects-list="partCtx.auditObjs"></os-audit-overview>
+  </div>
+</div>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/overview-occurred-visits.html">
+  <table class="os-table os-table-muted-hdr os-border">
+    <thead class="os-table-head">
+      <tr class="row">
+        <th class="col" ng-class="{'os-col-20': cpViewCtx.spmnReadAllowed}">
+          <span translate="visits.event_label">Event Label</span>
+        </th>
+        <th class="col" ng-class="{'os-col-20': cpViewCtx.spmnReadAllowed}">
+          <span translate="visits.name">Name</span>
+        </th>
+        <th class="col" ng-class="{'os-col-15': cpViewCtx.spmnReadAllowed}">
+          <span translate="common.date">Date</span>
+        </th>
+        <th class="col" ng-if="!cpViewCtx.spmnReadAllowed">
+          <span translate="visits.visit_site">Site</span>
+        </th>
+        <th class="col os-col-20" ng-if="cpViewCtx.spmnReadAllowed">
+          <span translate="visits.collection_status">Collection Status</span>
+        </th>
+        <th class="col os-col-20" ng-if="cpViewCtx.spmnReadAllowed">
+          <span translate="visits.storage_utilization">Utilization</span>
+        </th>
+        <th class="col os-col-5">&nbsp;</th>
+      </tr>
+    </thead>
+    <tbody class="os-table-body">
+      <tr class="row title" ng-repeat="visit in occurredVisits">
+        <td class="col">
+          <a class="os-tree-image-icon" ui-sref="visit-detail.spr({visitId: visit.id, eventId: visit.eventId})"
+            os-tooltip="{{'visits.spr_help' | translate}}" placement="right" ng-if="!!visit.sprName">
+            <span class="fa fa-file-text-o"></span>
+          </a>
+          <a ui-sref="visit-detail.overview({visitId: visit.id, eventId: visit.eventId})">
+            <os-event-desc event-point="visit.eventPoint" event-point-unit="visit.eventPointUnit"
+              event-label="visit.eventLabel">
+            </os-event-desc>
+          </a>
+        </td>
+        <td class="col">
+          <span>{{visit.name}}</span>
+        </td>
+        <td class="col">
+          <span>{{visit.visitDate | date: global.dateFmt}}</span>
+        </td>
+        <td class="col" ng-if="!cpViewCtx.spmnReadAllowed">
+          <span>{{visit.site}}</span>
+        </td>
+        <td class="col os-col-20" ng-if="cpViewCtx.spmnReadAllowed">
+          <div ng-include src="'modules/biospecimen/participant/overview-visit-spmns-count.html'"></div>
+        </td>
+        <td class="col os-col-20" ng-if="cpViewCtx.spmnReadAllowed">
+          <div ng-include src="'modules/biospecimen/participant/overview-visit-spmns-storage.html'"></div>
+        </td>
+        <td class="col os-col-5 os-more-options">
+          <div ng-include src="'modules/biospecimen/participant/occurred-visits-menu.html'"></div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/overview-occurred-visits-sde.html">
+  <table class="os-table os-table-muted-hdr os-border">
+    <thead class="os-table-head">
+      <tr class="row">
+        <th class="col" ng-repeat="column in occurredVisitsCols" ng-style="{'min-width': column.width}">
+          <span>{{column.caption}}</span>
+        </th>
+        <th class="col" style="min-width: 150px;" ng-if="cpViewCtx.spmnReadAllowed">
+          <span translate="visits.collection_status">Collection Status</span>
+        </th>
+        <th class="col" style="min-width: 150px;" ng-if="cpViewCtx.spmnReadAllowed">
+          <span translate="visits.storage_utilization">Utilization</span>
+        </th>
+        <th class="col os-col-5">&nbsp;</div>
+      </tr>
+    </thead>
+    <tbody class="os-table-body">
+      <tr class="row title" ng-repeat="visit in occurredVisits">
+        <td class="col" ng-repeat="column in visit.$$columns">
+          <span ng-if="$index == 0">
+            <a class="os-tree-image-icon" ui-sref="visit-detail.spr({visitId: visit.id, eventId: visit.eventId})"
+              os-tooltip="{{'visits.spr_help' | translate}}" placement="right" ng-if="!!visit.sprName">
+              <span class="fa fa-file-text-o"></span>
+            </a>
+            <a ui-sref="visit-detail.overview({visitId: visit.id, eventId: visit.eventId})">
+              <span>{{column.value | osNoValue}}</span>
+            </a>
+          </span>
+          <span ng-if="$index > 0">{{column.value | osNoValue}}</span>
+        </td>
+        <td class="col os-col-20" ng-if="cpViewCtx.spmnReadAllowed">
+          <div ng-include src="'modules/biospecimen/participant/overview-visit-spmns-count.html'"></div>
+        </td>
+        <td class="col os-col-20" ng-if="cpViewCtx.spmnReadAllowed">
+          <div ng-include src="'modules/biospecimen/participant/overview-visit-spmns-storage.html'"></div>
+        </td>
+        <td class="col os-col-5 os-more-options">
+          <div ng-include src="'modules/biospecimen/participant/occurred-visits-menu.html'"></div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/occurred-visits-menu.html">
+  <div dropdown dropdown-append-to-body>
+    <button class="dropdown-toggle">
+      <span class="fa fa-ellipsis-v"></span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-right" role="menu">
+      <li>
+        <a ui-sref="visit-detail.overview({visitId: visit.id, eventId: visit.eventId})">
+          <span class="fa fa-eye"></span>
+          <span translate="visits.ctx_menu.view_visit">View Visit</span>
+        </a>
+      </li>
+      <li show-if-allowed="visitResource.updateOpts">
+        <a ng-click="newVisit(visit)">
+          <span class="fa fa-repeat"></span>
+          <span translate="visits.ctx_menu.new_visit">New Visit</span>
+        </a>
+      </li>
+      <li class="divider"></li>
+      <li show-if-allowed="specimenResource.updateOpts" ng-if="visit.totalPendingSpmns > 0">
+        <a ng-click="collectPending(visit)">
+          <span class="fa fa-flask"></span>
+          <span translate="visits.ctx_menu.collect_pending_specimens">
+            Collect Pending Specimens
+          </span>
+        </a>
+      </li>
+      <li show-if-allowed="specimenResource.updateOpts">
+        <a ui-sref="specimen-addedit({visitId: visit.id})">
+          <span class="fa fa-plus"></span>
+          <span translate="visits.ctx_menu.collect_unplanned_specimens">
+            Collect Unplanned Specimens
+          </span>
+        </a>
+      </li>
+      <li show-if-allowed="specimenResource.updateOpts">
+        <a ng-click="printSpecimenLabels({visitId: visit.id})">
+          <span class="fa fa-print"></span>
+          <span translate="visits.ctx_menu.print_specimen_labels">
+            Print Specimen Labels
+          </span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/overview-visit-spmns-count.html">
+  <div bs-popover trigger="hover" placement="bottom" container="body" content-template="specimen-count.html">
+    <progress class="progress" max="visit.totalPrimarySpmns">
+      <bar value="visit.plannedPrimarySpmnsColl" type="success">
+        <span><b> {{visit.plannedPrimarySpmnsColl}} </b> </span>
+      </bar>
+      <bar value="visit.unplannedPrimarySpmnsColl" type="unplanned">
+        <span><b> {{visit.unplannedPrimarySpmnsColl}} </b> </span>
+      </bar>
+      <bar value="visit.uncollectedPrimarySpmns" type="missed">
+        <span><b> {{visit.uncollectedPrimarySpmns}} </b> </span>
+      </bar>
+      <bar value="visit.pendingPrimarySpmns" type="warning">
+        <span><b> {{visit.pendingPrimarySpmns}} </b> </span>
+      </bar>
+    </progress>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/overview-visit-spmns-storage.html">
+  <div bs-popover trigger="hover" placement="bottom" container="body" content-template="storage-utilization.html">
+    <progress class="progress" max="visit.reqStorage">
+      <bar value="visit.storedSpecimens" type="success" ng-if="!!visit.storedSpecimens">
+        <span><b> {{visit.storedSpecimens}} </b></span>
+      </bar>
+      <bar value="visit.notStoredSpecimens" type="virtual" ng-if="!!visit.notStoredSpecimens">
+        <span><b> {{visit.notStoredSpecimens}} </b></span>
+      </bar>
+      <bar value="visit.distributedSpecimens" type="distributed" ng-if="!!visit.distributedSpecimens">
+        <span><b> {{visit.distributedSpecimens}} </b></span>
+      </bar>
+      <bar value="visit.closedSpecimens" type="closed" ng-if="!!visit.closedSpecimens">
+        <span><b> {{visit.closedSpecimens}} </b></span>
+      </bar>
+    </progress>
+  </div>
+</script>
+
+<script id="specimen-count.html" type="text/ng-template">
+  <table class="table table-bordered">
+    <tbody>
+      <tr ng-if="!!visit.plannedPrimarySpmnsColl">
+        <td translate="specimens.status.collected">Collected</td>
+        <td>{{visit.plannedPrimarySpmnsColl}}</td>
+      </tr>
+      <tr ng-if="!!visit.unplannedPrimarySpmnsColl">
+        <td translate="specimens.unplanned">Unplanned</td>
+        <td>{{visit.unplannedPrimarySpmnsColl}}</td>
+      </tr>
+      <tr ng-if="!!visit.uncollectedPrimarySpmns">
+        <td translate="specimens.status.missed_or_not_collected">Not Collected</td>
+        <td>{{visit.uncollectedPrimarySpmns}}</td>
+      </tr>
+      <tr ng-if="!!visit.pendingPrimarySpmns">
+        <td translate="specimens.status.pending">Pending</td>
+        <td>{{visit.pendingPrimarySpmns}}</td>
+      </tr>
+    </tbody>
+  </table>
+</script>
+
+<script id="storage-utilization.html" type="text/ng-template">
+  <table class="table table-bordered">
+    <tbody>
+      <tr ng-if="!visit.reqStorage">
+        <td colspan="2">
+          <span translate="specimens.utilization.no_specimens">No Specimens</span>
+        </td>
+      </tr>
+      <tr ng-if="!!visit.storedSpecimens">
+        <td translate="specimens.utilization.stored">Stored</td>
+        <td>{{visit.storedSpecimens}}</td>
+      </tr>
+      <tr ng-if="!!visit.notStoredSpecimens">
+        <td translate="specimens.virtually_located">Not Stored</td>
+        <td>{{visit.notStoredSpecimens}}</td>
+      </tr>
+      <tr ng-if="!!visit.distributedSpecimens">
+        <td translate="specimens.utilization.distributed">Distributed</td>
+        <td>{{visit.distributedSpecimens}}</td>
+      </tr>
+      <tr ng-if="!!visit.closedSpecimens">
+        <td translate="specimens.closed">Closed</td>
+        <td>{{visit.closedSpecimens}}</td>
+      </tr>
+    </tbody>
+  </table>
+</script>

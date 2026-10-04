@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.common.domain.LabelPrintJob" table="OS_LABEL_PRINT_JOBS"
+    entity-name="com.krishagni.catissueplus.core.common.domain.LabelPrintJob">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_LABEL_PRINT_JOBS_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="itemType" column="ITEM_TYPE"/>
+
+    <many-to-one name="submittedBy" column="SUBMITTED_BY"/>
+ 
+    <property name="submissionDate" column="SUBMISSION_DATE" not-null="true"/>
+
+    <set name="items" table="OS_LABEL_PRINT_JOB_ITEMS" inverse="true" cascade="all-delete-orphan" order-by="id asc">
+      <key column="JOB_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.common.domain.LabelPrintJobItem"/>
+    </set>
+
+    <sql-query name="getSpecimenPrintStats">
+      <return-scalar column="first_name"    type="string"/>
+      <return-scalar column="last_name"     type="string"/>
+      <return-scalar column="email_address" type="string"/>
+      <return-scalar column="short_title"   type="string"/>
+      <return-scalar column="name"          type="string"/>
+      <return-scalar column="prints"        type="integer"/>
+
+      select
+        u.first_name, u.last_name, u.email_address,
+        cp.short_title, site.name, count(ji.identifier) as prints
+      from
+        os_label_print_job_items ji
+        inner join os_label_print_jobs j on j.identifier = ji.job_id
+        inner join catissue_specimen s on s.identifier = ji.item_id
+        inner join catissue_collection_protocol cp on cp.identifier = s.collection_protocol_id
+        inner join catissue_specimen_coll_group v on v.identifier = s.specimen_collection_group_id
+        inner join catissue_site site on site.identifier = v.site_id
+        inner join catissue_user u on u.identifier = j.submitted_by
+      where
+        j.item_type = 'specimen' and
+        j.submission_date &gt;= :startDate and j.submission_date &lt;= :endDate
+      group by
+        u.first_name, u.last_name, u.email_address, cp.short_title, site.name
+    </sql-query>
+  </class>
+</hibernate-mapping>

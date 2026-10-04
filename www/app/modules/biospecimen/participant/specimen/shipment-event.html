@@ -1,0 +1,59 @@
+<div ng-controller="SpecimenSystemEventViewCtrl">
+  <ul class="os-key-values os-one-col">
+    <li class="item">
+      <strong class="key key-sm strong" translate="entities.shipment">Shipment</strong>
+      <span class="value value-md">
+        <a ui-sref="object-state-params-resolver({
+          stateName: 'shipment-detail.overview', objectName: 'shipment',
+          key: 'name', value: evtCtx.name})">
+          <span>{{evtCtx.name}}</span>
+        </a>
+      </span>
+    </li>
+    <li class="item" ng-show="evtCtx.event == 'SpecimenShipmentShippedEvent'">
+      <strong class="key key-sm strong" translate="shipments.sending_site">Sending Site</strong>
+      <span class="value value-md">{{evtCtx.sendingSite.name}}</span>
+    </li>
+    <li class="item" ng-show="evtCtx.event == 'SpecimenShipmentReceivedEvent'">
+      <strong class="key key-sm strong" translate="shipments.receiving_site">Receiving Site</strong>
+      <span class="value value-md">{{evtCtx.receivingSite.name}}</span>
+    </li>
+    <li class="item" ng-show="evtCtx.event == 'SpecimenShipmentReceivedEvent'">
+      <strong class="key key-sm strong" translate="shipments.received_quality">Received Quality</strong>
+      <span class="value value-md">{{evtCtx.receivedQuality.name}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="shipments.sender"
+        ng-show="evtCtx.event == 'SpecimenShipmentShippedEvent'">
+        <span>Sender</span>
+      </strong>
+      <strong class="key key-sm strong" translate="shipments.receiver"
+        ng-show="evtCtx.event == 'SpecimenShipmentReceivedEvent'">
+        <span>Receiver</span>
+      </strong>
+      <span class="value value-md">{{evtCtx.user.name}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="shipments.shipped_date"
+        ng-show="evtCtx.event == 'SpecimenShipmentShippedEvent'">
+        <span>Shipped Date</span>
+      </strong>
+      <strong class="key key-sm strong" translate="shipments.received_date"
+        ng-show="evtCtx.event == 'SpecimenShipmentReceivedEvent'">
+        <span>Received Date</span>
+      </strong>
+      <span class="value value-md">{{evtCtx.time | date: $root.global.dateTimeFmt}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="shipments.sender_comments"
+        ng-show="evtCtx.event == 'SpecimenShipmentShippedEvent'">
+        <span>Sender Comments</span>
+      </strong>
+      <strong class="key key-sm strong" translate="shipments.receiver_comments"
+        ng-show="evtCtx.event == 'SpecimenShipmentReceivedEvent'">
+        <span>Receiver Comments</span>
+      </strong>
+      <span class="value value-md">{{evtCtx.comments | osNoValue}}</span>
+    </li>
+  </ul>
+</div>

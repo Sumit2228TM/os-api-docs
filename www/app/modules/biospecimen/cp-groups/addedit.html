@@ -1,0 +1,58 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <ul os-breadcrumbs>
+        <li>
+          <a ui-sref="cp-groups-list">
+            <span translate="cp_groups.list">Collection Protocol Groups</span>
+          </a>
+        </li>
+      </ul>
+
+      <h3 ng-switch on="!group.id">
+        <span ng-switch-when="true" translate="cp_groups.create_group">Create Group</span>
+        <span ng-switch-default>{{group.name}}</span>
+      </h3>
+    </div>
+  </div>
+
+  <div class="container">
+    <form name="groupForm" os-form-validator="groupForm" validator="groupFormValidator" class="form-horizontal" novalidate>
+      <div class="form-group">
+        <label class="control-label col-xs-3">
+          <span translate="cp_groups.name">Name</span>
+        </label>
+        <div class="col-xs-6">
+          <input name="name" type="text" class="form-control" ng-model="group.name" required>
+          <div os-field-error field="groupForm.name"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="control-label col-xs-3">
+          <span translate="cp_groups.cps">Collection Protocols</span>
+        </label>
+        <div class="col-xs-6">
+          <os-select multiple name="cps" ng-model="group.cps" list="cps" display-prop="shortTitle"
+            refresh="searchCps" required>
+          </os-select>
+          <div os-field-error field="groupForm.cps"></div>
+        </div>
+      </div>
+
+      <div class="os-divider"></div>
+
+      <div class="form-group">
+        <div class="col-xs-offset-3 col-xs-6">
+          <button class="btn btn-primary" os-form-submit="saveOrUpdate()" ng-switch on="!group.id">
+            <span ng-switch-when="true" translate="common.buttons.create">Create</span>
+            <span ng-switch-default translate="common.buttons.update">Update</span>
+          </button>
+          <button class="btn os-btn-text" ng-click="back()">
+            <span translate="common.buttons.discard">Discard</span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

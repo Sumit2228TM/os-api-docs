@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="API Users and their IP address range">
+    <addColumn tableName="CATISSUE_USER">
+      <column name="API_USER" type="${boolean.type}" defaultValueBoolean="false"/>
+      <column name="IP_RANGE" type="${text.type}(64)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="User groups">
+    <createTable tableName="OS_USER_GROUPS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="NAME" type="${text.type}(64)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="DESCRIPTION" type="${text.type}(255)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="INSTITUTE_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_USER_GROUP_INSTITUTE"
+          referencedTableName="CATISSUE_INSTITUTION" referencedColumnNames="IDENTIFIER"/>
+      </column>
+      <column name="ACTIVITY_STATUS" type="${text.type}(32)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="User group ID sequence" dbms="oracle">
+    <createSequence sequenceName="OS_USER_GROUP_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="User group users">
+    <createTable tableName="OS_USER_GROUP_USERS">
+      <column name="GROUP_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_GRP_USERS_GRP_ID"
+          referencedTableName="OS_USER_GROUPS" referencedColumnNames="IDENTIFIER"/>
+      </column>
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_GRP_USERS_USR_ID"
+          referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique constraint on user group users">
+    <addUniqueConstraint constraintName="OS_USER_GROUP_USERS_UQ"
+      tableName="OS_USER_GROUP_USERS" columnNames="GROUP_ID,USER_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen list shared groups">
+    <createTable tableName="OS_SPECIMEN_LIST_SHARED_GROUPS">
+      <column name="LIST_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_SPMN_LIST_SHR_GRP_LIST_ID"
+          referencedTableName="CATISSUE_SPECIMENLIST_TAGS" referencedColumnNames="IDENTIFIER"/>
+      </column>
+      <column name="GROUP_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_SPMN_LIST_SHR_GRP_GRP_ID"
+          referencedTableName="OS_USER_GROUPS" referencedColumnNames="IDENTIFIER"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen list shared group unique constraint">
+    <addUniqueConstraint constraintName="OS_SPMN_LIST_SHARED_GRPS_UQ"
+      tableName="OS_SPECIMEN_LIST_SHARED_GROUPS" columnNames="LIST_ID,GROUP_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Query folders shared groups">
+    <createTable tableName="OS_QUERY_FOLDER_SHARED_GROUPS">
+      <column name="FOLDER_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_QFOLDER_SHR_GRP_FOLDER_ID"
+          referencedTableName="CATISSUE_QUERY_FOLDERS" referencedColumnNames="IDENTIFIER"/>
+      </column>
+      <column name="GROUP_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_QFOLDER_SHR_GRP_GRP_ID"
+          referencedTableName="OS_USER_GROUPS" referencedColumnNames="IDENTIFIER"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Query folders shared groups unique constraint">
+    <addUniqueConstraint constraintName="OS_QFOLDER_SHARED_GRPS_UQ"
+      tableName="OS_QUERY_FOLDER_SHARED_GROUPS" columnNames="FOLDER_ID,GROUP_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Order processed notification email attachment type">
+    <addColumn tableName="CATISSUE_DISTRIBUTION_PROTOCOL">
+      <column name="ATTACHMENT_TYPE" type="${text.type}(16)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen availability status">
+    <addColumn tableName="CATISSUE_SPECIMEN">
+      <column name="AVAILABILITY_STATUS" type="${text.type}(32)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP setting to zero out quantity of disposed specimens">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="SET_QTY_TO_ZERO" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the width of the imported forms digest column to accommodate SHA512">
+    <modifyDataType tableName="OS_IMPORT_FORMS_LOG" columnName="MD5_DIGEST" newDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the width of the imported queries digest column to accommodate SHA512">
+    <modifyDataType tableName="CATISSUE_IMPORT_QUERIES_LOG" columnName="MD5_DIGEST" newDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add unique constraint on staged participant eMPI">
+    <addUniqueConstraint tableName="OS_STAGED_PARTICIPANTS"
+      columnNames="EMPI_ID" constraintName="OS_STAGED_PART_EMPI_UQ"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Patient data entry audit logs">
+    <createTable tableName="OS_PDE_AUDIT_LOGS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false" />
+      </column>
+      <column name="ENTITY_TYPE" type="${text.type}(255)">
+        <constraints nullable="false" />
+      </column>
+      <column name="ENTITY_ID" type="${int.type}">
+        <constraints nullable="false" />
+      </column>
+      <column name="OPERATION" type="${text.type}(16)">
+        <constraints nullable="false" />
+      </column>
+      <column name="OP_TIME" type="${timestamp.type}">
+        <constraints nullable="false" />
+      </column>
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_PDE_AUDIT_LOG_USER"
+          referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER" />
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="PDE audit log identifier generator" dbms="oracle">
+    <createSequence sequenceName="OS_PDE_AUDIT_LOGS_SEQ" startValue="1" incrementBy="1" ordered="true" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen delete events">
+    <createTable tableName="OS_DELETE_SPMN_EVENTS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="SPECIMEN_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_DELETE_EVENT_SPMN_ID"
+          referencedTableName="CATISSUE_SPECIMEN" referencedColumnNames="IDENTIFIER"/>
+      </column>
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_DELETE_EVENT_USER_ID"
+          referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+      </column>
+      <column name="EVENT_TIME" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="COMMENTS" type="${text.type}(255)"/>
+      <column name="UNDELETE" type="${boolean.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen delete event ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_DELETE_SPMN_EVENT_SEQ" startValue="1" incrementBy="1" ordered="true" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to add record entry for specimen delete event" dbms="mysql" runOnChange="true">
+    <sql endDelimiter="//" >
+      drop trigger if exists os_trg_spmn_delete_event_re //
+    </sql>
+    <sql endDelimiter="//" >
+      create trigger os_trg_spmn_delete_event_re after insert on os_delete_spmn_events
+      for each row
+      begin
+        declare formName VARCHAR(255);
+
+        if (new.undelete != 0) then
+          set formName = 'SpecimenUndeleteEvent';
+        else
+          set formName = 'SpecimenDeleteEvent';
+        end if;
+
+        select
+          fc.identifier into @fcId
+        from
+          catissue_form_context fc
+          inner join dyextn_containers c on c.identifier = fc.container_id
+        where
+          c.name = formName and
+          c.deleted_on is null and
+          fc.deleted_on is null and
+          fc.entity_type = 'SpecimenEvent' and
+          fc.cp_id = -1;
+
+        insert into catissue_form_record_entry
+          (identifier, form_ctxt_id, object_id, record_id, updated_by, update_time, activity_status)
+        values
+          (default, @fcId, new.specimen_id, new.identifier, new.user_id, current_timestamp(), 'ACTIVE');
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to add record entry for specimen delete event" dbms="oracle" runOnChange="true">
+    <sql splitStatements="false">
+      create or replace trigger os_trg_spmn_delete_event_re after insert on os_delete_spmn_events
+      for each row
+      declare
+        fcId catissue_form_context.identifier%type;
+        formName varchar2(255);
+      begin
+        if (:new.undelete != 0) then
+          formName := 'SpecimenUndeleteEvent';
+        else
+          formName := 'SpecimenDeleteEvent';
+        end if;
+
+        select
+          fc.identifier into fcId
+        from
+          catissue_form_context fc
+          inner join dyextn_containers c on c.identifier = fc.container_id
+        where
+          c.name = formName and
+          c.deleted_on is null and
+          fc.deleted_on is null and
+          fc.entity_type = 'SpecimenEvent' and
+          fc.cp_id = -1;
+
+        insert into catissue_form_record_entry
+          (identifier, form_ctxt_id, object_id, record_id, updated_by, update_time, activity_status)
+        values
+          (catissue_form_rec_entry_seq.nextval, fcId, :new.specimen_id, :new.identifier, :new.user_id, current_timestamp, 'ACTIVE');
+      end;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Print label files staging data">
+    <createTable tableName="OS_LABEL_PRINT_FILE_ITEMS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="JOB_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_PRINT_FILE_JOB_ID"
+          referencedTableName="OS_LABEL_PRINT_JOBS" referencedColumnNames="IDENTIFIER"/>
+      </column>
+      <column name="CONTENT" type="${clob.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CREATOR_ID" type="${int.type}">
+        <constraints nullable="false" foreignKeyName="FK_PRINT_FILE_USER_ID"
+          referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+      </column>
+      <column name="CREATION_TIME" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Print label files staging ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_LBL_PRN_FILE_ITEMS_SEQ" startValue="1" incrementBy="1" ordered="true" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Function based index on staged participants UID" dbms="oracle">
+    <createIndex tableName="OS_STAGED_PARTICIPANTS" indexName="STAGED_LOWER_UID_IDX">
+      <column name="lower(NUID)"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Function based index on staged participants EMPI" dbms="oracle">
+    <createIndex tableName="OS_STAGED_PARTICIPANTS" indexName="STAGED_LOWER_EMPI_IDX">
+      <column name="lower(EMPI_ID)"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Function based index on staged MRNs" dbms="oracle">
+    <createIndex tableName="OS_STAGED_PART_MEDICAL_IDS" indexName="STAGED_LOWER_MRN_IDX">
+      <column name="lower(MEDICAL_RECORD_NUMBER)"/>
+      <column name="lower(SITE_NAME)"/>
+      <column name="PARTICIPANT_ID"/>
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique constraint on staged participant MRNs" dbms="mysql">
+    <addUniqueConstraint constraintName="OS_STAGED_PART_MRNS_UQ"
+      tableName="OS_STAGED_PART_MEDICAL_IDS"
+      columnNames="SITE_NAME,MEDICAL_RECORD_NUMBER" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique constraint on staged participant MRNs" dbms="oracle">
+    <sql>
+      create unique index OS_STAGED_PART_MRNS_UQ on OS_STAGED_PART_MEDICAL_IDS(
+        case when
+          site_name is not null and medical_record_number is not null
+        then
+          lower(site_name) || '-' || lower(medical_record_number)
+        end
+      );
+    </sql>
+  </changeSet>
+</databaseChangeLog>

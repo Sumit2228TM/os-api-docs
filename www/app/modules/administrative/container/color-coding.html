@@ -1,0 +1,28 @@
+<div>
+  <div class="os-modal-header">
+    <span translate="container.color_coding">Color Coding</span>
+    <div class="os-close" ng-click="ok()">&times;</div>
+  </div>
+
+  <div class="os-modal-body" style="max-height: 380px; overflow-y: auto; width: 100%">
+    <table class="os-table">
+      <tbody class="os-table-body">
+        <tr class="row" ng-repeat="colorCode in mctx.colorCodes">
+          <td class="col os-col-10">
+            <div style="height: 20px; width: 45px;" ng-style="{{colorCode.css}}"></div>
+          </td>
+          <td class="col os-col-90">
+            <span ng-show="!colorCode.type">{{colorCode.specimenClass}}</span>
+            <span ng-show="!!colorCode.type">{{colorCode.type}}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="os-modal-footer">
+    <button class="btn btn-primary" ng-click="ok()">
+      <span translate="common.buttons.done">Done</span>
+    </button>
+  </div>
+</div>

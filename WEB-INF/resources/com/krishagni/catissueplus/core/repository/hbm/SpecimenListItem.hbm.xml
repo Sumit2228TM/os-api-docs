@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenListItem" table="CATISSUE_SPEC_TAG_ITEMS"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenListItem">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_SPMN_CART_ITEMS_SEQ</param>
+      </generator>
+    </id>
+
+    <many-to-one name="specimen" column="OBJ_ID"/>
+
+    <many-to-one name="list" column="TAG_ID"/>
+
+    <many-to-one name="addedBy" column="ADDED_BY" />
+
+    <property name="addedOn" column="ADDED_ON" />
+  </class>
+</hibernate-mapping>

@@ -1,0 +1,95 @@
+<div>
+  <div class="clearfix">
+    <div class="col-xs-12">
+      <table class="os-table">
+        <thead class="os-table-head">
+          <tr class="row">
+            <th class="col os-mw-140 os-pointer-cursor" ng-click="sortBy('label')">
+              <span translate="specimens.label">Label</span>
+              <span ng-show="ctx.orderBy == 'label'" class="fa"
+                ng-class="{'asc': 'fa-long-arrow-up', 'desc': 'fa-long-arrow-down'}[ctx.direction]">
+              </span>
+            </th>
+            <th class="col os-mw-140 os-pointer-cursor" ng-if="ctx.hasExtId" ng-click="sortBy('externalId')">
+              <span translate="specimens.external_id">External ID</span>
+              <span ng-show="ctx.orderBy == 'externalId'" class="fa"
+                ng-class="{'asc': 'fa-long-arrow-up', 'desc': 'fa-long-arrow-down'}[ctx.direction]">
+              </span>
+            </th>
+            <th class="col os-mw-140">
+              <span translate="specimens.description">Description</span>
+            </th>
+            <th class="col os-mw-140 os-pointer-cursor" ng-click="sortBy('cp')">
+              <span translate="specimens.cp">Collection Protocol</span>
+              <span ng-show="ctx.orderBy == 'cp'" class="fa"
+                ng-class="{'asc': 'fa-long-arrow-up', 'desc': 'fa-long-arrow-down'}[ctx.direction]">
+              </span>
+            </th>
+            <th class="col os-mw-140 os-pointer-cursor" ng-if="ctx.hasPpid" ng-click="sortBy('ppid')">
+              <span translate="specimens.ppid">PPID</span>
+              <span ng-show="ctx.orderBy == 'ppid'" class="fa"
+                ng-class="{'asc': 'fa-long-arrow-up', 'desc': 'fa-long-arrow-down'}[ctx.direction]">
+              </span>
+            </th>
+            <th class="col os-mw-100">
+              <span translate="specimens.qty">Quantity</span>
+            </th>
+            <th class="col os-mw-140 os-pointer-cursor" ng-click="sortBy('location')">
+              <span translate="specimens.location">Location</span>
+              <span ng-show="ctx.orderBy == 'location'" class="fa"
+                ng-class="{'asc': 'fa-long-arrow-up', 'desc': 'fa-long-arrow-down'}[ctx.direction]">
+              </span>
+            </th>
+            <th class="col os-mw-100" ng-if="shipment.status == 'Received'">
+              <span translate="shipments.received_quality">Quality</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="os-table-body">
+          <tr class="row" ng-if="ctx.emptyState.empty || ctx.emptyState.loading">
+            <td class="col" colspan="100%">
+              <os-empty-list state="ctx.emptyState"></os-empty-list>
+            </td>
+          </tr>
+
+          <tr class="row" ng-repeat="item in ctx.shipmentSpmns" ng-init="specimen = item.specimen">
+            <td class="col">
+              <a ui-sref="specimen({specimenId: specimen.id})">
+                <span>{{specimen.label}}</span>
+                <span ng-if="!!specimen.barcode"> ({{specimen.barcode}}) </span>
+              </a>
+            </td>
+            <td class="col" ng-if="ctx.hasExtId">
+              <span>{{specimen.externalIds | osNameValueText | osNoValue}}</span>
+            </td>
+            <td class="col">
+              <a ui-sref="specimen({specimenId: specimen.id})">
+                <os-specimen-desc specimen="specimen" detailed="true"></os-specimen-desc>
+              </a>
+            </td>
+            <td class="col">
+              <span>{{specimen.cpShortTitle}}</span>
+            </td>
+            <td class="col" ng-if="ctx.hasPpid">
+              <span>{{specimen.ppid | osNoValue}}</span>
+            </td>
+            <td class="col">
+              <os-spmn-measure-val specimen="specimen" value="specimen.availableQty"></os-spmn-measure-val>
+            </td>
+            <td class="col">
+              <os-disp-storage-position position="specimen.storageLocation"></os-disp-storage-position>
+            </td>
+            <td class="col" ng-if="shipment.status == 'Received'">
+              <span>{{item.receivedQuality}}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <span ng-if="!ctx.loading && ctx.shipmentSpmns.length > 0 && ctx.shipmentSpmns.length < ctx.totalItems">
+        <pager total-items="ctx.totalItems" items-per-page="ctx.itemsPerPage" ng-model="ctx.currPage">
+        </pager>
+      </span>
+    </div>
+  </div>
+</div>

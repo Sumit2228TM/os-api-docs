@@ -1,0 +1,136 @@
+
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content" ng-switch on="!!fieldsCtx.headers.specimen.breadcrumb">
+      <os-html-template ng-switch-when="true" template="fieldsCtx.headers.specimen.breadcrumb"></os-html-template>
+
+      <ul ng-switch-when="false"  os-breadcrumbs>
+        <li> 
+          <a ui-sref="cp-list-view({cpId: cpr.cpId})">
+            <span>{{cpr.cpShortTitle}}</span>
+          </a>
+        </li>
+        <li ng-if="!cp.specimenCentric">
+          <a ui-sref="participant-detail.overview({cprId: cpr.id})">
+            <span>{{cpr.ppid}}</span>
+          </a>
+        </li>
+        <li ng-if="!cp.specimenCentric">
+          <a ui-sref="visit-detail.overview({visitId: visit.id, eventId: visit.eventId})">
+            <os-event-desc event-point="visit.eventPoint" event-point-unit="visit.eventPointUnit"
+              event-label="visit.eventLabel">
+            </os-event-desc>
+          </a>
+        </li>
+      </ul>
+
+      <h3>
+        <div style="display: inline-block;" ng-switch on="!!fieldsCtx.headers.specimen.leftTitle">
+          <div ng-switch-when="true">
+            <os-html-template template="fieldsCtx.headers.specimen.leftTitle"></os-html-template>
+          </div>
+          <div ng-switch-default ng-switch on="opts.editMode && !!inputCtxts[0].specimen.label">
+            <span ng-switch-when="true">{{inputCtxts[0].specimen.label}}</span>
+            <span ng-switch-default>
+              <span ng-switch on="!!opts.reqId">
+                <span ng-switch-when="true">{{inputCtxts[0].specimen.type}} ({{inputCtxts[0].specimen.specimenClass}})</span>
+                <span ng-switch-default translate="specimens.new_spmn">New Specimen</span>
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <button class="btn btn-xs btn-default" ng-click="opts.showInfo=!opts.showInfo" ng-if="opts.hasInfo">
+          <span class="fa fa-info-circle"></span>
+        </button>
+      </h3>
+    </div>
+
+    <div class="os-page-header-actions">
+      <h3 ng-if="!!fieldsCtx.headers.specimen.rightTitle">
+        <os-html-template template="fieldsCtx.headers.specimen.rightTitle"></os-html-template>
+      </h3>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="clearfix">
+      <div class="row">
+        <div ng-class="{'col-xs-9': opts.showInfo, 'col-xs-12': !opts.showInfo}">
+          <form name="osform" class="form-horizontal" os-form-validator="osform" validator="osformValidator" novalidate>
+            <div ng-if="opts.editMode || !!opts.reqId">
+              <os-specimen-addedit-form specimen="inputCtxts[0].specimen" ctrl="inputCtxts[0].form" opts="opts">
+              </os-specimen-addedit-form>
+            </div>
+            <accordion close-others="true" ng-if="!opts.editMode && !opts.reqId">
+              <accordion-group ng-repeat="spmnCtxt in inputCtxts" is-open="spmnCtxt.open">
+                <accordion-heading>
+                  <span class="os-clickable-title">
+                    <span ng-if="!!opts.cardTitleTmpl">
+                      <os-html-template ng-init="cp=opts.cp;specimen=spmnCtxt.specimen" template="opts.cardTitleTmpl">
+                      </os-html-template>
+                    </span>
+                    <span ng-if="!opts.cardTitleTmpl">
+                      <span translate="specimens.title">Specimen</span>
+                      <span>{{$index + 1}}:</span>
+                      <os-specimen-desc cp="opts.cp" specimen="spmnCtxt.specimen" show-req-label="true"></os-specimen-desc>
+                    </span>
+                    <span ng-if="spmnCtxt.specimen.$$count > 1">({{spmnCtxt.specimen.$$count}})</span>
+                    <span class="os-btns">
+                      <a class="os-btn-text" ng-click="remove($event, $index)">
+                        <span class="fa fa-times-circle"></span>
+                      </a>
+                    </span>
+                  </span>
+                </accordion-heading>
+                <div>
+                  <os-specimen-addedit-form specimen="spmnCtxt.specimen" aliquots="spmnCtxt.aliquots"
+                    create-children="spmnCtxt.createChildren" ctrl="spmnCtxt.form" opts="opts">
+                  </os-specimen-addedit-form>
+                </div>
+              </accordion-group>
+
+              <div class="form-group">
+                <div class="col-xs-12">
+                  <button class="btn os-btn-text" ng-click="addAnother()">
+                    <span translate="common.buttons.add_another">Add Another</span>
+                  </button>
+                  <button class="btn os-btn-text" ng-click="addCopyOfLast()">
+                    <span translate="common.buttons.copy_last">Copy of Last</span>
+                  </button>
+                  <span ng-if="!inputCtxts[inputCtxts.length - 1].specimen.reqId && opts.allSpmnUpdate && opts.showCreateAliquots != false && opts.showCreateAliquots != 'false'">
+                    <button class="btn os-btn-text" ng-click="addCopyOfLast(true)">
+                      <span translate="specimens.buttons.copy_last_aliquots">Copy of Last</span>
+                    </button>
+                  </span>
+                </div>
+              </div>
+            </accordion>
+
+            <div class="os-divider"></div>
+
+            <div class="form-group">
+              <div class="col-xs-6" ng-class="{'col-xs-offset-3': !opts.verticalLayout}">
+                <button class="btn btn-primary" os-form-submit="update()" ng-if="opts.editMode || !!opts.reqId">
+                  <span ng-switch on="opts.editMode">
+                    <span ng-switch-when="true" translate="common.buttons.update">Update</span>
+                    <span ng-switch-when="false" translate="common.buttons.save">Submit</span>
+                  </span>
+                </button>
+                <button class="btn btn-primary" os-form-submit="next()" ng-if="!opts.editMode && !opts.reqId">
+                  <span translate="common.buttons.next">Next</span>
+                </button>
+                <button class="btn os-btn-text" ng-click="back()">
+                  <span translate="common.buttons.discard">Discard</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="col-xs-3" ng-if="opts.showInfo">
+          <os-plugin-hooks view-name="'specimen-addedit'" sec-name="'info'"></os-plugin-hooks>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,74 @@
+<a ng-if="!!listViewCtx.sopDoc" class="btn default" ng-href="{{listViewCtx.sopDocDownloadUrl}}" target="_blank" rel="noopener">
+  <span class="fa fa-download"></span>
+  <span translate="cp.view_sop">View SOP</span>
+</a>
+
+<a ng-if="!!listViewCtx.sopUrl" class="btn default" ng-href="{{listViewCtx.sopUrl}}" target="_blank" rel="noopener">
+  <span class="fa fa-external-link"></span>
+  <span translate="cp.view_sop">View SOP</span>
+</a>
+
+<div os-show-if-menu-items-present dropdown class="os-inline-btn">
+  <button class="default dropdown-toggle">
+    <span translate="common.buttons.more">More</span>
+    <span class="fa fa-caret-down"></span>
+  </button>
+  <ul class="dropdown-menu" style="max-height: 450px; overflow-y: auto;">
+    <os-plugin-hooks view-name="'participant-list'" sec-name="'more-menu-top'"></os-plugin-hooks>
+
+    <li ng-if="!cpViewCtx.isCoordinator && cpViewCtx.recvSpmnsWfId > 0" show-if-allowed="specimenUpdateOpts">
+      <a ng-click="receiveSpecimens()">
+        <span class="fa fa-check-square-o"></span>
+        <span translate="specimen_list.receive">Receive</span>
+      </a>
+    </li>
+
+    <li ng-if="listViewCtx.showImport">
+      <a ui-sref="import-cp-objs">
+        <span class="fa fa-upload"></span>
+        <span translate="cp.import_bio_data">Import Biospecimen Data</span>
+      </a>
+    </li>
+
+    <li ng-if="listViewCtx.showImport">
+      <a ui-sref="import-cp-jobs">
+        <span class="fa fa-list-alt"></span>
+        <span translate="bulk_imports.view_jobs">View Past Imports</span>
+      </a>
+    </li>
+
+    <li class="divider" ng-if="listViewCtx.showImport"></li>
+
+    <li ng-if="listViewCtx.showExport">
+      <a ui-sref="export-cp-objs">
+        <span class="fa fa-download"></span>
+        <span translate="cp.export">Export Biospecimen Data</span>
+      </a>
+    </li>
+
+    <li class="divider" ng-if="listViewCtx.showExport"></li>
+
+    <li>
+      <a ng-click="generateCpReport()">
+        <span class="fa fa-file-text-o"></span>
+        <span translate="participant.generate_report">Generate Report</span>
+      </a>
+    </li>
+
+    <li show-if-allowed="cpReadOpts">
+      <a ui-sref="cp-detail.overview({cpId: cp.id})" >
+        <span class="fa fa-calendar"></span>
+        <span translate="cp.view_details">View CP Details</span>
+      </a>
+    </li>
+
+    <!-- li ng-if="!!cp.bulkPartRegEnabled">
+      <a ui-sref="specimen-kit-list">
+        <span class="fa fa-medkit"></span>
+        <span translate="specimen_kit.list">Specimen Kits</span>
+      </a>
+    </li -->
+
+    <os-plugin-hooks view-name="'participant-list'" sec-name="'more-menu'"></os-plugin-hooks>
+  </ul>
+</div>

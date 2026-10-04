@@ -1,0 +1,171 @@
+<div os-sticky-tree-top>
+
+<div class="panel panel-default os-full-height-container">
+  <div class="panel-heading">
+    <span translate="{{title}}">Specimens</span>
+    <div class="os-action-btns" ng-if="visit.status != 'Missed Collection' && visit.status != 'Not Collected'">
+      <button ng-if="cpr.hasConsented && selection.anyPending && (!allowedOps || allowedOps.update)"
+        class="btn btn-primary" ng-click="collectSpecimens()">
+        <span class="fa fa-plus"></span>
+        <span translate="specimens.buttons.collect"> Collect </span>
+      </button>
+
+      <os-assign-to-spmn-list ng-if="selection.any" on-add-to-list="addSpecimensToSpecimenList(list)">
+      </os-assign-to-spmn-list>
+
+      <os-specimen-ops ng-if="selection.any" cp="cp" cpr="cpr" visit="visit" specimens="getSelectedSpecimens(anyStatus)"
+        init-list="initTree()" dropdown-right>
+      </os-specimen-ops>
+
+      <div dropdown os-show-if-menu-items-present class="os-inline-btn">
+        <button class="btn btn-default dropdown-toggle">
+          <span translate="common.buttons.more">More</span>
+          <span class="fa fa-caret-down"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-right">
+          <li ng-if="anyPendingSpmns">
+            <a ng-click="toggleHidePendingSpmns()" ng-switch on="hidePendingSpmns">
+              <span class="fa fa-circle os-status-pending"></span>
+              <span ng-switch-when="false" translate="specimens.hide_pending">Hide Pending</span>
+              <span ng-switch-when="true" translate="specimens.show_pending">Show Pending</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="panel-body os-specimen-tree-body"
+    ng-switch on="!specimens || specimens.length == 0 || (onlyPendingSpmns && hidePendingSpmns)">
+    <div ng-switch-when="true">
+      <span translate="specimens.no_specimens_to_show">No Specimens to Show</span>
+    </div>
+    <div ng-switch-when="false">
+      <table class="os-table os-table-fixed os-table-tree" ng-class="{'os-spmn-hide-options': view != 'list'}"
+        ng-if="dispTree && !hasDict">
+        <thead class="os-table-head">
+          <tr class="row">
+            <th class="col col-xs-5">
+              <div class="clearfix">
+                <div class="pull-left os-select-specimen-cb"
+                  ng-if="visit.status != 'Missed Collection' && visit.status != 'Not Collected'">
+                  <os-checkbox ng-model="selection.all" ng-change="toggleAllSpecimenSelect()"></os-checkbox>
+                </div>
+                <div class="pull-left" style="padding-left: 40px;">
+                  <span translate="specimens.description"> Description </span>
+                </div>
+              </div>
+            </th>
+            <th class="col col-xs-4" translate="specimens.label">Label</th>
+            <th class="col col-xs-3" translate="specimens.location">Container</th>
+          </tr>
+        </thead>
+        <tbody class="os-table-body" os-imaging>
+          <tr class="row title" ng-class="{'selected': specimen.selected, 'os-pooled-specimen': !!specimen.pooledSpecimen}"
+            ng-repeat="specimen in specimens | openedTreeNodes" ng-if="!specimen.$$hideN">
+            <td class="col col-xs-5">
+              <div class="clearfix">
+                <div class="os-select-specimen-cb"
+                  ng-hide="specimen.status == 'Missed Collection' || specimen.status == 'Not Collected'">
+                  <os-checkbox ng-change="toggleSpecimenSelect(specimen)" ng-model="specimen.selected"></os-checkbox>
+                </div>
+
+                <div style="margin-left: 12px;">
+                  <div ng-style="{'padding-left': (specimen.hasChildren ? specimen.depth * 20 : specimen.depth * 20 + 16) + 'px'}">
+                    <span ng-include="'modules/biospecimen/participant/specimens-tree-node-status.html'"></span>
+
+                    <span class="os-tree-image-icon" ng-style="!!specimen.imageId && {'color': 'red'}"
+                      ng-if="!!specimen.imageId || !!specimen.$$childrenHaveImg">
+                      <span class="fa fa-picture-o"></span>
+                    </span>
+
+                    <a ui-sref="specimen-detail.overview({eventId: specimen.eventId, visitId: specimen.visitId,
+                       specimenId: specimen.id, srId: specimen.reqId})">
+                      <os-specimen-desc cp="cp" specimen="specimen" show-req-label="true"
+                        show-aliquot-type="showAliquotType">
+                      </os-specimen-desc>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="col col-xs-4 os-word-break">
+              <span>{{specimen.label | osNoValue}}</span>
+            </td>
+            <td class="col col-xs-3 os-word-break">
+              <os-disp-storage-position position="specimen.storageLocation" ng-show="!specimen.checkoutPosition">
+              </os-disp-storage-position>
+              <span class="os-specimen-checked-out" ng-show="specimen.checkoutPosition">
+                <span translate="specimens.checked_out">Checked Out</span>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="os-table os-table-tree" ng-class="{'os-spmn-hide-options': view != 'list'}" ng-if="dispTree && hasDict">
+        <thead class="os-table-head">
+          <tr class="row">
+            <th class="col" ng-repeat="field in fields" ng-style="{'min-width': field.width}">
+              <div class="clearfix" ng-if="$index == 0">
+                <div class="pull-left os-select-specimen-cb"
+                  ng-if="visit.status != 'Missed Collection' && visit.status != 'Not Collected'">
+                  <os-checkbox ng-model="selection.all" ng-change="toggleAllSpecimenSelect()"></os-checkbox>
+                </div>
+                <div class="pull-left" style="padding-left: 40px;">
+                  <span>{{field.caption}}</span>
+                </div>
+              </div>
+              <span ng-if="$index > 0">{{field.caption}}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="os-table-body">
+          <tr class="row title" ng-class="{'selected': specimen.selected, 'os-pooled-specimen': !!specimen.pooledSpecimen}"
+            ng-repeat="specimen in specimens | openedTreeNodes" ng-if="!specimen.$$hideN">
+            <td class="col os-word-break" ng-repeat="field in specimen.$$treeFields">
+              <div class="clearfix" ng-if="$index == 0">
+                <div class="os-select-specimen-cb"
+                  ng-hide="specimen.status == 'Missed Collection' || specimen.status == 'Not Collected'">
+                  <os-checkbox ng-change="toggleSpecimenSelect(specimen)" ng-model="specimen.selected"></os-checkbox>
+                </div>
+
+                <div style="margin-left: 12px;">
+                  <div ng-style="{'padding-left': (specimen.hasChildren ? specimen.depth * 20 : specimen.depth * 20 + 16) + 'px'}">
+                    <span style="display: table-cell;" ng-style="{'min-width': (specimen.hasChildren ? 40 : 24) + 'px'}"
+                      ng-include="'modules/biospecimen/participant/specimens-tree-node-status.html'">
+                    </span>
+
+                    <a style="display: table-cell;" ui-sref="specimen-detail.overview(
+                      {eventId: specimen.eventId, visitId: specimen.visitId, specimenId: specimen.id, srId: specimen.reqId})"
+                      ng-switch on="field.type == 'specimen-description'">
+                      <span ng-switch-when="true">
+                        <os-specimen-desc cp="cp" specimen="specimen" show-req-label="true"
+                          show-aliquot-type="showAliquotType">
+                        </os-specimen-desc>
+                      </span>
+                      <span ng-switch-when="false">
+                        {{field.value | osNoValue}}
+                      </span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div ng-if="$index > 0" ng-switch on="field.type == 'specimen-description'">
+                <span ng-switch-when="true">
+                  <os-specimen-desc cp="cp" specimen="specimen" show-req-label="true"
+                    show-aliquot-type="showAliquotType">
+                  </os-specimen-desc>
+                </span>
+                <span ng-switch-when="false">
+                  {{field.value | osNoValue}}
+                </span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div>

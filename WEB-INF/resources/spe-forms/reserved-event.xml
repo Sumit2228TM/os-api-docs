@@ -1,0 +1,56 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<form>
+  <view>
+    <name>SpecimenReservedEvent</name>
+    <caption>#getMessage("reserved_event")</caption>
+    <table>OS_SPMN_RESERVATIONS_VIEW</table>
+    <primaryKey>IDENTIFIER</primaryKey>
+
+    <row>
+      <dropDown>
+        <name>dpShortTitle</name>
+        <udn>dpShortTitle</udn>
+        <caption>#getMessage("reserved_event_dp")</caption>
+        <column>DP_SHORT_TITLE</column>
+        <options>
+          <sql>select short_title from catissue_distribution_protocol where activity_status != 'Disabled' order by short_title</sql>
+        </options>
+        <recordUrl>#/object-state-params-resolver?stateName=DpDetail.Overview&amp;objectName=distribution_protocol&amp;key=shortTitle&amp;value={{$value}}</recordUrl>
+      </dropDown>
+    </row>
+
+    <row>
+      <userField>
+        <name>user</name>
+        <udn>user</udn>
+        <caption>#getMessage("reserved_event_user")</caption>
+        <column>RESERVED_BY</column>
+        <showInGrid>true</showInGrid>
+      </userField>
+    </row>
+
+    <row>
+      <datePicker>
+        <name>time</name>
+        <udn>time</udn>
+        <caption>#getMessage("reserved_event_date")</caption>
+        <column>RESERVATION_DATE</column>
+        <format>MM-dd-yyyy HH:mm</format>
+        <showInGrid>true</showInGrid>
+        <default>current_date</default>
+        <mandatory>true</mandatory>
+      </datePicker>
+    </row>
+
+    <row>
+      <textArea>
+        <name>comments</name>
+        <udn>comments</udn>
+        <caption>#getMessage("reserved_event_comments")</caption>
+        <column>COMMENTS</column>
+        <height>2</height>
+      </textArea>
+    </row>
+  </view>
+</form>

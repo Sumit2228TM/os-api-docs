@@ -1,0 +1,50 @@
+<div class="os-modal">
+  <div class="os-modal-header">
+    <span translate="{{ctx.msgKeys.title}}">Validation Result</span>
+  </div>
+  <div class="os-modal-body">
+    <table class="os-table os-table-borderless">
+      <tbody class="os-table-body">
+        <tr class="row">
+          <td class="col">
+            <span translate="{{ctx.msgKeys.foundCount}}">Found</span>
+          </td>
+
+          <td class="col">
+            <span>{{ctx.data.found.length}}</span>
+          </td>
+        </tr>
+
+        <tr class="row">
+          <td class="col">
+            <span translate="{{ctx.msgKeys.notFoundCount}}">Not Found</span>
+          </td>
+
+          <td class="col">
+            <span>{{ctx.data.notFound.length}}</span>
+          </td>
+        </tr>
+
+        <tr class="row">
+          <td class="col">
+            <span translate="{{ctx.msgKeys.extraCount}}">Extra</span>
+          </td>
+
+          <td class="col">
+            <span>{{ctx.data.extra.length}}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="os-modal-footer">
+    <button class="btn btn-primary" ng-click="generateReport()"
+      ng-if="ctx.data.notFound.length > 0 || ctx.data.extra.length > 0">
+      <span translate="common.buttons.copy_to_clipboard">Copy to Clipboard</span>
+    </button>
+
+    <button class="btn btn-primary" ng-click="ok()">
+      <span translate="common.buttons.ok">Ok</span>
+    </button>
+  </div>
+</div>

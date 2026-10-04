@@ -1,0 +1,10 @@
+<div class="os-alert-container show inline">
+  <div class="alert alert-info">
+    <div ng-show="state.loading">
+      <span translate="{{state.loadingMessage || 'common.loading_list'}}"></span>
+    </div>
+    <div ng-show="!state.loading && state.empty">
+      <span translate="{{state.emptyMessage || 'common.empty_list'}}"></span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.LabSpecimenService" table="OS_SPECIMEN_LAB_SERVICES"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.LabSpecimenService">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_SPECIMEN_LAB_SERVICES_SEQ</param>
+      </generator>
+    </id>
+
+    <many-to-one name="specimen" column="SPECIMEN_ID" not-null="true" />
+
+    <many-to-one name="service" column="SERVICE_ID" not-null="true" />
+
+    <property name="units" column="UNITS" not-null="true" />
+
+    <property name="serviceDate" column="SERVICE_DATE" not-null="true" />
+
+    <many-to-one name="servicedBy" column="SERVICED_BY" not-null="true" />
+
+    <property name="comments" column="COMMENTS" />
+
+    <query name="deleteServices">
+      delete from
+        com.krishagni.catissueplus.core.biospecimen.domain.LabSpecimenService ls
+      where
+        ls.specimen.id = :specimenId
+    </query>
+
+    <sql-query name="getLabServiceRates">
+      <return-scalar column="labSvcId" type="long" />
+      <return-scalar column="currency" type="string" />
+      <return-scalar column="serviceRate" type="big_decimal" />
+
+      <![CDATA[
+      select
+        ss.identifier as labSvcId, rl.currency as currency, sr.rate as serviceRate
+      from
+        catissue_specimen spmn
+        inner join os_specimen_lab_services ss on ss.specimen_id = spmn.identifier
+        inner join os_lab_services s on s.identifier = ss.service_id
+        inner join os_lab_service_rates sr on sr.service_id = s.identifier
+        inner join os_lab_svcs_rate_list_cps rl_cp on rl_cp.cp_id = spmn.collection_protocol_id and rl_cp.rate_list_id = sr.rate_list_id
+        inner join os_lab_services_rate_lists rl on rl.identifier = rl_cp.rate_list_id
+      where
+        spmn.identifier in (:specimenIds) and
+        ss.service_date >= rl.start_date and (rl.end_date is null or ss.service_date < rl.end_date) and
+        rl.activity_status != 'Disabled' and
+        s.activity_status != 'Disabled'
+      ]]>
+    </sql-query>
+  </class>
+</hibernate-mapping>

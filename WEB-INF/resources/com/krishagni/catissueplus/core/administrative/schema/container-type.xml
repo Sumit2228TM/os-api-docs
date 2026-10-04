@@ -1,0 +1,84 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<object-schema>
+  <name>storageContainerType</name>
+  <record> 
+    <name>com.krishagni.catissueplus.core.administrative.events.ContainerTypeDetail</name>
+    
+    <field>
+      <caption>#getMessage("container_type_identifier")</caption>
+      <attribute>id</attribute>
+    </field>
+    
+    <field>
+      <caption>#getMessage("container_type_name")</caption>
+      <attribute>name</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("container_type_name_format")</caption>
+      <attribute>nameFormat</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("container_type_temperature")</caption>
+      <attribute>temperature</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("container_type_rate")</caption>
+      <attribute>rate</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("container_type_no_of_rows")</caption>
+      <attribute>noOfRows</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("container_type_no_of_columns")</caption>
+      <attribute>noOfColumns</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("container_type_position_labeling_mode")</caption>
+      <attribute>positionLabelingMode</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("container_type_row_labeling_scheme")</caption>
+      <attribute>rowLabelingScheme</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("container_type_column_labeling_scheme")</caption>
+      <attribute>columnLabelingScheme</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("container_type_position_assignment")</caption>
+      <attribute>positionAssignment</attribute>
+    </field>
+
+    <field>
+      <type>boolean</type>
+      <caption>#getMessage("container_type_stores_specimen")</caption>
+      <attribute>storeSpecimenEnabled</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("container_type_activity_status")</caption>
+      <attribute>activityStatus</attribute>
+    </field>
+
+    <record>
+      <caption>#getMessage("container_type_can_hold")</caption>
+      <attribute>canHold</attribute>
+
+      <field>
+        <caption>#getMessage("container_type_name")</caption>
+        <attribute>name</attribute>
+      </field>
+    </record>
+  </record>
+</object-schema>

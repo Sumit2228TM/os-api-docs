@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Registration data entry status - draft or complete">
+    <addColumn tableName="CATISSUE_COLL_PROT_REG_AUD">
+      <column name="DATA_ENTRY_STATUS" type="${text.type}(32)" defaultValue="COMPLETE" />
+      <column name="dataEntryStatus_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP level setting to enable/disable draft data entry mode">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="DRAFT_DATA_ENTRY" type="${boolean.type}" />
+      <column name="draftDataEntry_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the size of CP workflows JSON column" dbms="mysql">
+    <modifyDataType tableName="OS_CP_WORKFLOWS_AUD" columnName="WORKFLOWS" newDataType="${medium.clob.type}" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Collection protocol email sender group">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="EMAIL_SENDER_GROUP" type="${int.type}" />
+      <column name="emailSenderGroup_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP level setting to enable/disable usage of kit labels">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="KIT_LABELS_ENABLED" type="${boolean.type}" />
+      <column name="kitLabelsEnabled_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="User ability to manage print jobs using APIs">
+    <addColumn tableName="CATISSUE_USER_AUD">
+      <column name="MANAGE_PRINT_JOBS" type="${boolean.type}" />
+      <column name="managePrintJobs_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

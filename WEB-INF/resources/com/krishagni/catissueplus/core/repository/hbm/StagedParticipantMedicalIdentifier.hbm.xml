@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.StagedParticipantMedicalIdentifier" table="OS_STAGED_PART_MEDICAL_IDS"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.StagedParticipantMedicalIdentifier">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_STAGED_PART_MED_ID_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="site"  column="SITE_NAME"/>
+
+    <property name="medicalRecordNumber"  column="MEDICAL_RECORD_NUMBER"/>
+
+    <many-to-one name="participant" column="PARTICIPANT_ID"/>
+  </class>
+</hibernate-mapping>

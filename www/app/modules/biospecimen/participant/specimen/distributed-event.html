@@ -1,0 +1,44 @@
+<div ng-controller="SpecimenSystemEventViewCtrl">
+  <ul class="os-key-values os-one-col">
+    <li class="item">
+      <strong class="key key-sm strong" translate="entities.distribution_order">Order</strong>
+      <span class="value value-md">
+        <a ui-sref="object-state-params-resolver({
+          stateName: 'order-detail.overview', objectName: 'distribution_order',
+          key: 'name', value: evtCtx.name})">
+          <span>{{evtCtx.name}}</span>
+        </a>
+      </span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="entities.distribution_protocol">Distribution Protocol</strong>
+      <span class="value value-md">
+        <a ui-sref="object-state-params-resolver({
+          stateName: 'dp-detail.overview', objectName: 'distribution_protocol',
+          key: 'shortTitle', value: evtCtx.dpShortTitle})">
+          <span>{{evtCtx.dpShortTitle}}</span>
+        </a>
+      </span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="orders.requestor">Requestor</strong>
+      <span class="value value-md">{{evtCtx.requester.name}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="orders.spec.quantity"></strong>
+      <os-spmn-measure-val value="evtCtx.quantity" specimen="evtCtx.specimen"></os-spmn-measure-val>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="orders.distributor"></strong>
+      <span class="value value-md">{{evtCtx.user.name}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="orders.dist_date"></strong>
+      <span class="value value-md">{{evtCtx.time | date: $root.global.dateTimeFmt}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="orders.comments"></strong>
+      <span class="value value-md">{{evtCtx.comments | osNoValue}}</span>
+    </li>
+  </ul>
+</div>

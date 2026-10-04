@@ -1,0 +1,75 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.SpecimenRequest" table="OS_SPECIMEN_REQUESTS"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.SpecimenRequest">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_SPECIMEN_REQUESTS_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="catalogId" column="CATALOG_ID" not-null="true"/>
+
+    <property name="catalogQueryDef" column="CATALOG_QUERY_DEF"/>
+
+    <many-to-one name="requestor" column="REQUESTOR_ID"/>
+
+    <property name="requestorEmailId" column="REQUESTOR_EMAIL_ID" not-null="true"/>
+
+    <property name="irbId" column="IRB_ID"/>
+
+    <property name="dateOfRequest" column="REQUEST_DATE"/>
+
+    <property name="screeningStatus" column="SCREENING_STATUS">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.administrative.domain.SpecimenRequest$ScreeningStatus</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <many-to-one name="screenedBy" column="SCREENED_BY"/>
+
+    <property name="dateOfScreening" column="SCREENING_DATE"/>
+
+    <property name="screeningComments" column="SCREENING_COMMENTS"/>
+
+    <many-to-one name="processedBy" column="PROCESSOR_ID"/>
+
+    <property name="dateOfProcessing" column="PROCESSING_DATE"/>
+
+    <many-to-one name="cp" column="CP_ID"/>
+
+    <many-to-one name="dp" column="DP_ID"/>
+
+    <many-to-one name="requestManagerGroup" column="RMG_ID"/>
+
+    <property name="comments" column="COMMENTS"/>
+
+    <property name="itemsCriteriaJson" column="ITEMS_CRIT_JSON"/>
+
+    <property name="activityStatus" column="ACTIVITY_STATUS"/>
+
+    <set name="items" table="OS_SPECIMEN_REQUEST_ITEMS" inverse="true" cascade="all-delete-orphan" order-by="id">
+      <key column="REQUEST_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.administrative.domain.SpecimenRequestItem"/>
+    </set>
+
+    <set name="orders" table="OS_ORDERS">
+      <key column="REQUEST_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.administrative.domain.DistributionOrder"/>
+    </set>
+
+    <many-to-one name="cart" column="CART_ID" />
+
+    <filter name="activeEntity"/>
+
+    <sql-query name="removeRequestCart">
+      update os_specimen_requests set cart_id = null where cart_id = :cartId
+    </sql-query>
+  </class>
+</hibernate-mapping>

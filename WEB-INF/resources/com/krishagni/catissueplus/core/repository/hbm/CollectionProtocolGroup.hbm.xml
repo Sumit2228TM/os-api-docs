@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocolGroup" table="OS_CP_GROUPS"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocolGroup">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_CP_GROUPS_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="name" column="NAME"/>
+
+    <property name="workflowsJson" column="WORKFLOWS"/>
+
+    <property name="activityStatus" column="ACTIVITY_STATUS"/>
+
+    <many-to-one name="requestManagerGroup" column="RMG_ID"/>
+
+    <set name="cps" table="CATISSUE_COLLECTION_PROTOCOL" inverse="true">
+      <key column="CP_GROUP_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocol"/>
+      <filter name="activeEntity" condition="activity_status != 'Disabled'"/>
+    </set>
+
+    <set name="forms" table="OS_CP_GROUP_FORMS" inverse="true" cascade="all-delete-orphan">
+      <key column="GROUP_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.CpGroupForm"/>
+    </set>
+
+    <filter name="activeEntity"/>
+
+    <query name="getByName">
+      select
+        g
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.CollectionProtocolGroup g
+      where
+        g.name = :name
+    </query>
+
+    <sql-query name="getGroupCpsCount">
+      <return-scalar column="group_id" type="long"/>
+      <return-scalar column="cp_count" type="integer"/>
+
+      select
+        cp.cp_group_id as group_id, count(cp.identifier) as cp_count
+      from
+        catissue_collection_protocol cp
+      where
+        cp.cp_group_id in :groupIds and
+        cp.activity_status != 'Disabled'
+      group by
+        cp.cp_group_id
+    </sql-query>
+
+    <sql-query name="getEntityFormsByCp">
+      <return-scalar column="cpId" type="long"/>
+      <return-scalar column="formId" type="long"/>
+
+      select
+        fc.cp_id as cpId, fc.container_id as formId
+      from
+        catissue_form_context fc
+        inner join dyextn_containers f on f.identifier = fc.container_id
+      where
+        fc.deleted_on is null and
+        f.deleted_on is null and
+        (fc.cp_id = -1 or fc.cp_id in :cpIds) and
+        fc.entity_type = :entityType
+    </sql-query>
+
+    <sql-query name="deleteFormsById">
+      delete from os_cp_group_forms where form_id in (:formIds)
+    </sql-query>
+
+    <sql-query name="deleteAllForms">
+      delete from os_cp_group_forms where group_id = :groupId
+    </sql-query>
+  </class>
+</hibernate-mapping>

@@ -1,0 +1,39 @@
+<div class="os-notifs">
+  <div class="os-notifs-title">
+    <span translate="notifs.title">Notifications</span>
+  </div>
+  <div class="os-notifs-list">
+    <div class="os-notif-info-msg" ng-if="ctx.loading">
+      <span translate="notifs.loading">Loading notifications. Please wait for a moment... </span>
+    </div>
+    <div class="os-notif-info-msg" ng-if="!ctx.loading && ctx.notifs.length == 0">
+      <span translate="notifs.no_notifs">No notifications to show.</span>
+    </div>
+    <div class="os-notif" ng-click="visitNotifLink(notif)" ng-repeat="notif in ctx.notifs" ng-if="!ctx.loading">
+      <div ng-class="{'os-notif-unread': notif.status == 'UNREAD'}"></div>
+      <div class="os-notif-op" ng-switch on="notif.operation">
+        <span ng-switch-when="CREATE" class="fa fa-plus"></span>
+        <span ng-switch-when="UPDATE" class="fa fa-pencil"></span>
+        <span ng-switch-when="DELETE" class="fa fa-trash"></span>
+        <span ng-switch-when="EXPORT" class="fa fa-external-link"></span>
+        <span ng-switch-when="ALERT"  class="fa fa-exclamation"></span>
+        <span ng-switch-default>{{notif.operation.charAt(0)}}</span>
+      </div>
+      <div class="os-notif-msg">
+        <a ng-href="{{notif.href}}" target="{{notif.newTab ? '_blank' : '_self'}}" ng-click="$event.stopPropagation()">
+          <span>{{notif.message}}</span>
+        </a>
+      </div>
+      <div class="os-notif-meta">
+        <span>{{notif.createdBy | osUserDisplayName}}</span>
+        <span>&nbsp;|&nbsp;</span>
+        <span>{{notif.creationTime | date: global.dateTimeFmt}}</span>
+      </div>
+    </div>
+  </div>
+  <div class="os-notif-footer" ng-if="!ctx.loading && ctx.notifs.length > 0">
+    <a ui-sref="notifications">
+      <span translate="notifs.view_all">View All Notifications</span>
+    </a>
+  </div>
+</div>

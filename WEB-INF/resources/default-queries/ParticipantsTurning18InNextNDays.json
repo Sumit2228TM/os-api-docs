@@ -1,0 +1,135 @@
+{
+    "cpId": null,
+    "createdBy": null,
+    "deletedOn": null,
+    "dependentQueries": [],
+    "drivingForm": null,
+    "filters": [
+        {
+            "desc": "Age Lower Limit",
+            "expr": "months_between( current_date(), Participant.dateOfBirth) > 214",
+            "field": null,
+            "hideOptions": false,
+            "id": 1,
+            "op": null,
+            "parameterized": false,
+            "subQueryId": null,
+            "values": null
+        },
+        {
+            "desc": "Age Upper Limit",
+            "expr": "months_between( current_date(), Participant.dateOfBirth) < 216",
+            "field": null,
+            "hideOptions": false,
+            "id": 2,
+            "op": null,
+            "parameterized": false,
+            "subQueryId": null,
+            "values": null
+        },
+        {
+            "desc": "",
+            "expr": null,
+            "field": "Participant.dateOfBirth",
+            "hideOptions": false,
+            "id": 3,
+            "op": "EXISTS",
+            "parameterized": false,
+            "subQueryId": null,
+            "values": [
+                null
+            ]
+        },
+        {
+            "desc": "Collection Protocol Title",
+            "expr": null,
+            "field": "CollectionProtocol.shortTitle",
+            "hideOptions": false,
+            "id": 4,
+            "op": "EXISTS",
+            "parameterized": true,
+            "subQueryId": null,
+            "values": [
+                null
+            ]
+        }
+    ],
+    "folders": null,
+    "havingClause": null,
+    "id": null,
+    "lastRunCount": null,
+    "lastRunOn": null,
+    "lastUpdated": null,
+    "lastUpdatedBy": null,
+    "outputColumnExprs": false,
+    "queryExpression": [
+        {
+            "nodeType": "FILTER",
+            "value": 1
+        },
+        {
+            "nodeType": "OPERATOR",
+            "value": "AND"
+        },
+        {
+            "nodeType": "FILTER",
+            "value": 2
+        },
+        {
+            "nodeType": "OPERATOR",
+            "value": "AND"
+        },
+        {
+            "nodeType": "FILTER",
+            "value": 3
+        },
+        {
+            "nodeType": "OPERATOR",
+            "value": "AND"
+        },
+        {
+            "nodeType": "FILTER",
+            "value": 4
+        }
+    ],
+    "reporting": {
+        "params": {},
+        "type": "none"
+    },
+    "scheduledJobs": [],
+    "selectList": [
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "CollectionProtocol.shortTitle"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.ppid"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.medicalRecord.medicalRecordNumber"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.firstName"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.lastName"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.dateOfBirth"
+        }
+    ],
+    "subQueries": [],
+    "title": "Participants turning 18 in next 90 days",
+    "wideRowMode": "DEEP"
+}

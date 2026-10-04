@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vgaikwad" id="Date and time format PV category">
+    <sql>
+      insert into catissue_cde
+        (public_id, long_name, definition, version, last_updated)
+      values
+        ('date_format', 'Date Format', 'Date Format', '3.4', ${now});
+
+      insert into catissue_cde
+        (public_id, long_name, definition, version, last_updated)
+      values
+        ('time_format', 'Time Format', 'Time Format', '3.4', ${now});
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Date and time format PVs">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">
+        select
+          case when (count(*) > 0) then 1 else 0 end
+        from
+          catissue_permissible_value
+        where
+          public_id = 'date_format' or public_id = 'time_format'
+      </sqlCheck>
+    </preConditions>
+    <loadUpdateData file="db/3.4/permissible-values/date-format.csv" tableName="CATISSUE_PERMISSIBLE_VALUE" primaryKey="identifier">
+      <column name="identifier" type="COMPUTED"/>
+    </loadUpdateData>
+    <loadUpdateData file="db/3.4/permissible-values/time-format.csv" tableName="CATISSUE_PERMISSIBLE_VALUE" primaryKey="identifier">
+      <column name="identifier" type="COMPUTED"/>
+    </loadUpdateData>
+  </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,26 @@
+package com.krishagni.catissueplus.core.common.repository;
+
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Predicate;
+
+public class Disjunction extends Junction {
+
+	public Disjunction(CriteriaBuilder cb) {
+		super(cb);
+	}
+
+	@Override
+	public Restriction getRestriction() {
+		// empty restrictions is always true
+		if (restrictions.isEmpty()) {
+			return Restriction.of(cb.isTrue(cb.literal(true)));
+		}
+
+		return Restriction.of(cb.or(restrictions.stream().map(Restriction::getPredicate).toArray(Predicate[]::new)));
+
+//		Predicate predicate = restrictions.stream()
+//			.map(Restriction::getPredicate)
+//			.reduce(cb.disjunction(), (result, p) -> cb.or(result, p));
+//		return Restriction.of(predicate);
+	}
+}

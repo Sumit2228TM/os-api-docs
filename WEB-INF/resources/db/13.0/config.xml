@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Discontinue usage of default query result view fields">
+    <sql>
+      update
+        os_cfg_props
+      set
+        activity_status = 'Disabled'
+      where
+        module_id = (select identifier from os_modules where name = 'query') and
+        name = 'default_result_view'
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Discontinue usage of specimen imaging config props">
+    <sql>
+      update
+        os_cfg_props
+      set
+        activity_status = 'Disabled'
+      where
+        module_id = (select identifier from os_modules where name = 'biospecimen') and
+        name in ('image_url_tmpl', 'imaging')
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Remove query optimisation settings">
+    <sql>
+      delete from
+        os_cfg_settings
+      where
+        property_id in (
+          select
+            p.identifier
+          from
+            os_cfg_props p
+            inner join os_modules m on m.identifier = p.module_id
+          where
+            m.name = 'query' and
+            p.name = 'optimisation_settings'
+        )
+    </sql>
+
+    <sql>
+      delete from
+        os_cfg_props
+      where
+        module_id = (select identifier from os_modules where name = 'query') and
+        name = 'optimisation_settings'
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Query risk assessment rules">
+    <sql>
+      call add_cfg_prop(
+        'query', 'risk_assessment_rules',
+        'risk_assessment_rules', 'risk_assessment_rules_desc',
+        'FILE', null
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="OpenSpecimen domain API only setting">
+    <sql>
+      call add_cfg_prop(
+        'auth', 'opsmn_domain_api_only',
+        'opsmn_domain_api_only', 'opsmn_domain_api_only_desc',
+        'BOOLEAN', 'false'
+      );
+    </sql>
+  </changeSet>
+</databaseChangeLog>

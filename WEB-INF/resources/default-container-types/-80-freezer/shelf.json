@@ -1,0 +1,15 @@
+{
+  "name": "-80 Shelf",
+  "nameFormat": "%PCONT_NAME%.S%PCONT_ALPHA_SEQ%",
+  "noOfColumns": 6,
+  "noOfRows": 1,
+  "positionLabelingMode": "TWO_D",
+  "columnLabelingScheme": "Numbers",
+  "rowLabelingScheme": "Numbers",
+  "temperature": null,
+  "storeSpecimenEnabled": false,
+  "activityStatus": "Active",
+  "canHold": {
+    "name": "-80 Rack"
+  }
+}

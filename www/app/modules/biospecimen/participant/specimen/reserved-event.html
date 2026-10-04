@@ -1,0 +1,32 @@
+<div ng-controller="SpecimenSystemEventViewCtrl">
+  <ul class="os-key-values os-one-col">
+    <li class="item">
+      <strong class="key key-sm strong" translate="entities.distribution_protocol">Distribution Protocol</strong>
+      <span class="value value-md">
+        <a ui-sref="object-state-params-resolver({
+          stateName: 'dp-detail.overview', objectName: 'distribution_protocol',
+          key: 'shortTitle', value: evtCtx.dpShortTitle})">
+          <span>{{evtCtx.dpShortTitle}}</span>
+        </a>
+      </span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" ng-show="evtCtx.event == 'SpecimenReservedEvent'"
+        translate="dp.reserved_by">Reserved By</strong>
+      <strong class="key key-sm strong" ng-show="evtCtx.event == 'SpecimenReservationCancelledEvent'"
+        translate="dp.cancelled_by">Cancelled By</strong>
+      <span class="value value-md">{{evtCtx.user.name}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" ng-show="evtCtx.event == 'SpecimenReservedEvent'"
+        translate="dp.reserved_date">Reserved Date</strong>
+      <strong class="key key-sm strong" ng-show="evtCtx.event == 'SpecimenReservationCancelledEvent'"
+        translate="dp.cancellation_date">Cancellation Date</strong>
+      <span class="value value-md">{{evtCtx.time | date: $root.global.dateTimeFmt}}</span>
+    </li>
+    <li class="item">
+      <strong class="key key-sm strong" translate="dp.comments"></strong>
+      <span class="value value-md">{{evtCtx.comments | osNoValue}}</span>
+    </li>
+  </ul>
+</div>

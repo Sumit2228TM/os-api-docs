@@ -1,0 +1,46 @@
+{
+  "id":null,
+  "title":"Cart specimens report query",
+  "createdBy":null,
+  "lastUpdatedBy":null,
+  "lastRunOn":null,
+  "lastUpdated":null,
+  "lastRunCount":null,
+  "cpId":-1,
+  "drivingForm":null,
+  "filters":[
+    {
+      "id":1,
+      "field":"Specimen.specimenCarts.name",
+      "op":"EXISTS",
+      "values":[null],
+      "expr":null,
+      "desc":null,
+      "parameterized":true
+    }
+  ],
+  "queryExpression": [
+    {
+      "nodeType":"FILTER",
+      "value":1
+    }
+  ],
+  "selectList":[
+    "Participant.ppid",
+    "CollectionProtocol.shortTitle",
+    "Specimen.label",
+    "Specimen.type",
+    "Specimen.tissueSite",
+    "Specimen.pathologicalStatus",
+    "Specimen.availableQty",
+    "Specimen.specimenPosition.container.name",
+    "Specimen.specimenPosition.formattedPos"
+  ],
+  "reporting":{
+    "type":"none",
+    "params":{}
+  },
+  "folders":null,
+  "wideRowMode":"OFF",
+  "deletedOn":null
+}

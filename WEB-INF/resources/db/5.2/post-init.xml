@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Adjust the revision entity record IDs" dbms="mysql">
+    <sql>
+      insert into os_revision_entity_records
+        (rev, rev_type, entity_name, entity_id)
+      select
+        rev, rev_type, entity_name, entity_id
+      from
+        os_rev_entity_recs_tmp
+      order by
+        rev, entity_name
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Adjust the revision entity record IDs" dbms="oracle">
+    <sql>
+      insert into os_revision_entity_records
+        (identifier, rev, rev_type, entity_name, entity_id)
+      select
+        os_rev_entity_recs_seq.nextval, t.rev, t.rev_type, t.entity_name, t.entity_id
+      from
+        (
+          select
+            rev, rev_type, entity_name, entity_id
+          from
+            os_rev_entity_recs_tmp
+          order by
+            rev, entity_name
+        ) t
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on revision of revision entity records">
+    <addForeignKeyConstraint constraintName="FK_REV_ENTITY"
+      baseTableName="OS_REVISION_ENTITY_RECORDS" baseColumnNames="REV"
+      referencedTableName="OS_REVISIONS" referencedColumnNames="REV"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on entity record revision number" dbms="oracle">
+    <createIndex indexName="OS_REV_ENTITY_IDX" tableName="OS_REVISION_ENTITY_RECORDS">
+      <column name="REV"/>
+    </createIndex>
+  </changeSet>
+</databaseChangeLog>

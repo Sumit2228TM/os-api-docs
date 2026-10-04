@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Maximum pick list inactive days before deletion">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'pick_list_max_inactive_days',
+        'pick_list_max_inactive_days', 'pick_list_max_inactive_days',
+        'INT', '90'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Maximum allowed job size for online import">
+    <sql>
+      call add_cfg_prop(
+        'common', 'online_import_job_size_limit',
+        'online_import_job_size_limit', 'online_import_job_size_limit',
+        'INT', '1000'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Max container size">
+    <sql>
+      call add_cfg_prop(
+        'administrative', 'max_container_capacity',
+        'max_container_capacity', 'max_container_capacity',
+        'INT', '225'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Threshold for using materialised ACL table in query restrictions">
+    <sql>
+      call add_cfg_prop(
+        'query', 'acl_tab_min_site_cp_pairs',
+        'acl_tab_min_site_cp_pairs', 'acl_tab_min_site_cp_pairs',
+        'INT', '5'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to choose between using a sub-query or join mechanism for filtering data based on site-cp pairs">
+    <sql>
+      call add_cfg_prop(
+        'query', 'subquery_for_site_cp_filtering',
+        'subquery_for_site_cp_filtering', 'subquery_for_site_cp_filtering',
+        'BOOLEAN', 'false'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to show or hide Ask OS button">
+    <sql>
+      call add_cfg_prop(
+        'common', 'ask_os_button_enabled',
+        'ask_os_button_enabled', 'ask_os_button_enabled',
+        'BOOLEAN', 'true'
+      );
+    </sql>
+  </changeSet>
+
+</databaseChangeLog>

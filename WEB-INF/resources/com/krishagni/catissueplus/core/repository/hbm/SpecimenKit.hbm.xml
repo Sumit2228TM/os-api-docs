@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenKit" table="OS_SPECIMEN_KITS"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.SpecimenKit">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_SPECIMEN_KITS_SEQ</param>
+      </generator>
+    </id>
+
+    <many-to-one name="collectionProtocol" column="CP_ID"/>
+
+    <many-to-one name="sendingSite" column="SENDING_SITE_ID"/>
+
+    <many-to-one name="receivingSite" column="RECEIVING_SITE_ID"/>
+
+    <property name="sendingDate" column="SENDING_DATE"/>
+
+    <many-to-one name="sender" column="SENDER_ID"/>
+
+    <set name="specimens" table="OS_KIT_SPECIMENS">
+      <key column="KIT_ID"/>
+      <many-to-many class="com.krishagni.catissueplus.core.biospecimen.domain.Specimen" column="SPECIMEN_ID"/>
+    </set>
+
+    <property name="comments" column="COMMENTS"/>
+
+    <property name="activityStatus" column="ACTIVITY_STATUS"/>
+
+    <filter name="activeEntity"/>
+
+    <sql-query name="getParticipantAndSpecimenCount">
+      <return-scalar column="kitId" type="long"/>
+      <return-scalar column="participantCnt" type="long"/>
+      <return-scalar column="specimenCnt" type="long"/>
+
+      select
+        kit.identifier as kitId,
+        count(distinct(cpr.identifier)) as participantCnt,
+        count(distinct(spmn.identifier)) as specimenCnt
+      from
+        os_specimen_kits kit
+        inner join os_kit_specimens ks on ks.kit_id = kit.identifier
+        inner join catissue_specimen spmn on spmn.identifier = ks.specimen_id
+        inner join catissue_specimen_coll_group visit on visit.identifier = spmn.specimen_collection_group_id
+        inner join catissue_coll_prot_reg cpr on cpr.identifier = visit.collection_protocol_reg_id
+      where
+        kit.identifier in (:kitIds) and
+        kit.activity_status != 'Disabled' and
+        spmn.activity_status != 'Disabled'
+      group by
+        kit.identifier
+    </sql-query>
+  </class>
+
+</hibernate-mapping>

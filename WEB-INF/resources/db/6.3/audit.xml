@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Container maintenance tasks">
+    <createTable tableName="OS_CONTAINER_TASKS_AUD">
+      <column name="IDENTIFIER" type="${int.type}"/>
+      <column name="REV" type="${int.type}"/>
+      <column name="REVTYPE" type="${tinyint.type}"/>
+      <column name="NAME" type="${text.type}(32)"/>
+      <column name="name_MOD" type="${boolean.type}"/>
+      <column name="DESCRIPTION" type="${text.type}(512)"/>
+      <column name="description_MOD" type="${boolean.type}"/>
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)"/>
+      <column name="activityStatus_MOD" type="${boolean.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled container activities">
+    <createTable tableName="OS_SCHED_CONT_ACTIVITIES_AUD">
+      <column name="IDENTIFIER" type="${int.type}"/>
+      <column name="REV" type="${int.type}"/>
+      <column name="REVTYPE" type="${tinyint.type}"/>
+      <column name="CONTAINER_ID" type="${int.type}"/>
+      <column name="container_MOD" type="${boolean.type}"/>
+      <column name="NAME" type="${text.type}(64)"/>
+      <column name="name_MOD" type="${boolean.type}"/>
+      <column name="START_DATE" type="${timestamp.type}"/>
+      <column name="startDate_MOD" type="${boolean.type}"/>
+      <column name="CYCLE_INTERVAL" type="${int.type}"/>
+      <column name="cycleInterval_MOD" type="${boolean.type}"/>
+      <column name="CYCLE_INTERVAL_UNIT" type="${text.type}(16)"/>
+      <column name="cycleIntervalUnit_MOD" type="${boolean.type}"/>
+      <column name="TASK_ID" type="${int.type}"/>
+      <column name="task_MOD" type="${boolean.type}"/>
+      <column name="REM_INTERVAL" type="${int.type}"/>
+      <column name="reminderInterval_MOD" type="${boolean.type}"/>
+      <column name="REM_INTERVAL_UNIT" type="${text.type}(16)"/>
+      <column name="reminderIntervalUnit_MOD" type="${boolean.type}"/>
+      <column name="REPEAT_CYCLE" type="${boolean.type}"/>
+      <column name="repeatCycle_MOD" type="${boolean.type}"/>
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)"/>
+      <column name="activityStatus_MOD" type="${boolean.type}"/>
+      <column name="assignedUsers_MOD" type="${boolean.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled activity users">
+    <createTable tableName="OS_SCHED_CONT_ACT_USERS_AUD">
+      <column name="REV" type="${int.type}"/>
+      <column name="REVTYPE" type="${tinyint.type}"/>
+      <column name="ACTIVITY_ID" type="${int.type}"/>
+      <column name="USER_ID" type="${int.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container activities log">
+    <createTable tableName="OS_CONTAINER_ACTIVITY_LOGS_AUD">
+      <column name="IDENTIFIER" type="${int.type}"/>
+      <column name="REV" type="${int.type}"/>
+      <column name="REVTYPE" type="${tinyint.type}"/>
+      <column name="CONTAINER_ID" type="${int.type}"/>
+      <column name="container_MOD" type="${boolean.type}"/>
+      <column name="ACTIVITY_ID" type="${int.type}"/>
+      <column name="activity_MOD" type="${boolean.type}"/>
+      <column name="TASK_ID" type="${int.type}"/>
+      <column name="task_MOD" type="${boolean.type}"/>
+      <column name="PERFORMED_BY" type="${int.type}"/>
+      <column name="performedBy_MOD" type="${boolean.type}"/>
+      <column name="ACTIVITY_DATE" type="${timestamp.type}"/>
+      <column name="activityDate_MOD" type="${boolean.type}"/>
+      <column name="TIME_TAKEN" type="${int.type}"/>
+      <column name="timeTaken_MOD" type="${boolean.type}"/>
+      <column name="COMMENTS" type="${text.type}(512)"/>
+      <column name="comments_MOD" type="${boolean.type}"/>
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)"/>
+      <column name="activityStatus_MOD" type="${boolean.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="single" id="User DND activity log">
+    <addColumn tableName="CATISSUE_USER_AUD">
+      <column name="DND" type="${boolean.type}"/>
+      <column name="dnd_MOD" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

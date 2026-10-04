@@ -1,0 +1,13 @@
+.os-navbar .search .input-search {
+  flex-grow: 1;
+  display: flex;
+}
+
+.input-search input {
+  cursor: pointer !important;
+  background-color: #fff !important;
+}
+
+.os-navbar .search .ui-select-choices-row.disabled {
+  border-bottom: 1px solid #ddd;
+}

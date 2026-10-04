@@ -1,0 +1,130 @@
+{
+    "cpId": null,
+    "createdBy": null,
+    "deletedOn": null,
+    "dependentQueries": [],
+    "drivingForm": null,
+    "filters": [
+        {
+            "desc": "",
+            "expr": null,
+            "field": "Participant.participantId",
+            "hideOptions": false,
+            "id": 3,
+            "op": "EXISTS",
+            "parameterized": false,
+            "subQueryId": null,
+            "values": [
+                null
+            ]
+        },
+        {
+            "desc": "Anticipated Visit next month",
+            "expr": "date_range(Participant.anticipatedSpmns.eventDate, next_month)",
+            "field": null,
+            "hideOptions": false,
+            "id": 5,
+            "op": null,
+            "parameterized": false,
+            "subQueryId": null,
+            "values": null
+        }
+    ],
+    "folders": null,
+    "havingClause": null,
+    "id": null,
+    "lastRunCount": null,
+    "lastRunOn": null,
+    "lastUpdated": null,
+    "lastUpdatedBy": null,
+    "outputColumnExprs": false,
+    "queryExpression": [
+        {
+            "nodeType": "FILTER",
+            "value": 3
+        },
+        {
+            "nodeType": "OPERATOR",
+            "value": "AND"
+        },
+        {
+            "nodeType": "FILTER",
+            "value": 5
+        }
+    ],
+    "reporting": {
+        "params": {},
+        "type": "none"
+    },
+    "scheduledJobs": [],
+    "selectList": [
+        {
+            "aggFns": null,
+            "displayLabel": "Collection Protocol",
+            "name": "CollectionProtocol.Title"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.ppid"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": "",
+            "name": "Participant.regDate"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.firstName"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.lastName"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.medicalRecord.medicalRecordNumber"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.anticipatedSpmns.eventLabel"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.anticipatedSpmns.eventDate"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.anticipatedSpmns.eventCode"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.anticipatedSpmns.clinicalDiagnosis"
+        },
+        {
+            "aggFns": null,
+            "displayLabel": null,
+            "name": "Participant.anticipatedSpmns.clinicalStatus"
+        },
+        {
+            "aggFns": [
+                {
+                    "desc": "Specimens",
+                    "name": "count"
+                }
+            ],
+            "displayLabel": null,
+            "name": "Participant.anticipatedSpmns.reqId"
+        }
+    ],
+    "subQueries": [],
+    "title": "Anticipated visits in next month",
+    "wideRowMode": "SHALLOW"
+}

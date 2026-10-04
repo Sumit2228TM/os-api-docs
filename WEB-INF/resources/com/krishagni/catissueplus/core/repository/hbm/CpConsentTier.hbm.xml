@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.CpConsentTier" table="CATISSUE_CONSENT_TIER" lazy="false"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.CpConsentTier">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">CATISSUE_CONSENT_TIER_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="activityStatus" column="ACTIVITY_STATUS"/>
+
+    <many-to-one name="collectionProtocol" column="COLL_PROTOCOL_ID"/>
+
+    <many-to-one name="statement" column="CONSENT_STMT_ID"/>
+
+    <filter name="activeEntity"/>
+  </class>
+</hibernate-mapping>
+

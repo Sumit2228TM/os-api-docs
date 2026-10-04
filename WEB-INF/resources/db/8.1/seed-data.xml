@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Vial color coding in the boxes based on specimen types">
+    <sql>
+      insert into
+        os_pv_props
+      select
+        pv.identifier as pv_id, 'container_color_code' as name, 'background=deeppink, opacity=0.6' as value
+      from
+        catissue_permissible_value pv
+      where
+        pv.public_id = 'specimen_type' and
+        pv.value = 'Cell' and
+        pv.activity_status = 'Active'
+    </sql>
+
+    <sql>
+      insert into
+        os_pv_props
+      select
+        pv.identifier as pv_id, 'container_color_code' as name, 'background=crimson, opacity=0.6' as value
+      from
+        catissue_permissible_value pv
+      where
+        pv.public_id = 'specimen_type' and
+        pv.value = 'Fluid' and
+        pv.activity_status = 'Active'
+    </sql>
+
+    <sql>
+      insert into
+        os_pv_props
+      select
+        pv.identifier as pv_id, 'container_color_code' as name, 'background=limegreen, opacity=0.6' as value
+      from
+        catissue_permissible_value pv
+      where
+        pv.public_id = 'specimen_type' and
+        pv.value = 'Molecular' and
+        pv.activity_status = 'Active'
+    </sql>
+
+    <sql>
+      insert into
+        os_pv_props
+      select
+        pv.identifier as pv_id, 'container_color_code' as name, 'background=blueviolet, opacity=0.6' as value
+      from
+        catissue_permissible_value pv
+      where
+        pv.public_id = 'specimen_type' and
+        pv.value = 'Tissue' and
+        pv.activity_status = 'Active'
+    </sql>
+  </changeSet>
+
+</databaseChangeLog>

@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.ContainerStoreList" table="OS_CONTAINER_STORE_LISTS"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.ContainerStoreList">
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_CONT_STORE_LIST_SEQ</param>
+      </generator>
+    </id>
+
+    <many-to-one name="container" column="CONTAINER_ID"/>
+
+    <many-to-one name="user" column="USER_ID"/>
+
+    <property name="op" column="OP">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.administrative.domain.ContainerStoreList$Op</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="creationTime" column="CREATION_TIME"/>
+
+    <property name="executionTime" column="EXECUTION_TIME"/>
+
+    <property name="status" column="STATUS">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.administrative.domain.ContainerStoreList$Status</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="state" column="STATE"/>
+
+    <property name="noOfRetries" column="NO_OF_RETRIES"/>
+
+    <property name="error" column="ERROR"/>
+
+    <set name="items" table="OS_CONT_STORE_LIST_ITEMS" inverse="true" cascade="all-delete-orphan">
+      <key column="STORE_LIST_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.administrative.domain.ContainerStoreListItem"/>
+    </set>
+
+    <query name="getItemsCountByOp">
+      <![CDATA[
+        select
+          sl.op, count(item.id)
+        from
+          com.krishagni.catissueplus.core.administrative.domain.ContainerStoreList sl
+          join sl.items item
+        where
+          sl.executionTime >= :fromDate and
+          sl.executionTime <= :toDate
+        group by
+          sl.op
+      ]]>
+    </query>
+  </class>
+</hibernate-mapping>

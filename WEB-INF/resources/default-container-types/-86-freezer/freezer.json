@@ -1,0 +1,15 @@
+{
+  "name": "-86 Freezer",
+  "nameFormat": "-86F%SITE_UID%",
+  "noOfColumns": 1,
+  "noOfRows": 4,
+  "positionLabelingMode": "TWO_D",
+  "columnLabelingScheme": "Numbers",
+  "rowLabelingScheme": "Numbers",
+  "temperature": -86,
+  "storeSpecimenEnabled": false,
+  "activityStatus": "Active",
+  "canHold": {
+    "name": "-86 Rack B"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "LN Tank",
+  "nameFormat": "LN%SITE_UID%",
+  "noOfColumns": 6,
+  "noOfRows": 5,
+  "positionLabelingMode": "TWO_D",
+  "columnLabelingScheme": "Numbers",
+  "rowLabelingScheme": "Numbers",
+  "temperature": null,
+  "storeSpecimenEnabled": false,
+  "activityStatus": "Active",
+  "canHold": {
+    "name": "LN Tower"
+  }
+}

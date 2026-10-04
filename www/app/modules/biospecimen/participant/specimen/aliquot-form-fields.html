@@ -1,0 +1,131 @@
+<div>
+  <div class="form-group">
+    <label class="col-xs-3 control-label" translate="specimens.specimen_type">Specimen Type</label>
+    <div class="col-xs-6">
+      <os-specimen-types name="type" specimen="aliquotSpec" required placeholder="{{'specimens.type' | translate}}"
+        on-select="onChange('type')">
+      </os-specimen-types>
+      <div os-field-error field="aliquotForm.type"></div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-xs-3 control-label" translate="specimens.aliquot_cnt">No of Aliquots</label>
+    <div class="col-xs-6">
+      <input name="noOfAliquots" ng-model="aliquotSpec.noOfAliquots"
+        class="form-control" type="text" placeholder="{{'specimens.aliquot_cnt' | translate}}"
+        ng-required="parentSpecimen.type != aliquotSpec.type || !aliquotSpec.qtyPerAliquot || 
+        !parentSpecimen.availableQty || aliquotSpec.qtyPerAliquot > parentSpecimen.availableQty"
+        ng-pattern="/^[1-9][0-9]*$/" ng-change="onChange('noOfAliquots')">
+      <div os-field-error field="aliquotForm.noOfAliquots"></div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label class="col-xs-3 control-label" translate="specimens.qty_per_aliquot">Quantity per Aliquot</label>
+    <div class="col-xs-6">
+      <os-spmn-measure name="qtyPerAliquot" specimen="aliquotSpec" quantity="aliquotSpec.qtyPerAliquot"
+        placeholder="{{'specimens.qty_per_aliquot' | translate}}" 
+        ng-required="aliquotQtyReq && (parentSpecimen.type != aliquotSpec.type ||
+          !aliquotSpec.noOfAliquots || !parentSpecimen.availableQty)"
+        on-change="onChange('qtyPerAliquot')">
+      </os-spmn-measure>
+      <div os-field-error field="aliquotForm.qtyPerAliquot"></div>
+    </div>
+  </div>
+
+  <div ng-if="fieldsCtx.hasDict">
+    <sde-form-fields base-fields="fieldsCtx.sysDict" fields="fieldsCtx.cpDict"
+      obj="spmnCtx.aobj" in-objs="spmnCtx.ainObjs" ex-objs="spmnCtx.aexObjs" opts="spmnCtx.aopts">
+    </sde-form-fields>
+  </div>
+
+  <div ng-if="!fieldsCtx.hasDict">
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.concentration">Concentration</label>
+      <div class="col-xs-6">
+        <os-spmn-measure name="concentration" specimen="aliquotSpec" quantity="aliquotSpec.concentration"
+          measure="concentration" placeholder="{{'specimens.concentration' | translate}}">
+        </os-spmn-measure>
+        <div os-field-error field="sform.concentration"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.created_on">Created On</label>
+      <div class="col-xs-6">
+        <div class="os-date-time clearfix">
+          <div class="col-xs-6 input os-no-padding">
+            <os-date-picker name="createdOn" date="aliquotSpec.createdOn"
+              placeholder="{{'specimens.created_on' | translate}}" required>
+            </os-date-picker>
+          </div>
+          <div class="col-xs-6">
+            <timepicker ng-model="aliquotSpec.createdOn" class="os-time-no-wheels" show-meridian="false">
+            </timepicker>
+          </div>
+        </div>
+        <div os-field-error field="aliquotForm.createdOn"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.created_by">Created By</label>
+      <div class="col-xs-6">
+        <os-users name="createdBy" ng-model="aliquotSpec.createdBy" default-current-user exclude-contacts
+          placeholder="{{'specimens.created_by' | translate}}" required>
+        </os-users>
+        <div os-field-error field="aliquotForm.createdBy"></div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label" translate="specimens.freeze_thaw_cycles">Freeze/Thaw Cycles</label>
+      <div class="col-xs-6">
+        <input name="freezeThawCycles" ng-model="aliquotSpec.freezeThawCycles"
+          class="form-control" type="text" placeholder="{{'specimens.freeze_thaw_cycles' | translate}}"
+          ng-pattern="/^[0-9]*$/">
+        <div os-field-error field="aliquotForm.freezeThawCycles"></div>
+        <div class="os-text-checkbox">
+          <div class="checkbox">
+            <os-checkbox ng-model="aliquotSpec.incrParentFreezeThaw"
+              ng-true-value="1" ng-false-value="0" ng-change="toggleIncrParentFreezeThaw()">
+            </os-checkbox>
+          </div>
+          <div class="message os-ctrl-padding-top">
+            <span translate="specimens.increment_parent_freeze_thaw">
+              Increment parent specimen's Freeze/Thaw cycles?
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="col-xs-3 control-label">
+        <span translate="specimens.comments">Comments</span>
+      </label>
+      <div class="col-xs-6">
+        <textarea ng-model="aliquotSpec.comments" class="form-control"
+          placeholder="{{'specimens.comments' | translate}}" rows="2">
+        </textarea>
+      </div>
+    </div>
+
+    <div class="os-entity-extn-form-fields" ng-if="!!aextnOpts">
+      <div class='os-extn-form' os-de-form opts="aextnOpts" ctrl="adeFormCtrl" extended-obj="aliquotSpec">
+      </div>
+    </div>
+  </div> <!-- end of static -->
+
+  <div class="form-group clearfix">
+    <div class="col-xs-offset-3 col-xs-6 os-text-checkbox">
+      <div class="checkbox">
+        <os-checkbox ng-model="aliquotSpec.closeParent"></os-checkbox>
+      </div>
+      <div class="message os-ctrl-padding-top">
+        <span translate="specimens.close_parent_q">Do you want to close parent specimen?</span>
+      </div>
+    </div>
+  </div>
+</div>

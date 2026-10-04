@@ -1,0 +1,17 @@
+<div>
+  <div class="clearfix" ng-if="!consentCtx.hasEc">
+    <div class="col-xs-8">
+      <os-editable-item-list
+        items="consentCtx.tiers" item-pvs="consentCtx.stmts" text-attr="displayValue"
+        list-changed="listChanged" allow-edit="permCtx.editAllowed" refresh="loadConsentStmts"
+        add-caption="{{'dp.add_consent_tier' | translate}}" list-title="{{'dp.consent_tiers' | translate}}">
+      </os-editable-item-list>
+    </div>
+  </div>
+
+  <div class="clearfix">
+    <div class="col-xs-12">
+      <os-plugin-hooks view-name="'dp-consents'" sec-name="'body'"></os-plugin-hooks>
+    </div>
+  </div>
+</div>

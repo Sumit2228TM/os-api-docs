@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="CP group ID in CP audit">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="CP_GROUP_ID" type="${int.type}" />
+      <column name="cpGroup_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit and track changes to container type capacity">
+    <addColumn tableName="OS_CONTAINER_TYPES_AUD">
+      <column name="CAPACITY" type="${int.type}" />
+      <column name="capacity_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Primary specimen ID in specimen audit">
+    <addColumn tableName="CATISSUE_SPECIMEN_AUD">
+      <column name="PRIMARY_SPECIMEN_ID" type="${int.type}" />
+      <column name="primarySpecimen_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen collection and received details audit">
+    <createTable tableName="OS_SPMN_COLL_RECV_DETAILS_AUD">
+      <column name="PRIMARY_SPECIMEN_ID" type="${int.type}" />
+      <column name="primarySpecimen_MOD" type="${boolean.type}" />
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${smallint.type}" />
+      <column name="COLLECTION_CONTAINER_ID" type="${int.type}" />
+      <column name="collContainer_MOD" type="${boolean.type}" />
+      <column name="COLLECTION_PROCEDURE_ID" type="${int.type}" />
+      <column name="collProcedure_MOD" type="${boolean.type}" />
+      <column name="COLLECTION_USER_ID" type="${int.type}" />
+      <column name="collector_MOD" type="${boolean.type}" />
+      <column name="COLLECTION_TIME" type="${nullable.ts.type}" />
+      <column name="collTime_MOD" type="${boolean.type}" />
+      <column name="COLLECTION_COMMENTS" type="${text.type}(512)" />
+      <column name="collComments_MOD" type="${boolean.type}" />
+      <column name="RECEIVED_QUALITY_ID" type="${int.type}" />
+      <column name="recvQuality_MOD" type="${boolean.type}" />
+      <column name="RECEIVED_USER_ID" type="${int.type}" />
+      <column name="receiver_MOD" type="${boolean.type}" />
+      <column name="RECEIVED_TIME" type="${nullable.ts.type}" />
+      <column name="recvTime_MOD" type="${boolean.type}" />
+      <column name="RECEIVED_COMMENTS" type="${text.type}(512)" />
+      <column name="recvComments_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop CP request managers audit column">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="CAT_COLLECTION_PROTOCOL_AUD" columnName="REQ_MANAGERS_USER_GROUP_ID"/>
+    </preConditions>
+    <dropColumn tableName="CAT_COLLECTION_PROTOCOL_AUD" columnName="REQ_MANAGERS_USER_GROUP_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop CP request managers audit flag">
+    <preConditions onFail="MARK_RAN">
+      <columnExists tableName="CAT_COLLECTION_PROTOCOL_AUD" columnName="reqManagers_MOD"/>
+    </preConditions>
+    <dropColumn tableName="CAT_COLLECTION_PROTOCOL_AUD" columnName="reqManagers_MOD"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Request manager groups audit">
+    <createTable tableName="OS_REQ_MGR_GROUPS_AUD">
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${smallint.type}" />
+      <column name="NAME" type="${text.type}(255)" />
+      <column name="name_MOD" type="${boolean.type}" />
+      <column name="USER_GROUP_ID" type="${int.type}" />
+      <column name="userGroup_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP request manager group audit">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="RMG_ID" type="${int.type}" />
+      <column name="requestManagerGroup_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen request manager group audit">
+    <addColumn tableName="OS_SPECIMEN_REQUESTS_AUD">
+      <column name="RMG_ID" type="${int.type}" />
+      <column name="requestManagerGroup_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit and track changes to container type rate">
+    <addColumn tableName="OS_CONTAINER_TYPES_AUD">
+      <column name="RATE" type="${decimal.type}(10, 2)" />
+      <column name="rate_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP event sort order">
+    <addColumn tableName="CATISSUE_COLL_PROT_EVENT_AUD">
+      <column name="SORT_ORDER" type="${int.type}" />
+      <column name="sortOrder_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Default specimen cart flag">
+    <addColumn tableName="CATISSUE_SPECIMENLIST_TAGS_AUD">
+      <column name="DEFAULT_CART" type="${boolean.type}" />
+      <column name="defaultCart_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit whether CP workflows are inherited from the CP group">
+    <addColumn tableName="OS_CP_WORKFLOWS_AUD">
+      <column name="GROUP_WORKFLOWS_INHERITED" type="${boolean.type}" />
+      <column name="groupWorkflowsInherited_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Widen permissible value public ID">
+    <modifyDataType tableName="CATISSUE_PERMISSIBLE_VALUE_AUD" columnName="PUBLIC_ID" newDataType="${text.type}(128)" />
+  </changeSet>
+</databaseChangeLog>

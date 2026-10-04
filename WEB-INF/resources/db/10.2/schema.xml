@@ -1,0 +1,660 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Custom form record status - draft or complete">
+    <addColumn tableName="CATISSUE_FORM_RECORD_ENTRY">
+      <column name="FORM_STATUS" type="${text.type}(32)" defaultValue="COMPLETE">
+        <constraints nullable="false" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Registration data entry status - draft or complete">
+    <addColumn tableName="CATISSUE_COLL_PROT_REG">
+      <column name="DATA_ENTRY_STATUS" type="${text.type}(32)" defaultValue="COMPLETE">
+        <constraints nullable="false" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Query: Registration table with data entry status">
+    <addColumn tableName="OS_CPR_RECS">
+      <column name="DATA_ENTRY_STATUS" type="${text.type}(32)" defaultValue="COMPLETE">
+        <constraints nullable="false" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to keep the queries registration table updated: New Registration" dbms="mysql" runOnChange="true">
+    <sql>
+      drop trigger if exists os_cpr_recs_ins;
+    </sql>
+
+    <sql endDelimiter="//">
+      create trigger os_cpr_recs_ins after insert on catissue_coll_prot_reg
+      for each row
+      begin
+        insert into
+          os_cpr_recs(
+            cpr_id, cp_id, participant_id, first_name, middle_name, last_name,
+            email_address, dob, ssn, activity_status, gender_id, registration_date,
+            ppid, vital_status_id, death_date, empi_id, barcode, consent_sign_date,
+            consent_witness, consent_comments, consent_document_name, external_subject_id,
+            site_id, creation_time, creator, update_time, updater, data_entry_status
+          )
+        select
+          cpr.identifier as cpr_id,
+          cpr.collection_protocol_id as cp_id,
+          cpr.participant_id,
+          p.first_name,
+          p.middle_name,
+          p.last_name,
+          p.email_address,
+          p.birth_date as dob,
+          p.social_security_number as ssn,
+          cpr.activity_status,
+          p.gender_id,
+          cpr.registration_date,
+          cpr.protocol_participant_id as ppid,
+          p.vital_status_id,
+          p.death_date,
+          p.empi_id,
+          cpr.barcode,
+          cpr.consent_sign_date,
+          cpr.consent_witness,
+          cpr.consent_comments,
+          cpr.consent_document_name,
+          cpr.external_subject_id,
+          cpr.site_id,
+          cpr.creation_time,
+          cpr.creator,
+          cpr.update_time,
+          cpr.updater,
+          cpr.data_entry_status
+        from
+          catissue_coll_prot_reg cpr
+          inner join catissue_participant p on p.identifier = cpr.participant_id
+        where
+          cpr.identifier = new.identifier;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Part 1: Trigger to keep the queries registration table updated: New Registration" dbms="oracle" runOnChange="true">
+    <sql endDelimiter="//" splitStatements="false">
+      create or replace trigger os_cpr_recs_ins after insert on catissue_coll_prot_reg
+      for each row
+      begin
+        insert into
+          os_cpr_recs(
+            cpr_id, cp_id, participant_id, first_name, middle_name, last_name,
+            email_address, dob, ssn, activity_status, gender_id, registration_date,
+            ppid, vital_status_id, death_date, empi_id, barcode, consent_sign_date,
+            consent_witness, consent_comments, consent_document_name, external_subject_id,
+            site_id, creation_time, creator, update_time, updater, data_entry_status
+          )
+        select
+          :new.identifier as cpr_id,
+          :new.collection_protocol_id as cp_id,
+          :new.participant_id,
+          p.first_name,
+          p.middle_name,
+          p.last_name,
+          p.email_address,
+          p.birth_date as dob,
+          p.social_security_number as ssn,
+          :new.activity_status,
+          p.gender_id,
+          :new.registration_date,
+          :new.protocol_participant_id as ppid,
+          p.vital_status_id,
+          p.death_date,
+          p.empi_id,
+          :new.barcode,
+          :new.consent_sign_date,
+          :new.consent_witness,
+          :new.consent_comments,
+          :new.consent_document_name,
+          :new.external_subject_id,
+          :new.site_id,
+          :new.creation_time,
+          :new.creator,
+          :new.update_time,
+          :new.updater,
+          :new.data_entry_status
+        from
+          catissue_participant p
+        where
+          p.identifier = :new.participant_id;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Part 2: Trigger to keep the queries registration table updated: Update Registration" dbms="mysql" runOnChange="true">
+    <sql>
+      drop trigger if exists os_cpr_recs_cpr_update;
+    </sql>
+
+    <sql endDelimiter="//">
+      create trigger os_cpr_recs_cpr_update after update on catissue_coll_prot_reg
+      for each row
+      begin
+        update
+          os_cpr_recs
+        set
+          cp_id = new.collection_protocol_id,
+          participant_id = new.participant_id,
+          activity_status = new.activity_status,
+          registration_date = new.registration_date,
+          ppid = new.protocol_participant_id,
+          barcode = new.barcode,
+          consent_sign_date = new.consent_sign_date,
+          consent_witness = new.consent_witness,
+          consent_comments = new.consent_comments,
+          consent_document_name = new.consent_document_name,
+          external_subject_id = new.external_subject_id,
+          site_id = new.site_id,
+          creation_time = new.creation_time,
+          creator = new.creator,
+          update_time = new.update_time,
+          updater = new.updater,
+          data_entry_status = new.data_entry_status
+        where
+          cpr_id = new.identifier;
+
+        if (new.participant_id != old.participant_id) then
+          update
+            os_cpr_recs cpr
+            inner join catissue_participant p on p.identifier = cpr.participant_id
+          set
+            cpr.first_name = p.first_name,
+            cpr.middle_name = p.middle_name,
+            cpr.last_name = p.last_name,
+            cpr.email_address = p.email_address,
+            cpr.dob = p.birth_date,
+            cpr.ssn = p.social_security_number,
+            cpr.gender_id = p.gender_id,
+            cpr.vital_status_id = p.vital_status_id,
+            cpr.death_date = p.death_date,
+            cpr.empi_id = p.empi_id
+          where
+            cpr.cpr_id = new.identifier;
+        end if;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Part 2: Trigger to keep the queries registration table updated: Update Registration" dbms="oracle" runOnChange="true">
+    <sql endDelimiter="//" splitStatements="false">
+      create or replace trigger os_cpr_recs_cpr_update after update on catissue_coll_prot_reg
+      for each row
+      begin
+        update
+          os_cpr_recs
+        set
+          cp_id = :new.collection_protocol_id,
+          participant_id = :new.participant_id,
+          activity_status = :new.activity_status,
+          registration_date = :new.registration_date,
+          ppid = :new.protocol_participant_id,
+          barcode = :new.barcode,
+          consent_sign_date = :new.consent_sign_date,
+          consent_witness = :new.consent_witness,
+          consent_comments = :new.consent_comments,
+          consent_document_name = :new.consent_document_name,
+          external_subject_id = :new.external_subject_id,
+          site_id = :new.site_id,
+          creation_time = :new.creation_time,
+          creator = :new.creator,
+          update_time = :new.update_time,
+          updater = :new.updater,
+          data_entry_status = :new.data_entry_status
+        where
+          cpr_id = :new.identifier;
+
+        if (:new.participant_id != :old.participant_id) then
+          merge into
+            os_cpr_recs cpr
+          using
+            catissue_participant p on (p.identifier = cpr.participant_id)
+          when matched then
+            update set
+              cpr.first_name = p.first_name,
+              cpr.middle_name = p.middle_name,
+              cpr.last_name = p.last_name,
+              cpr.email_address = p.email_address,
+              cpr.dob = p.birth_date,
+              cpr.ssn = p.social_security_number,
+              cpr.gender_id = p.gender_id,
+              cpr.vital_status_id = p.vital_status_id,
+              cpr.death_date = p.death_date,
+              cpr.empi_id = p.empi_id
+            where
+              cpr.cpr_id = :new.identifier;
+        end if;
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP level setting to enable/disable draft data entry mode">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="DRAFT_DATA_ENTRY" type="${boolean.type}" defaultValueBoolean="false">
+        <constraints nullable="false" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the size of CP workflows JSON column" dbms="mysql">
+    <modifyDataType tableName="OS_CP_WORKFLOWS" columnName="WORKFLOWS" newDataType="${medium.clob.type}" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the size of CP group workflows JSON column" dbms="mysql">
+    <modifyDataType tableName="OS_CP_GROUPS" columnName="WORKFLOWS" newDataType="${medium.clob.type}" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Stored procedures to populate specimen statistics" dbms="mysql">
+    <sql>
+      drop procedure if exists create_specimen_stats_table;
+    </sql>
+    <sql endDelimiter="//">
+      create procedure create_specimen_stats_table()
+      begin
+        drop table if exists tmp_specimen_stats;
+
+        create table tmp_specimen_stats (
+          specimen_id bigint not null,
+          collector_id bigint default null,
+          collection_procedure_id bigint default null,
+          collection_container_id bigint default null,
+          collection_time datetime null default null,
+          receiver_id bigint default null,
+          received_quality_id bigint default null,
+          received_time datetime null default null,
+          frozen_time datetime null default null,
+          processing_time bigint default null,
+          ischemia_time bigint default null,
+          specimen_seq mediumint default null
+        );
+      end;
+      //
+    </sql>
+    <sql>
+      drop procedure if exists populate_specimen_stats;
+    </sql>
+    <sql endDelimiter="//">
+      create procedure populate_specimen_stats()
+      begin
+        insert into tmp_specimen_stats (
+          specimen_id,
+          collection_time, collection_procedure_id,
+          collection_container_id, collector_id,
+          received_time,
+          received_quality_id, receiver_id,
+          frozen_time, processing_time, ischemia_time,
+          specimen_seq
+        )
+
+        select
+          c.identifier as specimen_id,
+          ce.event_timestamp as collection_time, ce.collection_procedure_id as collection_procedure_id,
+          ce.collection_container_id as collection_container_id, ce.user_id as collector_id,
+          re.event_timestamp as received_time,
+          re.received_quality_id as received_quality_id, re.user_id as receiver_id,
+          fe.event_timestamp as frozen_time,
+          timestampdiff(MINUTE, re.event_timestamp,fe.event_timestamp) as processing_time,
+          timestampdiff(MINUTE, ce.event_timestamp, fe.event_timestamp) as ischemia_time,
+          0
+        from
+          catissue_specimen s
+          inner join catissue_coll_event_param ce on ce.specimen_id = s.identifier
+          inner join catissue_received_event_param re on re.specimen_id = s.identifier
+          inner join catissue_specimen_hierarchy h on h.ancestor_id = s.identifier
+          inner join catissue_specimen c on c.identifier = h.descendent_id
+          left join (
+            select
+              fre.object_id as specimen_id, max(fep.event_timestamp) as event_timestamp
+            from
+              catissue_frozen_event_param fep
+              inner join catissue_form_record_entry fre on fre.record_id = fep.identifier
+              inner join catissue_form_context ffc on ffc.identifier = fre.form_ctxt_id
+              inner join dyextn_containers ff on ff.identifier = ffc.container_id and ff.name = 'SpecimenFrozenEvent'
+            group by
+              fre.object_id
+          ) fe on fe.specimen_id = s.identifier
+        where
+          s.parent_specimen_id is null and
+          s.collection_status = 'Collected' and
+          s.activity_status != 'Disabled' and c.activity_status != 'Disabled' and
+          c.collection_status = 'Collected';
+
+        update
+          tmp_specimen_stats stats
+          inner join (
+            select
+              identifier,
+              dense_rank() over (partition by specimen_collection_group_id, parent_specimen_id, specimen_type_id order by identifier) as specimen_seq
+            from
+              catissue_specimen
+            where
+              activity_status = 'Active' and
+              availability_status = 'Available'
+          ) t on t.identifier = stats.specimen_id
+        set
+          stats.specimen_seq = t.specimen_seq;
+      end;
+      //
+    </sql>
+    <sql>
+      drop procedure if exists refresh_specimen_stats;
+    </sql>
+    <sql endDelimiter="//">
+      create procedure refresh_specimen_stats()
+      begin
+        call create_specimen_stats_table();
+
+        call populate_specimen_stats();
+
+        drop table if exists os_specimen_stats;
+
+        alter table tmp_specimen_stats rename os_specimen_stats;
+
+        create index os_specimen_stats_idx on os_specimen_stats (specimen_id);
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Stored procedures to populate specimen statistics" runOnChange="true" dbms="oracle">
+    <sql endDelimiter="//">
+      create or replace procedure create_specimen_stats_table authid current_user is
+      begin
+        declare
+          table_does_not_exist exception;
+          pragma exception_init(table_does_not_exist, -942); -- ORA-00942
+        begin
+          execute immediate 'drop table tmp_specimen_stats';
+        exception
+          when table_does_not_exist then null;
+        end;
+
+        execute immediate 'create table tmp_specimen_stats (
+          specimen_id number(19) not null,
+          collector_id number(19) default null,
+          collection_procedure_id number(19) default null,
+          collection_container_id number(19) default null,
+          collection_time timestamp default null,
+          receiver_id number(19) default null,
+          received_quality_id number(19) default null,
+          received_time timestamp default null,
+          frozen_time timestamp default null,
+          processing_time number(19) default null,
+          ischemia_time number(19) default null,
+          specimen_seq number(7) default null
+        )';
+      end;
+      //
+    </sql>
+
+    <sql endDelimiter="//">
+      create or replace procedure populate_specimen_stats is
+      begin
+        execute immediate 'insert into tmp_specimen_stats (
+          specimen_id,
+          collection_time, collection_procedure_id,
+          collection_container_id, collector_id,
+          received_time,
+          received_quality_id, receiver_id,
+          frozen_time, processing_time, ischemia_time,
+          specimen_seq
+        )
+        select
+          c.identifier as specimen_id,
+          ce.event_timestamp as collection_time, ce.collection_procedure_id as collection_procedure_id,
+          ce.collection_container_id as collection_container_id, ce.user_id as collector_id,
+          re.event_timestamp as received_time, re.received_quality_id as received_quality_id,
+          re.user_id as receiver_id, fe.event_timestamp as frozen_time,
+          round((cast(fe.event_timestamp as date) - cast(re.event_timestamp as date))*24*60)  as processing_time,
+          round((cast(fe.event_timestamp as date) - cast(ce.event_timestamp as date))*24*60)  as ischemia_time,
+          0
+        from
+          catissue_specimen s
+          inner join catissue_coll_event_param ce on ce.specimen_id = s.identifier
+          inner join catissue_received_event_param re on re.specimen_id = s.identifier
+          inner join catissue_specimen_hierarchy h on h.ancestor_id = s.identifier
+          inner join catissue_specimen c on c.identifier = h.descendent_id
+          left join (
+            select
+              fre.object_id as specimen_id, max(fep.event_timestamp) as event_timestamp
+            from
+              catissue_frozen_event_param fep
+              inner join catissue_form_record_entry fre on fre.record_id = fep.identifier
+              inner join catissue_form_context ffc on ffc.identifier = fre.form_ctxt_id
+              inner join dyextn_containers ff on ff.identifier = ffc.container_id and ff.name = ''SpecimenFrozenEvent''
+            group by
+              fre.object_id
+          ) fe on fe.specimen_id = s.identifier
+        where
+          s.parent_specimen_id is null and s.collection_status = ''Collected'' and
+          s.activity_status != ''Disabled'' and c.activity_status != ''Disabled'' and
+          c.collection_status = ''Collected''';
+
+        execute immediate 'merge into tmp_specimen_stats us using (
+          select
+            identifier,
+            dense_rank() over (partition by specimen_collection_group_id, parent_specimen_id, specimen_type_id order by identifier) as specimen_seq
+          from
+            catissue_specimen
+          where
+            activity_status = ''Active'' and
+            availability_status = ''Available''
+        ) t on (t.identifier = us.specimen_id)
+        when matched then
+          update set us.specimen_seq = t.specimen_seq';
+      end;
+      //
+    </sql>
+    <sql endDelimiter="//">
+      create or replace procedure refresh_specimen_stats authid current_user is
+      begin
+        create_specimen_stats_table();
+
+        populate_specimen_stats();
+
+        declare
+          table_does_not_exist exception;
+          pragma exception_init(table_does_not_exist, -942); -- ORA-00942
+        begin
+          execute immediate 'drop table os_specimen_stats';
+        exception
+          when table_does_not_exist then null;
+        end;
+
+        execute immediate 'alter table tmp_specimen_stats rename to os_specimen_stats';
+
+        execute immediate 'create index os_specimen_stats_idx on os_specimen_stats (specimen_id)';
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on specimen collection protocol ID. Needed to enforce FK constraints">
+    <createIndex tableName="CATISSUE_SPECIMEN" indexName="OS_SPMN_CP_IDX">
+      <column name="COLLECTION_PROTOCOL_ID" type="${int.type}" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Additional Label - Reorder the index columns - label first and then CP ID - Part 1" dbms="mysql">
+    <dropUniqueConstraint constraintName="UQ_SPMN_ADDL_LABEL"
+      tableName="CATISSUE_SPECIMEN" uniqueColumns="COLLECTION_PROTOCOL_ID, ADDITIONAL_LABEL"  />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Additional Label - Reorder the index columns - label first and then CP ID - Part 2" dbms="mysql">
+    <addUniqueConstraint constraintName="OS_SPMN_ADD_LABEL_UQ"
+      tableName="CATISSUE_SPECIMEN" columnNames="ADDITIONAL_LABEL, COLLECTION_PROTOCOL_ID"  />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Additional Label - Reorder the index columns - label first and then CP ID - Part 1" dbms="oracle">
+    <dropIndex tableName="CATISSUE_SPECIMEN" indexName="UQ_SPMN_ADDL_LABEL" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Additional Label - Reorder the index columns - label first and then CP ID - Part 2" dbms="oracle">
+    <sql>
+      create unique index OS_SPMN_ADD_LABEL_UQ on catissue_specimen(
+        case when
+          collection_protocol_id is not null and additional_label is not null
+        then
+          additional_label || '-' || collection_protocol_id
+        end
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen Label - Reorder the index columns - label first and then CP ID - Part 1" dbms="mysql">
+    <dropUniqueConstraint constraintName="CAT_SPEC_CP_ID_LABEL_UQ"
+      tableName="CATISSUE_SPECIMEN" uniqueColumns="COLLECTION_PROTOCOL_ID, LABEL"  />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen Label - Reorder the index columns - label first and then CP ID - Part 2" dbms="mysql">
+    <addUniqueConstraint constraintName="OS_SPMN_LABEL_UQ"
+      tableName="CATISSUE_SPECIMEN" columnNames="LABEL, COLLECTION_PROTOCOL_ID"  />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen Label - Reorder the index columns - label first and then CP ID - Part 1" dbms="oracle">
+    <preConditions>
+      <indexExists indexName="CAT_SPEC_CP_ID_LABEL_UQ" />
+    </preConditions>
+
+    <dropIndex tableName="CATISSUE_SPECIMEN" indexName="CAT_SPEC_CP_ID_LABEL_UQ" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen Label - Reorder the index columns - label first and then CP ID - Part 2" dbms="oracle">
+    <sql>
+      create unique index OS_SPMN_LABEL_UQ on catissue_specimen(
+        case when
+          collection_protocol_id is not null and label is not null
+        then
+          label || '-' || collection_protocol_id
+        end
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen Barcode - Reorder the index columns - barcode first and then CP ID - Part 1" dbms="mysql">
+    <dropUniqueConstraint constraintName="CAT_SPEC_CP_ID_BARCODE_UQ"
+      tableName="CATISSUE_SPECIMEN" uniqueColumns="COLLECTION_PROTOCOL_ID, BARCODE"  />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen Barcode - Reorder the index columns - barcode first and then CP ID - Part 2" dbms="mysql">
+    <addUniqueConstraint constraintName="OS_SPMN_BARCODE_UQ"
+      tableName="CATISSUE_SPECIMEN" columnNames="BARCODE, COLLECTION_PROTOCOL_ID"  />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen Barcode - Reorder the index columns - barcode first and then CP ID - Part 1" dbms="oracle">
+    <preConditions>
+      <indexExists indexName="CAT_SPEC_CP_ID_BARCODE_UQ" />
+    </preConditions>
+
+    <dropIndex tableName="CATISSUE_SPECIMEN" indexName="CAT_SPEC_CP_ID_BARCODE_UQ" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen Barcode - Reorder the index columns - barcode first and then CP ID - Part 2" dbms="oracle">
+    <sql>
+      create unique index OS_SPMN_BARCODE_UQ on catissue_specimen(
+        case when
+          collection_protocol_id is not null and barcode is not null
+        then
+          barcode || '-' || collection_protocol_id
+        end
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Cleanup the unwanted / spurious index on the specimen table - 1" dbms="oracle">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="CATISSUE_SPECIMEN" indexName="CATISSUE_SPECIMEN_LABEL_IDX" />
+    </preConditions>
+
+    <dropIndex tableName="CATISSUE_SPECIMEN" indexName="CATISSUE_SPECIMEN_LABEL_IDX" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Cleanup the unwanted / spurious index on the specimen table - 2" dbms="oracle">
+    <preConditions onFail="MARK_RAN">
+      <indexExists tableName="CATISSUE_SPECIMEN" indexName="CAT_SPECIMEN_BARCODE_IDX" />
+    </preConditions>
+
+    <dropIndex tableName="CATISSUE_SPECIMEN" indexName="CAT_SPECIMEN_BARCODE_IDX" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on specimen additional label for lookups" dbms="oracle">
+    <createIndex tableName="CATISSUE_SPECIMEN" indexName="OS_SPMN_ADDL_LABEL_CP_IDX">
+      <column name="ADDITIONAL_LABEL" />
+      <column name="COLLECTION_PROTOCOL_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on specimen barcode for lookups" dbms="oracle">
+    <createIndex tableName="CATISSUE_SPECIMEN" indexName="OS_SPMN_BARCODE_CP_IDX">
+      <column name="BARCODE" />
+      <column name="COLLECTION_PROTOCOL_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Index on specimen label for lookups" dbms="oracle">
+    <createIndex tableName="CATISSUE_SPECIMEN" indexName="OS_SPMN_LABEL_CP_IDX">
+      <column name="LABEL" />
+      <column name="COLLECTION_PROTOCOL_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Collection protocol email sender group">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="EMAIL_SENDER_GROUP" type="${int.type}">
+        <constraints foreignKeyName="FK_CP_EMAIL_SENDER_GROUP"
+          referencedTableName="OS_USER_GROUPS" referencedColumnNames="IDENTIFIER" />
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the width of external app message type column/field">
+    <modifyDataType tableName="OS_EXT_APP_MESSAGE_LOGS" columnName="TYPE" newDataType="${text.type}(32)" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP level setting to enable/disable usage of kit labels">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="KIT_LABELS_ENABLED" type="${boolean.type}" defaultValueBoolean="false" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add index on the form record ID if it does not exist">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <indexExists tableName="CATISSUE_FORM_RECORD_ENTRY" columnNames="RECORD_ID" />
+      </not>
+    </preConditions>
+    <createIndex tableName="CATISSUE_FORM_RECORD_ENTRY" indexName="OS_FORM_RE_REC_IDX">
+      <column name="RECORD_ID" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Print job items - label design, create file, and file content">
+    <addColumn tableName="OS_LABEL_PRINT_JOB_ITEMS">
+      <column name="LABEL_DESIGN" type="${text.type}(128)" />
+      <column name="CREATE_FILE" type="${boolean.type}" />
+      <column name="CONTENT" type="${clob.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="User ability to manage print jobs using APIs">
+    <addColumn tableName="CATISSUE_USER">
+      <column name="MANAGE_PRINT_JOBS" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

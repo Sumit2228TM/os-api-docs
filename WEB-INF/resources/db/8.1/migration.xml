@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Init the specimen availability status" dbms="mysql">
+    <sql>
+      update
+        catissue_specimen spmn
+        inner join (
+          select
+            s.identifier,
+            case
+              when s.activity_status = 'Active' and s.collection_status = 'Collected' and s.reserved_event_id is not null then 'Reserved'
+              when s.activity_status = 'Active' and s.collection_status = 'Collected' then 'Available'
+              when s.activity_status = 'Active' then s.collection_status
+              when s.activity_status = 'Closed' and (ord.dist_time is not null and (ord.ret_time is null or ord.dist_time > ord.ret_time)) then 'Distributed'
+              when s.activity_status = 'Closed' then 'Closed'
+              when s.activity_status = 'Disabled' then 'Disabled'
+              else 'Unknown'
+            end available_status
+          from
+            catissue_specimen s
+            left join (
+              select
+                oi.specimen_id,
+                max(o.execution_date) dist_time,
+                max(case when oi.return_date is null then str_to_date('1970-01-01 00:00:00', '%Y-%m-%d %H:%i:%s') else oi.return_date end) ret_time
+              from
+                os_orders o
+                inner join os_order_items oi on oi.order_id = o.identifier
+              where
+                o.status = 'EXECUTED'
+              group by
+                oi.specimen_id
+            ) ord on ord.specimen_id = s.identifier
+        ) spmn_status on spmn_status.identifier = spmn.identifier
+      set
+        spmn.availability_status = spmn_status.available_status;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Init the specimen availability status" dbms="oracle">
+    <sql>
+      merge into
+        catissue_specimen spmn
+      using (
+        select
+          s.identifier,
+          case
+            when s.activity_status = 'Active' and s.collection_status = 'Collected' and s.reserved_event_id is not null then 'Reserved'
+            when s.activity_status = 'Active' and s.collection_status = 'Collected' then 'Available'
+            when s.activity_status = 'Active' then s.collection_status
+            when s.activity_status = 'Closed' and (ord.dist_time is not null and (ord.ret_time is null or ord.dist_time > ord.ret_time)) then 'Distributed'
+            when s.activity_status = 'Closed' then 'Closed'
+            when s.activity_status = 'Disabled' then 'Disabled'
+            else 'Unknown'
+          end available_status
+        from
+          catissue_specimen s
+          left join (
+            select
+              oi.specimen_id,
+              max(o.execution_date) dist_time,
+              max(oi.return_date) ret_time
+            from
+              os_orders o
+              inner join os_order_items oi on oi.order_id = o.identifier
+            where
+              o.status = 'EXECUTED'
+            group by
+              oi.specimen_id
+          ) ord on ord.specimen_id = s.identifier
+      ) spmn_status on (spmn_status.identifier = spmn.identifier)
+      when matched then
+        update set spmn.availability_status = spmn_status.available_status;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Remove references to the old clinical diagnosis field with the new one">
+    <sql>
+      update
+        catissue_saved_queries
+      set
+        query_def = replace(query_def, 'SpecimenCollectionGroup.clinicalDiagnosis', 'SpecimenCollectionGroup.clinicalDiagnoses.value')
+      where
+        query_def like '%SpecimenCollectionGroup.clinicalDiagnosis%'
+    </sql>
+  </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,21 @@
+<div>
+  <div class="os-modal-header">
+    <span ng-switch on="!!log.queryId">
+      <span ng-switch-when="true">{{log.queryTitle}}</span>
+      <span ng-switch-when="false" translate="queries.audit_logs.unsaved_query">Unsaved Query</span>
+    </span>
+    <div class="os-close" ng-click="ok()">
+      <span>&times;</span>
+    </div>
+  </div>
+
+  <div class="os-modal-body">
+    <pre>{{log.sql}}</pre>
+  </div>
+
+  <div class="os-modal-footer">
+    <button class="btn btn-primary" ng-click="ok()">
+      <span translate="common.buttons.done">Done</span>
+    </button>
+  </div>
+</div>

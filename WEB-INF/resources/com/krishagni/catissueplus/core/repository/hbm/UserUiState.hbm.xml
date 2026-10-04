@@ -1,0 +1,23 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.UserUiState" table="OS_USER_UI_STATES"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.UserUiState">
+
+    <id name="userId" column="USER_ID"/>
+
+    <property name="stateJson" column="STATE"/>
+
+    <query name="getState">
+      select
+        us
+      from
+        com.krishagni.catissueplus.core.administrative.domain.UserUiState us
+      where
+        us.userId = :userId
+    </query>
+  </class>
+</hibernate-mapping>

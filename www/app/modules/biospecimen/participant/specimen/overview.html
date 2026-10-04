@@ -1,0 +1,416 @@
+<div>
+  <div class="os-page-commands">
+    <div class="left" os-imaging>
+      <button show-if-allowed="specimenResource.updateOpts" class="default" ui-sref="specimen-addedit"
+        ng-if="!!visit.id && !specimen.reserved" ng-switch on="!!specimen.id">
+        <span ng-switch-when="true">
+          <span class="fa fa-pencil"></span>
+          <span translate="common.buttons.edit">Edit</span>
+        </span>
+        <span ng-switch-default>
+          <span class="fa fa-plus"></span>
+          <span translate="specimens.buttons.collect">Collect</span>
+        </span>
+      </button>
+
+      <span ng-if="!!specimen.id">
+        <div ng-if="!specimen.reserved && specimen.activityStatus == 'Active' && specimen.status == 'Collected'"
+          show-if-allowed="specimenResource.allUpdateOpts" dropdown class="os-inline-btn">
+          <button class="btn btn-default dropdown-toggle default">
+            <span class="fa fa-plus"></span>
+            <span translate="common.buttons.create">Create</span>
+            <span class="fa fa-caret-down"></span>
+          </button>
+          <ul class="dropdown-menu">
+            <li>
+              <a ui-sref="specimen-create-derivative(
+                {eventId: visit.eventId, visitId: visit.id, specimenId: specimen.id, srId: specimen.reqId})">
+                <span class="fa fa-flask"></span>
+                <span translate="specimens.ctx_menu.create_derivative">Create Derivative</span>
+              </a>
+            </li>
+            <li>
+              <a ui-sref="specimen-create-aliquots(
+                {eventId: visit.eventId, visitId: visit.id, specimenId: specimen.id, srId: specimen.reqId})">
+                <span class="fa fa-share-alt"></span>
+                <span translate="specimens.ctx_menu.create_aliquots">Create Aliquots</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <os-assign-to-spmn-list menu-align="left" on-add-to-list="addSpecimensToSpecimenList(list)">
+        </os-assign-to-spmn-list>
+
+        <button show-if-allowed="specimenResource.updateOpts" class="default"
+          ng-if="notCoordinatOrStoreAllowed && specimen.activityStatus == 'Active' && specimen.status == 'Collected'"
+          ng-click="printSpecimenLabels()">
+          <span class="fa fa-print"></span>
+          <span translate="specimens.buttons.print">Print</span>
+        </button>
+
+        <button show-if-allowed="specimenResource.deleteOpts" class="default" ng-click="deleteSpecimen()">
+          <span class="fa fa-trash"></span>
+          <span translate="common.buttons.delete">Delete</span>
+        </button>
+
+        <div dropdown os-show-if-menu-items-present class="os-inline-btn">
+          <button class="btn btn-default dropdown-toggle default">
+            <span translate="common.buttons.more">More</span>
+            <span class="fa fa-caret-down"></span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-right">
+            <li ng-if="!!specimen.imageId">
+              <os-view-image image-id="specimen.imageId" show-text="true"></os-view-image>
+            </li>
+
+            <li show-if-allowed="specimenResource.updateOpts"
+              ng-if="notCoordinatOrStoreAllowed && !specimen.reserved && specimen.status == 'Collected'">
+              <a ui-sref="specimen-detail.events(
+                {eventId: visit.eventId, visitId: visit.id, specimenId: specimen.id, srId: specimen.reqId})">
+                <span class="fa fa-calendar-o"></span>
+                <span translate="specimens.ctx_menu.add_event">Add Event</span>
+              </a>
+            </li>
+
+            <li show-if-allowed="specimenResource.updateOpts"
+              ng-if="notCoordinatOrStoreAllowed && specimen.storageLocation.id > 0">
+              <a ng-click="checkout(specimen)">
+                <span class="fa fa-sign-out"></span>
+                <span translate="specimens.buttons.checkout">Checkout</span>
+              </a>
+            </li>
+
+            <li show-if-allowed="specimenResource.updateOpts"
+              ng-if="notCoordinatOrStoreAllowed && specimen.checkoutPosition.id > 0">
+              <a ng-click="checkin(specimen)">
+                <span class="fa fa-sign-in"></span>
+                <span translate="specimens.buttons.checkin">Checkin</span>
+              </a>
+            </li>
+
+            <li show-if-allowed="specimenResource.updateOpts"
+              ng-if="notCoordinatOrStoreAllowed && !specimen.reserved && specimen.activityStatus == 'Active'
+                && specimen.status == 'Collected'">
+              <a ng-click="closeSpecimen()">
+                <span class="fa fa-remove"></span>
+                <span translate="common.buttons.close">Close</span>
+              </a>
+            </li>
+            <li show-if-allowed="specimenResource.updateOpts"
+              ng-if="notCoordinatOrStoreAllowed && specimen.activityStatus == 'Closed'">
+              <a ng-click="reopen()">
+                <span class="fa fa-check"></span>
+                <span translate="specimens.buttons.reopen">Reopen</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </span>
+    </div>
+    <div class="right">
+      <button class="default" os-right-drawer-toggle ng-switch on="spmnCtx.showActivity" ng-click="toggleShowActivity()">
+        <span ng-switch-when="true" translate="common.buttons.hide_activity">Hide Events</span>
+        <span ng-switch-when="false" translate="common.buttons.show_activity">Show Events</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="clearfix os-container-wrapper">
+    <div class="container os-col" style="width: 100%;">
+      <div ng-switch on="fieldsCtx.hasDict">
+        <div ng-switch-when="true">
+          <sde-fields-overview base-fields="fieldsCtx.sysDict" fields="fieldsCtx.cpDict"
+            obj="spmnCtx.obj" in-objs="spmnCtx.inObjs" ex-objs="spmnCtx.exObjs" watcher="spmnCtx.watcher">
+          </sde-fields-overview>
+        </div>
+        <div ng-switch-default>
+          <div ng-include="'modules/biospecimen/participant/specimen/static-fields.html'"></div>
+        </div>
+      </div>
+
+      <div class="os-section" ng-init="opCollapsed=false" ng-if="specimen.specimensPool.length >= 1">
+        <button class="os-btn-section-collapse os-btn-transparent" ng-click="opCollapsed=!opCollapsed">
+          <span ng-if="!opCollapsed" class="fa fa-chevron-circle-down"></span>
+          <span ng-if="opCollapsed" class="fa fa-chevron-circle-right"></span>
+        </button>
+        <h3 class="os-sub-section-title">
+          <span translate="specimens.pooled_from">Pooled From</span>
+        </h3>
+        <div collapse="opCollapsed">
+          <span ng-repeat="p in specimen.specimensPool">
+            <a ui-sref="specimen-detail.overview({cpId: p.cpId, cprId: p.cprId, visitId: p.visitId, specimenId: p.id})">
+              <span>{{p.label}}{{$last ? '' : ','}}</span>
+            </a>
+          </span>
+        </div>
+      </div>
+
+      <div class="os-section" ng-init="opCollapsed=false" ng-if="specimen.pooledSpecimens.length >= 1">
+        <button class="os-btn-section-collapse os-btn-transparent" ng-click="opCollapsed=!opCollapsed">
+          <span ng-if="!opCollapsed" class="fa fa-chevron-circle-down"></span>
+          <span ng-if="opCollapsed" class="fa fa-chevron-circle-right"></span>
+        </button>
+        <h3 class="os-sub-section-title">
+          <span translate="specimens.pooled_in">Pooled In</span>
+        </h3>
+        <div collapse="opCollapsed">
+          <span ng-repeat="p in specimen.pooledSpecimens">
+            <a ui-sref="specimen-detail.overview({cpId: p.cpId, cprId: p.cprId, visitId: p.visitId, specimenId: p.id})">
+              <span>{{p.label}}{{$last ? '' : ','}}</span>
+            </a>
+          </span>
+        </div>
+      </div>
+
+      <span show-if-allowed="specimenResource.allReadOpts" style="display: inline-block; width: 100%;">
+        <os-specimen-tree cp="cp" cpr="cpr" visit="visit" specimens="treeSpecimens"
+          allowed-ops="specimenAllowedOps" reload="reload()"
+          ref-date="specimen.createdOn" pending-spmns-disp-interval="pendingSpmnsDispInterval">
+        </os-specimen-tree>
+      </span>
+    </div>
+    <div class="os-col os-no-border" os-right-drawer open-width="34" style="position: static;">
+      <div ng-if="!!specimen.id">
+        <os-audit-overview class="os-no-top-margin" object-name="'specimen'" object-id="specimen.id"></os-audit-overview>
+      </div>
+      <div ng-include="'modules/biospecimen/participant/specimen/activities.html'"></div>
+    </div>
+  </div>
+</div>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimen/static-fields.html">
+  <div>
+    <ul class="os-key-values os-two-cols">
+      <li class="item">
+        <strong class="key key-sm" translate="specimens.lineage">Lineage</strong>
+        <span class="value value-md">{{specimen.lineage | osNoValue}}</span>
+      </li>
+
+      <li class="item">
+        <strong class="key key-sm" translate="specimens.collection_status">Status</strong>
+        <ng-switch on="!specimen.distributionStatus">
+          <ng-switch ng-switch-when="true" on="specimen.status">
+            <span ng-switch-when="Collected" class="value value-md os-status-collected">Collected</span>
+            <span ng-switch-when="Missed Collection" class="value value-md os-status-missed">Missed Collection</span>
+            <span ng-switch-when="Not Collected" class="value value-md os-status-missed">Not Collected</span>
+            <span ng-switch-default class="value value-md os-status-pending">Pending</span>
+          </ng-switch>
+          <ng-switch ng-switch-when="false" on="specimen.distributionStatus">
+            <span ng-switch-when="Distributed">
+              <span class="value value-md" ng-class="specimen.availableQty > 0 ? 'os-status-part-distributed' : 'os-status-distributed'">
+                Distributed
+              </span>
+            </span>
+            <span ng-switch-when="Returned" class="value value-md os-status-returned">Returned</span>
+          </ng-switch>
+        </ng-switch>
+      </li>
+
+      <li class="item" ng-show="!!specimen.additionalLabel">
+        <strong class="key key-sm" translate="specimens.additional_label">Additional Label</strong>
+        <span class="value value-md">{{specimen.additionalLabel}}</span>
+      </li>
+
+      <li class="item" ng-if="barcodingEnabled">
+        <strong class="key key-sm" translate="specimens.barcode">Barcode</strong>
+        <span class="value value-md">{{specimen.barcode | osNoValue}}</span>
+      </li>
+
+      <li class="item">
+        <strong class="key key-sm" translate="specimens.type">Specimen Type</strong>
+        <span class="value value-md">
+          <span>{{specimen.type | osNoValue}}</span>
+          <span ng-if="specimen.specimenClass">({{specimen.specimenClass}})</span>
+        </span>
+      </li>
+
+      <li class="item">
+        <strong class="key key-sm" translate="specimens.anatomic_site">Anatomic Site</strong>
+        <span class="value value-md">{{specimen.anatomicSite | osNoValue}}</span>
+      </li>
+
+      <li class="item">
+        <strong class="key key-sm" translate="specimens.laterality">Laterality</strong>
+        <span class="value value-md">{{specimen.laterality | osNoValue}}</span>
+      </li>
+
+      <li class="item">
+        <strong class="key key-sm" translate="specimens.initial_qty">Initial Quantity</strong>
+        <os-spmn-measure-val value="specimen.initialQty" specimen="specimen"></os-spmn-measure-val>
+      </li>
+
+      <li class="item">
+        <strong class="key key-sm" translate="specimens.available_qty">Available Quantity</strong>
+        <os-spmn-measure-val value="specimen.availableQty" specimen="specimen"></os-spmn-measure-val>
+      </li>
+
+      <li class="item">
+        <strong class="key key-sm" translate="specimens.concentration">Concentration</strong>
+        <os-spmn-measure-val value="specimen.concentration" measure="'concentration'" specimen="specimen">
+        </os-spmn-measure-val>
+      </li>
+
+      <li class="item" ng-if="!!specimen.parentId">
+        <strong class="key key-sm" translate="specimens.parent_specimen">Parent Specimen</strong>
+        <span class="value value-md">
+          <a ui-sref="specimen-detail.overview(
+            {eventId: visit.eventId, visitId: visit.id, specimenId: specimen.parentId, srId: specimen.reqId})">
+            <span ng-if="!!specimen.parentLabel">{{specimen.parentLabel}}</span>
+            <span ng-if="!specimen.parentLabel" translate="specimens.parent_specimen">Parent Specimen</span>
+          </a>
+        </span>
+      </li>
+
+      <li class="item">
+        <strong class="key key-sm" translate="specimens.pathology">Pathology Status</strong>
+        <span class="value value-md">{{specimen.pathology | osNoValue}}</span>
+      </li>
+
+      <li class="item">
+        <strong class="key key-sm" translate="specimens.storage_location">Storage Location</strong>
+        <ng-switch on="!!specimen.storageLocation.id && specimen.storageLocation.id != -1">
+          <span class="value value-md" ng-switch-when="true">
+            <a ui-sref="container-detail.locations({containerId: specimen.storageLocation.id})">
+              <os-disp-storage-position position="specimen.storageLocation"></os-disp-storage-position>
+            </a>
+          </span>
+          <span class="value value-md" ng-switch-default translate="specimens.virtually_located"> 
+            Virtual 
+          </span>
+        </ng-switch>
+      </li>
+
+      <li class="item">
+        <strong class="key key-sm" translate="specimens.biohazards">Biohazards</strong>
+        <span class="value value-md">{{specimen.biohazards | osArrayJoin | osNoValue}}</span>
+      </li>
+
+      <li class="item">
+        <strong class="key key-sm" translate="specimens.created_on">Created On</strong>
+        <span class="value value-md">{{specimen.createdOn | date: global.dateTimeFmt | osNoValue}}</span>
+      </li>
+
+      <li class="item" ng-if="specimen.lineage != 'New'">
+        <strong class="key key-sm" translate="specimens.created_by">Created By</strong>
+        <span class="value value-md">{{specimen.createdBy | osUserDisplayName | osNoValue}}</span>
+      </li>
+
+      <li class="item">
+        <strong class="key key-sm" translate="specimens.freeze_thaw_cycles">Freeze/Thaw Cycles</strong>
+        <span class="value value-md">{{specimen.freezeThawCycles | osNoValue}}</span>
+      </li>
+    </ul>
+
+    <div ng-if="!!specimen.extensionDetail">
+      <div os-extension-overview ext-object="specimen.extensionDetail" show-column="2"></div>
+    </div>
+
+    <div class="os-section os-line-section" ng-if="!!specimen.comments">
+      <strong class="key key-sm">
+        <span translate="specimens.comments">Comments</span>
+        <span>&nbsp;</span>
+      </strong>
+      <span class="value value-md">{{specimen.comments}}</span>
+    </div>
+
+    <div ng-include="'modules/biospecimen/participant/specimen/external-ids.html'"></div>
+
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimen/activities.html">
+  <div>
+    <h3 class="os-sub-section-title" translate="specimens.recent_events">
+      Recent Activity
+    </h3>
+    <span ng-if="activities.length == 0" translate="common.none">None</span>
+    <ul class="os-activity-list" ng-if="activities.length > 0">
+      <li class="os-activity" ng-repeat="activity in activities">
+        <div class="title" ng-switch on="activity.isEditable">
+          <a ui-sref="specimen-detail.event-overview({recordId: activity.id, formId: activity.formId})">
+            <ng-include src="'modules/biospecimen/participant/specimen/activity-info.html'"></ng-include>
+          </a>
+        </div>
+        <div class="info">
+          <span>
+            {{activity.updatedBy | osUserDisplayName}} -
+            {{activity.updateTime | date: global.dateTimeFmt}}
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimen/activity-info.html">
+  <span>
+    <span ng-if="!!activity.user && !!activity.time">
+      {{'specimens.activity_full_info' | translate: activity}}
+    </span>
+    <span ng-if="!!activity.user && !activity.time">
+      {{'specimens.activity_user_info' | translate: activity}}
+    </span>
+    <span ng-if="!activity.user && !!activity.time">
+      {{'specimens.activity_time_info' | translate: activity}}
+    </span>
+    <span ng-if="!activity.user && !activity.time">
+      {{'specimens.activity_info' | translate: activity}}
+    </span>
+  </span>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimen/confirm-print.html">
+  <div class="os-modal">
+    <div class="os-modal-header">
+      <span translate="specimens.confirm_print">Confirm Print</span>
+    </div>
+    <div class="os-modal-body">
+      <span translate="specimens.confirm_print_q">Do you want to print child specimen labels as well?</span>
+    </div>
+    <div class="os-modal-footer">
+      <button class="btn os-btn-text" ng-click="cancel()">
+        <span translate="common.buttons.discard">Cancel</span>
+      </button>
+      <button class="btn os-btn-secondary" ng-click="printSpecimenLabels(false)">
+        <span translate="specimens.buttons.print_current">No, only current specimen</span>
+      </button>
+      <button class="btn btn-primary" ng-click="printSpecimenLabels(true)">
+        <span translate="common.yes">Yes</span>
+      </button>
+    </div>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/specimen/external-ids.html">
+  <div class="os-section" ng-init="extIdsCollapsed=false" ng-if="specimen.externalIds.length > 0">
+    <button class="os-btn-section-collapse os-btn-transparent" ng-click="extIdsCollapsed=!extIdsCollapsed">
+      <span class="fa" ng-class="{true: 'fa-chevron-circle-right', false: 'fa-chevron-circle-down'}[extIdsCollapsed]"></span>
+    </button>
+    <h3 class="os-sub-section-title" translate="specimens.external_ids">External IDs</h3>
+    <div collapse="extIdsCollapsed">
+      <table class="os-table os-table-muted-hdr os-border">
+        <thead class="os-table-head">
+          <tr class="row">
+            <th class="col col-xs-6">
+              <span translate="common.name">Name</span>
+            </th>
+            <th class="col col-xs-6">
+              <span translate="common.value">Value</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="os-table-body">
+          <tr class="row" ng-repeat="extId in specimen.externalIds">
+            <td class="col col-xs-6">
+              <span>{{extId.name | osNoValue}}</span>
+            </td>
+            <td class="col col-xs-6">
+              <span>{{extId.value | osNoValue}}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</script>

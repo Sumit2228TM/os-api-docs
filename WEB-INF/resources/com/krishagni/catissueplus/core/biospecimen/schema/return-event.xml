@@ -1,0 +1,35 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<object-schema>
+  <name>specimenReturnEvent</name>
+
+  <record>
+    <name>com.krishagni.catissueplus.core.biospecimen.events.SpecimenEventDetail</name>
+
+    <field>
+      <caption>#getMessage("return_event_id")</caption>
+      <attribute>id</attribute>
+    </field>
+
+    <field>
+      <caption>#getMessage("specimen_event_date_time")</caption>
+      <attribute>time</attribute>
+      <type>datetime</type>
+    </field>
+
+    <field>
+      <caption>#getMessage("specimen_event_comments")</caption>
+      <attribute>comments</attribute>
+    </field>
+
+    <record>
+      <caption>#getMessage("specimen_event_user")</caption>
+      <attribute>user</attribute>
+
+      <field>
+        <caption>#getMessage("specimen_event_user_email")</caption>
+        <attribute>emailAddress</attribute>
+      </field>
+    </record>
+  </record>
+</object-schema>

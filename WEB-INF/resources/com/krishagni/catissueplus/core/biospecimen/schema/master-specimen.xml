@@ -1,0 +1,7 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<object-schema>
+  <name>masterSpecimen</name>
+
+  #parse( 'com/krishagni/catissueplus/core/biospecimen/schema/master-specimen-fields.xml' )
+</object-schema>

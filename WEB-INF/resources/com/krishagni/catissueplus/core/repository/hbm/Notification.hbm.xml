@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.common.domain.Notification" table="OS_NOTIFICATIONS"
+    entity-name="com.krishagni.catissueplus.core.common.domain.Notification">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_NOTIFS_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="operation" column="OPERATION"/>
+
+    <property name="entityType" column="ENTITY_TYPE"/>
+
+    <property name="entityId"  column="ENTITY_ID"/>
+
+    <property name="message" column="MESSAGE"/>
+
+    <many-to-one name="createdBy" column="CREATED_BY"/>
+
+    <property name="creationTime" column="CREATION_TIME"/>
+
+    <set name="notifiedUsers" table="OS_USER_NOTIFICATIONS" inverse="true" cascade="all-delete-orphan">
+      <key column="NOTIFICATION_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.common.domain.UserNotification"/>
+    </set>
+
+    <sql-query name="deleteNotifiedUsers">
+      delete from os_user_notifications where notification_id in (:notifIds)
+    </sql-query>
+
+    <sql-query name="deleteNotifications">
+      delete from os_notifications where identifier in (:notifIds)
+    </sql-query>
+  </class>
+</hibernate-mapping>

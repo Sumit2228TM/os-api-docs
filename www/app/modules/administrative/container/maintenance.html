@@ -1,0 +1,10 @@
+<div>
+  <os-tabs>
+    <os-tab title="{{'container.maintenance.scheduled_activities' | translate}}" on-select="selectSchedActivities()">
+      <div ng-include src="'modules/administrative/container/scheduled-activities.html'"></div>
+    </os-tab>
+    <os-tab title="{{'container.maintenance.activities_log' | translate}}" on-select="selectActivitiesLog()">
+      <div ng-include src="'modules/administrative/container/activities-log.html'"></div>
+    </os-tab>
+  </os-tabs>
+</div>

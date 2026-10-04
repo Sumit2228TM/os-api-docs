@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="mdnasim" id="Description of print rules">
+    <addColumn tableName="OS_PRINT_RULES">
+      <column name="DESCRIPTION" type="${text.type}(255)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Auto generate print rule descriptions using rule identifiers">
+    <sql>
+      update
+        os_print_rules
+      set
+        description = concat('Print rule ', identifier);
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Print rule description is mandatory">
+    <addNotNullConstraint tableName="OS_PRINT_RULES" columnName="DESCRIPTION" columnDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Setting to specify whether SPRs are stored for CP visits">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="STORE_SPRS" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Remove not null constraint on collection protocol of specimen requests">
+    <dropNotNullConstraint tableName="OS_SPECIMEN_REQUESTS" columnName="CP_ID" columnDataType="${int.type}"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Remove not null constraint on requestor of specimen requests">
+    <dropNotNullConstraint tableName="OS_SPECIMEN_REQUESTS" columnName="REQUESTOR_ID" columnDataType="${int.type}"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen request fields">
+    <addColumn tableName="OS_SPECIMEN_REQUESTS">
+      <column name="CATALOG_ID" type="${int.type}"/>
+      <column name="REQUESTOR_EMAIL_ID" type="${text.type}(255)"/>
+      <column name="IRB_ID" type="${text.type}(255)"/>
+      <column name="ITEMS_CRIT_JSON" type="${clob.type}"/>
+      <column name="CATALOG_QUERY_DEF" type="${clob.type}"/>
+      <column name="DP_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on requests' DP">
+    <addForeignKeyConstraint constraintName="FK_OS_SR_DP_ID"
+      baseTableName="OS_SPECIMEN_REQUESTS" baseColumnNames="DP_ID"
+      referencedTableName="CATISSUE_DISTRIBUTION_PROTOCOL" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Site container">
+    <addColumn tableName="CATISSUE_SITE">
+      <column name="CONTAINER_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on site container">
+    <addForeignKeyConstraint constraintName="FK_SITE_CONT_ID"
+      baseTableName="CATISSUE_SITE" baseColumnNames="CONTAINER_ID"
+      referencedTableName="OS_STORAGE_CONTAINERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Shipment type - specimen or container">
+    <addColumn tableName="OS_SHIPMENTS">
+      <column name="TYPE" type="${text.type}(16)" defaultValue="SPECIMEN">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Rename shipment items to shipment specimens">
+    <renameTable oldTableName="OS_SHIPMENT_ITEMS" newTableName="OS_SHIPMENT_SPECIMENS"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update specimen shipments view" runOnChange="true">
+    <createView viewName="SPECIMEN_SHIPMENTS_VIEW" replaceIfExists="true">
+      select
+        item.identifier as identifier, item.specimen_id as specimen_id, item.received_quality as received_quality,
+        ship.name as name, ship.shipped_date as shipped_date,
+        ship.sending_site_id as sending_site_id, ship.sender_id as sender_id, ship.sender_comments as sender_comments,
+        ship.received_date as received_date, ship.receiving_site_id as receiving_site_id, ship.receiver_id as receiver_id,
+        ship.receiver_comments as receiver_comments
+      from
+        os_shipment_specimens item
+        inner join os_shipments ship on ship.identifier = item.shipment_id
+      where
+        ship.status != 'PENDING' and
+        ship.activity_status != 'Disabled'
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Shipment containers">
+    <createTable tableName="OS_SHIPMENT_CONTAINERS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="SHIPMENT_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CONTAINER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="RECEIVED_QUALITY" type="${text.type}(32)"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on shipment container's shipment">
+    <addForeignKeyConstraint constraintName="OS_SHIP_CONT_SHIP_FK"
+      baseTableName="OS_SHIPMENT_CONTAINERS" baseColumnNames="SHIPMENT_ID"
+      referencedTableName="OS_SHIPMENTS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on shipment container">
+    <addForeignKeyConstraint constraintName="OS_SHIP_CONT_CONT_FK"
+      baseTableName="OS_SHIPMENT_CONTAINERS" baseColumnNames="CONTAINER_ID"
+      referencedTableName="OS_STORAGE_CONTAINERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+  
+  <changeSet author="vpawar" id="Shipment container ID in shipment specimen item">
+    <addColumn tableName="OS_SHIPMENT_SPECIMENS">
+      <column name="SHIPMENT_CONTAINER_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on shipment specimen container ID">
+    <addForeignKeyConstraint constraintName="FK_SHIP_SPMN_CONT_ID"
+      baseTableName="OS_SHIPMENT_SPECIMENS" baseColumnNames="SHIPMENT_CONTAINER_ID"
+      referencedTableName="OS_SHIPMENT_CONTAINERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Collection protocol event point units">
+    <addColumn tableName="CATISSUE_COLL_PROT_EVENT">
+      <column name="EVENT_POINT_UNIT" type="${text.type}(16)" defaultValue="DAYS"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Remove unique constraint to allow duplicate specimen barcode" dbms="mysql">
+    <dropUniqueConstraint tableName="CATISSUE_SPECIMEN" constraintName="BARCODE"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Remove unique constraint to allow duplicate specimen barcodes" dbms="oracle">
+    <sql>call os_drop_unique_constraint('catissue_specimen', 'barcode')</sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Unique specimen barcode per collection protocol" dbms="mysql">
+    <addUniqueConstraint constraintName="CAT_SPEC_CP_ID_BARCODE_UQ"
+      tableName="CATISSUE_SPECIMEN" columnNames="COLLECTION_PROTOCOL_ID, BARCODE"/>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Unique specimen barcode per collection protocol" dbms="oracle">
+    <sql>
+      create unique index CAT_SPEC_CP_ID_BARCODE_UQ on catissue_specimen(
+        case when
+          collection_protocol_id is not null and barcode is not null
+        then
+          collection_protocol_id || '-' || barcode
+        end
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="External subject ID">
+    <addColumn tableName="CATISSUE_COLL_PROT_REG">
+      <column name="EXTERNAL_SUBJECT_ID" type="${text.type}(128)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique external subject ID per CP" dbms="mysql">
+    <addUniqueConstraint constraintName="CAT_CPR_EXT_SUBJ_ID_UQ"
+      tableName="CATISSUE_COLL_PROT_REG" columnNames="COLLECTION_PROTOCOL_ID, EXTERNAL_SUBJECT_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique external subject ID per CP" dbms="oracle">
+    <sql>
+      create unique index CAT_CPR_EXT_SUBJ_ID_UQ on catissue_coll_prot_reg(
+        case when
+          collection_protocol_id is not null and external_subject_id is not null
+        then
+          collection_protocol_id || '-' || external_subject_id
+        end
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Registration site">
+    <addColumn tableName="CATISSUE_COLL_PROT_REG">
+      <column name="SITE_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on registration site">
+    <addForeignKeyConstraint constraintName="FK_CPR_SITE_ID"
+      baseTableName="CATISSUE_COLL_PROT_REG" baseColumnNames="SITE_ID"
+      referencedTableName="CATISSUE_SITE" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Recreating CPR view to add external subject ID and registration site" runOnChange="true">
+    <createView viewName="cpr_view" replaceIfExists="true">
+      select
+        cpr.identifier as cpr_id, cpr.collection_protocol_id as cp_id,
+        cpr.participant_id as participant_id, p.first_name as first_name,
+        p.middle_name as middle_name, p.last_name as last_name,
+        p.birth_date as dob, p.social_security_number as ssn,
+        cpr.activity_status as activity_status, p.gender as gender,
+        p.genotype as genotype, cpr.registration_date as registration_date,
+        cpr.protocol_participant_id as ppid, p.vital_status as vital_status,
+        p.death_date as death_date, p.empi_id as empi_id, cpr.barcode as barcode,
+        cpr.consent_sign_date as consent_sign_date, cpr.consent_witness as consent_witness,
+        cpr.consent_comments as consent_comments, cpr.external_subject_id as external_subject_id,
+        cpr.site_id as site_id
+      from
+        catissue_coll_prot_reg cpr
+        inner join catissue_participant p on cpr.participant_id = p.identifier
+    </createView>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Add position field to store position of to and from transferred container">
+    <addColumn tableName="CATISSUE_TRANSFER_EVENT_PARAM">
+      <column name="FROM_POSITION" type="${int.type}"/>
+      <column name="TO_POSITION" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Update to and from positions value" dbms="mysql">
+    <sql>
+      update
+        catissue_transfer_event_param te
+        inner join os_storage_containers c on c.identifier = te.to_storage_container_id
+      set
+        te.to_position = (te.to_position_dimension_two - 1) * c.no_of_cols + te.to_position_dimension_one;
+
+      update
+        catissue_transfer_event_param te
+        inner join os_storage_containers c on c.identifier = te.from_storage_container_id
+      set
+        te.from_position = (te.from_position_dimension_two - 1) * c.no_of_cols + te.from_position_dimension_one;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Update to and from positions value" dbms="oracle">
+    <sql>
+      merge into catissue_transfer_event_param te using (
+        select
+          te.identifier as eventId,
+          ((te.to_position_dimension_two - 1) * c.no_of_cols + te.to_position_dimension_one) as position
+        from
+          catissue_transfer_event_param te
+          inner join os_storage_containers c on c.identifier = te.to_storage_container_id
+      ) t0 on (t0.eventId = te.identifier)
+      when
+        matched
+      then
+        update set te.to_position = t0.position;
+
+      merge into catissue_transfer_event_param te using (
+        select
+          te.identifier as eventId,
+          ((te.from_position_dimension_two - 1) * c.no_of_cols + te.from_position_dimension_one) as position
+        from
+          catissue_transfer_event_param te
+          inner join os_storage_containers c on c.identifier = te.from_storage_container_id
+      ) t0 on (t0.eventId = te.identifier)
+      when
+        matched
+      then
+        update set te.from_position = t0.position;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Rename bulk import operation to export import">
+    <sql>
+      update rbac_operations set name = 'Export Import' where name = 'Bulk Import'
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen children events">
+    <createTable tableName="OS_CHILD_SPMN_EVENTS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="LINEAGE" type="${text.type}(16)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="SPECIMEN_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="USER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="CREATION_TIME" type="${timestamp.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="COMMENTS" type="${text.type}(255)"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Child specimens event ID generator" dbms="oracle">
+    <createSequence sequenceName="OS_CHILD_SPMN_EVENT_SEQ" startValue="1" incrementBy="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on children events specimen">
+    <addForeignKeyConstraint constraintName="FK_CHILD_SPMN_EVENTS_SPMN_ID"
+      baseTableName="OS_CHILD_SPMN_EVENTS" baseColumnNames="SPECIMEN_ID"
+      referencedTableName="CATISSUE_SPECIMEN" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on children events user">
+    <addForeignKeyConstraint constraintName="FK_CHILD_SPMN_EVENTS_USER_ID"
+      baseTableName="OS_CHILD_SPMN_EVENTS" baseColumnNames="USER_ID"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Parent specimen event ID">
+    <addColumn tableName="CATISSUE_SPECIMEN">
+      <column name="PARENT_EVENT_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on parent specimen event ID">
+    <addForeignKeyConstraint  constraintName="FK_PARENT_SPMN_EVENT_ID"
+      baseTableName="CATISSUE_SPECIMEN" baseColumnNames="PARENT_EVENT_ID"
+      referencedTableName="OS_CHILD_SPMN_EVENTS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to add record entry for specimen children event" dbms="mysql" runOnChange="true">
+    <sql endDelimiter="//" >
+      drop trigger if exists os_trg_spmn_child_event_re //
+    </sql>
+    <sql endDelimiter="//" >
+      create trigger os_trg_spmn_child_event_re after insert on os_child_spmn_events
+      for each row
+      begin
+        select
+          fc.identifier into @fcId
+        from
+          catissue_form_context fc
+          inner join dyextn_containers c on c.identifier = fc.container_id
+        where
+          c.name = 'SpecimenChildrenEvent' and
+          c.deleted_on is null and
+          fc.deleted_on is null and
+          fc.entity_type = 'SpecimenEvent' and
+          fc.cp_id = -1;
+
+        insert into catissue_form_record_entry
+          (identifier, form_ctxt_id, object_id, record_id, updated_by, update_time, activity_status)
+        values
+          (default, @fcId, new.specimen_id, new.identifier, new.user_id, current_timestamp(), 'ACTIVE');
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Trigger to add record entry for specimen children event" dbms="oracle" runOnChange="true">
+    <sql splitStatements="false">
+      create or replace trigger os_trg_spmn_child_event_re after insert on os_child_spmn_events
+      for each row
+      declare
+        fcId catissue_form_context.identifier%type;
+      begin
+        select
+          fc.identifier into fcId
+        from
+          catissue_form_context fc
+          inner join dyextn_containers c on c.identifier = fc.container_id
+        where
+          c.name = 'SpecimenChildrenEvent' and
+          c.deleted_on is null and
+          fc.deleted_on is null and
+          fc.entity_type = 'SpecimenEvent' and
+          fc.cp_id = -1;
+
+        insert into catissue_form_record_entry
+          (identifier, form_ctxt_id, object_id, record_id, updated_by, update_time, activity_status)
+        values
+          (catissue_form_rec_entry_seq.nextval, fcId, :new.specimen_id, :new.identifier, :new.user_id, current_timestamp, 'ACTIVE');
+      end;
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Consent tier view with consent statement code" runOnChange="true">
+    <createView viewName="CONSENT_TIER_VIEW" replaceIfExists="true">
+      select
+        tier.identifier as identifier, resp.coll_prot_reg_id as cpr_id,
+        stmt.code as code, stmt.statement as statement, resp.response as response
+      from
+        catissue_consent_tier tier
+        inner join catissue_consent_tier_response resp on resp.consent_tier_id = tier.identifier
+        inner join os_consent_statements stmt on stmt.identifier =  tier.consent_stmt_id
+      where
+        tier.activity_status != 'Disabled' and
+        resp.coll_prot_reg_id is not null
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen distribution view" runOnChange="true">
+    <createView viewName="os_specimen_distribution_view" replaceIfExists="true">
+      select
+        oi.identifier as identifier,
+        o.identifier as order_id,
+        o.name as name,
+        o.distribution_protocol_id as dp_id,
+        o.site_id as site_id,
+        o.tracking_url as tracking_url,
+        o.comments as comments,
+        o.requester_id as requester_id,
+        o.execution_date as execution_date,
+        o.status as order_status,
+        oi.quantity as quantity,
+        oi.status as status,
+        oi.specimen_id as specimen_id
+      from
+        os_orders o
+        inner join os_order_items oi on oi.order_id = o.identifier
+      where
+        o.activity_status != 'Disabled'
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen shipment view" runOnChange="true">
+    <createView viewName="OS_SPECIMEN_SHIPMENTS_VIEW" replaceIfExists="true">
+      select
+        s.identifier as shipment_id, s.name as shipment_name, s.type as shipment_type,
+        s.courier_name as courier_name, s.tracking_number as tracking_number, s.tracking_url as tracking_url,
+        s.sending_site_id as sending_site_id, s.sender_id as sender_id,
+        s.shipped_date as shipped_date, s.sender_comments as sender_comments,
+        s.receiving_site_id as receiving_site_id, s.received_date as received_date,
+        s.receiver_id as receiver_id, s.receiver_comments as receiver_comments, ss.received_quality as received_quality,
+        c.name as container_name, s.status as status, ss.specimen_id as specimen_id
+      from
+        os_shipments s
+        inner join os_shipment_specimens ss on ss.shipment_id = s.identifier
+        left join os_shipment_containers sc on sc.identifier = ss.shipment_container_id
+        left join os_storage_containers c on c.identifier = sc.container_id
+      where
+        s.activity_status != 'Disabled'
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Disable order and shipment query form">
+    <sql>
+      update
+        catissue_form_context
+      set
+        deleted_on = current_timestamp
+      where
+        entity_type = 'Query' and
+        container_id in (select identifier from dyextn_containers where name in ('Order', 'Shipment'))
+    </sql>
+
+    <sql>
+      update dyextn_containers set deleted_on = current_timestamp where name in ('Order', 'Shipment')
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Track approval status of specimen request">
+    <addColumn tableName="OS_SPECIMEN_REQUESTS">
+      <column name="SCREENING_STATUS" type="${text.type}(16)"/>
+      <column name="SCREENED_BY" type="${int.type}"/>
+      <column name="SCREENING_DATE" type="${nullable.ts.type}"/>
+      <column name="SCREENING_COMMENTS" type="${text.type}(255)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on request screener">
+    <addForeignKeyConstraint constraintName="FK_SPMN_REQS_SCREENER"
+      baseTableName="OS_SPECIMEN_REQUESTS" baseColumnNames="SCREENED_BY"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update approval status of existing specimen requests">
+    <sql>
+      update
+        os_specimen_requests
+      set
+        screening_status = 'PENDING'
+      where
+        identifier not in (
+          select distinct request_id from os_orders where request_id is not null
+          union
+          select distinct request_id from os_shipments where request_id is not null
+        )
+    </sql>
+
+    <sql>update os_specimen_requests set screening_status = 'APPROVED' where screening_status is null</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="CP Catalog ID">
+    <addColumn tableName="CATISSUE_COLLECTION_PROTOCOL">
+      <column name="CATALOG_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="OPSMN-4136: Create an empty statistics table to prevent query errors">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <tableExists tableName="OS_SPECIMEN_STATS"/>
+      </not>
+    </preConditions>
+    <createTable tableName="OS_SPECIMEN_STATS">
+      <column name="SPECIMEN_ID" type="${int.type}"/>
+      <column name="COLLECTOR_ID" type="${int.type}"/>
+      <column name="COLLECTION_PROCEDURE" type="${text.type}(50)"/>
+      <column name="COLLECTION_CONTAINER" type="${text.type}(50)"/>
+      <column name="COLLECTION_TIME" type="${timestamp.type}"/>
+      <column name="RECEIVER_ID" type="${int.type}"/>
+      <column name="RECEIVED_QUALITY" type="${text.type}(255)"/>
+      <column name="RECEIVED_TIME" type="${timestamp.type}"/>
+      <column name="FROZEN_TIME" type="${timestamp.type}"/>
+      <column name="PROCESSING_TIME" type="${int.type}"/>
+      <column name="ISCHEMIA_TIME" type="${int.type}"/>
+      <column name="ALIQUOT_SEQ" type="${int.type}"/>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the width of export job params value column" dbms="mysql">
+    <modifyDataType tableName="OS_EXPORT_JOB_PARAMS" columnName="VALUE" newDataType="${clob.type}"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the width of export job params value column - 1" dbms="oracle">
+    <addColumn tableName="OS_EXPORT_JOB_PARAMS">
+      <column name="VALUE_TEMP" type="${clob.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the width of export job params value column - 2" dbms="oracle">
+    <sql>update os_export_job_params set value_temp = value;</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the width of export job params value column - 3" dbms="oracle">
+    <dropColumn tableName="OS_EXPORT_JOB_PARAMS" columnName="VALUE"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the width of export job params value column - 4" dbms="oracle">
+    <renameColumn tableName="OS_EXPORT_JOB_PARAMS" oldColumnName="VALUE_TEMP" newColumnName="VALUE"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container position assignment">
+    <addColumn tableName="OS_STORAGE_CONTAINERS">
+      <column name="POS_ASSIGNMENT" type="${text.type}(32)" defaultValue="HZ_TOP_DOWN_LEFT_RIGHT">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container type position assignment">
+    <addColumn tableName="OS_CONTAINER_TYPES">
+      <column name="POS_ASSIGNMENT" type="${text.type}(32)" defaultValue="HZ_TOP_DOWN_LEFT_RIGHT">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Column to keep track of store list execution retries and errors">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <changeSetExecuted
+        changeLogFile="db/5.0/schema.xml"
+        author="vgaikwad"
+        id="Column to keep track of store list execution retries and errors"/>
+      </not>
+    </preConditions>
+
+    <addColumn tableName="OS_CONTAINER_STORE_LISTS">
+      <column name="NO_OF_RETRIES" type="${int.type}" defaultValueNumeric="0"/>
+      <column name="ERROR" type="${clob.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Column to store error encountered for item in automated freezer op">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <changeSetExecuted
+          changeLogFile="db/5.0/schema.xml"
+          author="vgaikwad"
+          id="Column to store error encountered for item in automated freezer op"/>
+      </not>
+    </preConditions>
+
+    <addColumn tableName="OS_CONTAINER_STORE_LIST_ITEMS">
+      <column name="ERROR" type="${clob.type}"/>
+    </addColumn>
+  </changeSet>
+</databaseChangeLog>

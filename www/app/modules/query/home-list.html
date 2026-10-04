@@ -1,0 +1,19 @@
+<div ng-controller="HomeQueryListCtrl" ng-init="init(opts)">
+  <table class="os-table">
+    <tbody class="os-table-body">
+      <tr class="row" ng-repeat="query in ctx.queries">
+        <td class="col" style="width: 40px;">
+          <span class="os-starred-item fa"
+            ng-class="{true: 'fa-star starred', false: 'fa-star-o'}[query.starred == true]"
+            ng-click="toggleStar(query)">
+          </span>
+        </td>
+        <td class="col">
+          <a ui-sref="query-results({queryId: query.id})">
+            <span>{{query.title}}</span>
+          </a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

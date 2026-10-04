@@ -1,0 +1,125 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3 translate="cp.list">Collection Protocols</h3>
+    </div>
+    <div class="os-page-header-actions">
+      <os-list-pager opts="ctx.listCtrl.pagerOpts"></os-list-pager>
+    </div>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left">
+      <div ng-if="!ctx.listCtrl.checkList.anySelected">
+        <div ng-include="'modules/biospecimen/cp/single-cp-ops.html'"></div>
+      </div>
+
+      <div ng-if="ctx.listCtrl.checkList.anySelected">
+        <div ng-include="'modules/biospecimen/cp/bulk-cp-ops.html'"></div>
+      </div>
+    </div>
+    <div class="right">
+      <button class="default" os-right-drawer-toggle title="{{'cp.tooltip.search' | translate}}" ng-if="ctx.showSearch">
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+   
+  <div class="os-container-wrapper">
+    <div>
+      <os-list params="ctx.params" item-sref="cp-new-ui-list-view({cpId: row.hidden.cpId})"
+        fixed-data-tmpl="modules/biospecimen/cp/list-view-fixed-data.html"
+        action-buttons-tmpl="modules/biospecimen/cp/list-view-row-action-buttons.html"
+        enable-selection="true" show-item="showCpSummary(row)" init-ctrl="setListCtrl($list)"
+        empty-state="ctx.emptyState" star-items="true" starred-expr="!!row.hidden.starred"
+        toggle-item-star="toggleStarredCp(row)">
+      </os-list>
+    </div>
+  </div>
+</div>
+
+<script type="text/ng-template" id="modules/biospecimen/cp/single-cp-ops.html">
+  <div>
+    <button show-if-allowed="cpResource.createOpts" class="default" ui-sref="cp-addedit({cpId: ''})">
+      <span class="fa fa-plus"></span>
+      <span translate="common.buttons.create">Create</span>
+    </button>
+
+    <os-plugin-hooks view-name="'cp-list'" sec-name="'page-header'"></os-plugin-hooks>
+
+    <ng-include src="'modules/biospecimen/cp/more-menu.html'"></ng-include>
+
+    <os-help class="os-btns btn default" link="cp_help_link"></os-help>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/cp/bulk-cp-ops.html">
+  <div>
+    <button class="default" title="{{'user.tooltip.delete_cps' | translate}}" ng-click="deleteCps()">
+      <span class="fa fa-trash"></span>
+      <span translate="common.buttons.delete">Delete</span>
+    </button>
+
+    <div dropdown class="os-inline-btn" ng-if="cpsCtx.cpExportAllowed">
+      <button class="default dropdown-toggle">
+        <span translate="common.buttons.export">Export</span>
+        <span class="fa fa-caret-down"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li>
+          <a ng-click="exportCpRecords('cp')">
+            <span class="fa fa-calendar"></span>
+            <span translate="cp.list">Collection Protocols</span>
+          </a>
+        </li>
+        <li>
+          <a ng-click="exportCpRecords('cpe')">
+            <span class="fa fa-list-alt"></span>
+            <span translate="cp.cpe_list">Events</span>
+          </a>
+        </li>
+        <li>
+          <a ng-click="exportCpRecords('sr')">
+            <span class="fa fa-flask"></span>
+            <span translate="srs.list">Specimen Requirements</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/cp/list-view-fixed-data.html">
+  <span ng-show="$index == 0">
+    <span ng-show="row.fixedData[$index] > -1">
+      <a os-new-ui-url="{url: 'cp-view/:cpId/participants/-1', params: {cpId: row.hidden.cpId}, query: {view: 'participants_list'}}" os-tooltip="{{'cp.view_participants' | translate}}">
+        {{row.fixedData[$index] | number: 0 | osNoValue}}</span>
+      </a>
+    </span>
+    <span ng-show="row.fixedData[$index] == -1">
+      <span translate="common.na">NA</span>
+    </span>
+  </span>
+  <span ng-show="$index == 1">
+    <a os-new-ui-url="{url: 'cp-view/:cpId/participants/-1', params: {cpId: row.hidden.cpId}, query: {view: 'specimens_list'}}" os-tooltip="{{'cp.view_specimens' | translate}}">
+      {{row.fixedData[$index] | number: 0 | osNoValue}}</span>
+    </a>
+  </span>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/cp/list-view-row-action-buttons.html">
+  <div class="os-more-option-btns">
+    <button class="btn btn-xs btn-default os-click-esc" os-tooltip="{{'cp.view_details' | translate}}"
+      ui-sref="cp-detail.overview({cpId: row.hidden.cpId})">
+      <span class="fa fa-eye"></span>
+    </button>
+    <button class="btn btn-xs btn-default os-click-esc" os-tooltip="{{'cp.view_catalog' | translate}}"
+      ui-sref="ssc-catalog-dashboard({catalogId: row.hidden.catalogId, cpId: row.hidden.cpId})"
+      ng-show="!!row.hidden.catalogId && $list.viewCtx.queryReadAllowed">
+      <span class="fa fa-table"></span>
+    </button>
+
+    <os-plugin-hooks view-name="'cp-list'" sec-name="'row-buttons'"></os-plugin-hooks>
+  </div>
+</script>

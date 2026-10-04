@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Copy specimen external IDs from legacy table to the new table" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="catissue_external_identifier"/>
+    </preConditions>
+    <sql>
+      insert into
+        os_spmn_external_ids
+      select
+        identifier, specimen_id, name, value
+      from
+        catissue_external_identifier
+      where
+        name is not null or value is not null
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Copy specimen external IDs from legacy table to the new table" dbms="oracle">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="catissue_external_identifier"/>
+    </preConditions>
+    <sql>
+      insert into
+        os_spmn_external_ids
+      select
+        os_spmn_ext_id_seq.nextval, specimen_id, name, value
+      from
+        catissue_external_identifier
+      where
+        name is not null or value is not null
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update received quality of existing shipment containers and specimens">
+    <sql>update os_shipment_specimens set received_quality='Acceptable' where received_quality='ACCEPTABLE'</sql>
+    <sql>update os_shipment_specimens set received_quality='Unacceptable' where received_quality='UNACCEPTABLE'</sql>
+
+    <sql>update os_shipment_specimens_aud set received_quality='Acceptable' where received_quality = '0'</sql>
+    <sql>update os_shipment_specimens_aud set received_quality='Unacceptable' where received_quality = '1'</sql>
+
+    <sql>update os_shipment_containers set received_quality='Acceptable' where received_quality='ACCEPTABLE'</sql>
+    <sql>update os_shipment_containers set received_quality='Unacceptable' where received_quality='UNACCEPTABLE'</sql>
+
+    <sql>update os_shipment_containers_aud set received_quality='Acceptable' where received_quality = '0'</sql>
+    <sql>update os_shipment_containers_aud set received_quality='Unacceptable' where received_quality = '1'</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Shipments migration" dbms="oracle">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <tableExists tableName="catissue_base_shipment"/>
+        <tableExists tableName="catissue_shipment_containr_rel"/>
+        <tableExists tableName="catissue_storage_container"/>
+        <tableExists tableName="catissue_specimen_position"/>
+        <sqlCheck expectedResult="0">select count(*) from os_shipments</sqlCheck>
+      </and>
+    </preConditions>
+    <sql>
+      insert into os_shipments (
+        identifier,
+        name,
+        type,
+        sending_site_id,
+        receiving_site_id,
+        shipped_date,
+        sender_id,
+        sender_comments,
+        status,
+        activity_status
+      )
+      select
+        os_shipments_seq.nextval,
+        bs.label as name,
+        'SPECIMEN' as type,
+        bs.sender_site_id as sending_site_id,
+        bs.receiver_site_id as receiving_site_id,
+        bs.send_date as shipped_date,
+        bs.sender_user_id as sender_id,
+        bs.sender_comments as sender_comments,
+        'SHIPPED' as status,
+        'Active' as activity_status
+      from
+        catissue_base_shipment bs
+      where
+        bs.activity_status = 'In Transit'
+    </sql>
+    <sql>
+      insert into os_shipment_specimens (
+        identifier,
+        shipment_id,
+        specimen_id
+      )
+      select
+        os_shipment_items_seq.nextval as identifier,
+        os.identifier as shipment_id,
+        sp.specimen_id as specimen_id
+      from
+        os_shipments os
+        inner join catissue_base_shipment bs on bs.label = os.name
+        inner join catissue_shipment_containr_rel bsc on bsc.base_shipment_id = bs.identifier
+        inner join catissue_storage_container c on c.identifier = bsc.container_id
+        inner join catissue_specimen_position sp on sp.container_id = c.identifier
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Shipments migration" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <and>
+        <tableExists tableName="catissue_base_shipment"/>
+        <tableExists tableName="catissue_shipment_containr_rel"/>
+        <tableExists tableName="catissue_storage_container"/>
+        <tableExists tableName="catissue_specimen_position"/>
+        <sqlCheck expectedResult="0">select count(*) from os_shipments</sqlCheck>
+      </and>
+    </preConditions>
+    <sql>
+      insert into os_shipments (
+        name,
+        type,
+        sending_site_id,
+        receiving_site_id,
+        shipped_date,
+        sender_id,
+        sender_comments,
+        status,
+        activity_status
+      )
+      select
+        bs.label as name,
+        'SPECIMEN' as type,
+        bs.sender_site_id as sending_site_id,
+        bs.receiver_site_id as receiving_site_id,
+        bs.send_date as shipped_date,
+        bs.sender_user_id as sender_id,
+        bs.sender_comments as sender_comments,
+        'SHIPPED' as status,
+        'Active' as activity_status
+      from
+        catissue_base_shipment bs
+      where
+        bs.activity_status = 'In Transit'
+    </sql>
+    <sql>
+      insert into os_shipment_specimens (
+        shipment_id,
+        specimen_id
+      )
+      select
+        os.identifier as shipment_id,
+        sp.specimen_id as specimen_id
+      from
+        os_shipments os
+        inner join catissue_base_shipment bs on bs.label = os.name
+        inner join catissue_shipment_containr_rel bsc on bsc.base_shipment_id = bs.identifier
+        inner join catissue_storage_container c on c.identifier = bsc.container_id
+        inner join catissue_specimen_position sp on sp.container_id = c.identifier
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop the catissue shipment container relation">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="catissue_shipment_containr_rel"/>
+    </preConditions>
+    <dropTable tableName="catissue_shipment_containr_rel"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Drop the older shipments view">
+    <preConditions onFail="MARK_RAN">
+      <viewExists viewName="specimen_shipment_view"/>
+    </preConditions>
+
+    <dropView viewName="specimen_shipment_view"/>
+  </changeSet>
+</databaseChangeLog>

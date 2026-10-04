@@ -1,0 +1,74 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3>
+        <span translate="container_task.list">Container Tasks</span>
+      </h3>
+    </div>
+
+    <div class="os-page-header-actions">
+      <os-list-pager opts="ctx.pagerOpts"></os-list-pager>
+    </div>
+  </div>
+
+  <div class="os-page-commands">
+    <div class="left">
+      <button show-if-admin="institute" class="default" ui-sref="container-task-addedit({taskId: ''})">
+        <span class="fa fa-plus"></span>
+        <span translate="common.buttons.create">Create</span>
+      </button>
+
+      <button class="default" ui-sref="container-list">
+        <span class="fa fa-dropbox"></span>
+        <span translate="container.list">Containers</span>
+      </button>
+    </div>
+
+    <div class="right">
+      <button class="default" os-right-drawer-toggle>
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+  
+  <div class="container">
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th class="col">
+            <span translate="container_task.name">Name</span>
+          </th>
+          <th class="col os-col-80">
+            <span translate="container_task.description">Description</span>
+          </th>
+          <th class="col" ng-show="ctx.allowEdits">
+            <span>&nbsp;</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-if="ctx.emptyState.loading || ctx.emptyState.empty">
+          <td class="col" colspan="100%">
+            <os-empty-list state="ctx.emptyState"></os-empty-list>
+          </td>
+        </tr>
+        <tr class="row" ng-repeat="task in ctx.tasks" os-row-click="showEditTask(task)">
+          <td class="col">
+            <span>{{task.name}}</span>
+          </td>
+          <td class="col os-col-80">
+            <span>{{task.description}}</span>
+          </td>
+          <td class="col os-click-esc" ng-show="ctx.allowEdits">
+            <button class="btn btn-default btn-xs" ng-click="archiveTask(task)">
+              <span class="fa fa-archive"></span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div os-right-drawer ng-include="'modules/administrative/container-task/search.html'"></div>
+</div>

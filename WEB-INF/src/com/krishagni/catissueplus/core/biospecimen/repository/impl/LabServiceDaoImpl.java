@@ -1,0 +1,147 @@
+package com.krishagni.catissueplus.core.biospecimen.repository.impl;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import com.krishagni.catissueplus.core.biospecimen.domain.LabService;
+import com.krishagni.catissueplus.core.biospecimen.domain.LabServicesRateList;
+import com.krishagni.catissueplus.core.biospecimen.events.LabServicesRateListDetail;
+import com.krishagni.catissueplus.core.biospecimen.repository.LabServiceDao;
+import com.krishagni.catissueplus.core.biospecimen.repository.LabServiceListCriteria;
+import com.krishagni.catissueplus.core.common.repository.AbstractDao;
+import com.krishagni.catissueplus.core.common.repository.Criteria;
+import com.krishagni.catissueplus.core.common.repository.SubQuery;
+
+public class LabServiceDaoImpl extends AbstractDao<LabService> implements LabServiceDao {
+
+	@Override
+	public Class<LabService> getType() {
+		return LabService.class;
+	}
+
+	@Override
+	public List<LabService> getServices(LabServiceListCriteria criteria) {
+		Criteria<LabService> query = getLabServicesQuery(criteria);
+		return query.addOrder(query.asc("labSvc.code")).list(criteria.startAt(), criteria.maxResults());
+	}
+
+	@Override
+	public Long getServicesCount(LabServiceListCriteria criteria) {
+		Criteria<LabService> query = getLabServicesQuery(criteria);
+		return query.getCount("labSvc.id");
+	}
+
+	@Override
+	public LabService getByCode(String code) {
+		Criteria<LabService> query = createCriteria(LabService.class, "labSvc");
+		if (isMySQL()) {
+			query.add(query.eq("labSvc.code", code));
+		} else {
+			query.add(query.eq(query.lower("labSvc.code"), code.toLowerCase()));
+		}
+
+		return query.uniqueResult();
+	}
+
+	@Override
+	public List<LabServicesRateListDetail> getRateLists(Long serviceId) {
+		List<Object[]> rows = getCurrentSession().createNamedQuery(GET_RATE_LISTS, Object[].class)
+			.setParameter("serviceId", serviceId)
+			.list();
+
+		List<LabServicesRateListDetail> rateLists = new ArrayList<>();
+		for (Object[] row : rows) {
+			LabServicesRateListDetail rateList = LabServicesRateListDetail.from((LabServicesRateList) row[0]);
+			rateList.setServiceRate((BigDecimal) row[1]);
+			rateLists.add(rateList);
+		}
+
+		return rateLists;
+	}
+
+	@Override
+	public Map<Long, Long> getRateListsCount(Collection<Long> serviceIds) {
+		List<Object[]> rows = getCurrentSession().createNamedQuery(GET_RATE_LISTS_COUNT, Object[].class)
+			.setParameterList("serviceIds", serviceIds)
+			.list();
+
+		Map<Long, Long> result = new LinkedHashMap<>();
+		for (Object[] row : rows) {
+			result.put((Long) row[0], (Long) row[1]);
+		}
+
+		return result;
+	}
+
+	@Override
+	public Map<String, Long> getSpecimensCountServicedBy(Collection<Long> serviceIds) {
+		List<Object[]> rows = getCurrentSession().createNamedQuery(GET_SPECIMENS_COUNT_BY_SERVICE, Object[].class)
+			.setParameterList("serviceIds", serviceIds)
+			.list();
+
+		Map<String, Long> result = new LinkedHashMap<>();
+		for (Object[] row : rows) {
+			result.put((String) row[1], (Long) row[2]);
+		}
+
+		return result;
+	}
+
+	private Criteria<LabService> getLabServicesQuery(LabServiceListCriteria criteria) {
+		Criteria<LabService> query = createCriteria(LabService.class, "labSvc");
+		if (CollectionUtils.isNotEmpty(criteria.codes())) {
+			query.add(query.in("labSvc.code", criteria.codes()));
+		}
+
+		if (StringUtils.isNotBlank(criteria.query())) {
+			if (isMySQL()) {
+				query.add(query.or(query.like("labSvc.code", criteria.query()), query.like("labSvc.description", criteria.query())));
+			} else {
+				query.add(query.or(query.ilike("labSvc.code", criteria.query()), query.ilike("labSvc.description", criteria.query())));
+			}
+		}
+
+		if (criteria.notInRateListId() != null && criteria.notInRateListId() > 0L) {
+			SubQuery<Long> notInRateListSvcs = query.createSubQuery(LabService.class, "iLabSvc")
+				.join("iLabSvc.serviceRates", "serviceRate")
+				.join("serviceRate.rateList", "rateList")
+				.select("iLabSvc.id");
+			notInRateListSvcs.add(notInRateListSvcs.eq("rateList.id", criteria.notInRateListId()));
+			query.add(query.notIn("labSvc.id", notInRateListSvcs));
+		}
+
+		if ((criteria.cpId() != null && criteria.cpId() > 0L) || StringUtils.isNotBlank(criteria.cpShortTitle())) {
+			SubQuery<Long> cpLabSvcs = query.createSubQuery(LabService.class, "cpLabSvc")
+				.join("cpLabSvc.serviceRates", "serviceRate")
+				.join("serviceRate.rateList", "rateList")
+				.join("rateList.cps", "rateListCp")
+				.join("rateListCp.cp", "cp")
+				.select("cpLabSvc.id");
+			cpLabSvcs.add(cpLabSvcs.ne("rateList.activityStatus", "Disabled"));
+			if (criteria.cpId() != null && criteria.cpId() > 0L) {
+				cpLabSvcs.add(cpLabSvcs.eq("cp.id", criteria.cpId()));
+			} else {
+				cpLabSvcs.add(cpLabSvcs.eq("cp.shortTitle", criteria.cpShortTitle()));
+			}
+
+			query.add(query.in("labSvc.id", cpLabSvcs));
+		}
+
+		return query;
+	}
+
+	private static final String FQN = LabService.class.getName();
+
+	private static final String GET_RATE_LISTS = FQN + ".getServiceRates";
+
+	private static final String GET_RATE_LISTS_COUNT = FQN + ".getRateListsCount";
+
+	private static final String GET_SPECIMENS_COUNT_BY_SERVICE = FQN + ".getSpecimensCountServicedBy";
+}

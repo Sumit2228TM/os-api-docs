@@ -1,0 +1,122 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3>
+        <span translate="specimens.bulk_transfer.title">Transfer Specimens</span>
+      </h3>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="col-xs-12">
+      <form name="transferForm" class="form-horizontal" os-form-validator="transferForm" novalidate>
+        <div class="form-group" os-storage-positions>
+          <table class="os-table bulk-edit">
+            <thead class="os-table-head">
+              <tr class="row">
+                <th class="col os-col-20">
+                  <span translate="specimens.label">Label</span>
+                </th>
+                <th class="col os-col-15">
+                  <span translate="specimens.bulk_transfer.current_location">Current Location</span>
+                </th>
+                <th class="col os-col-20">
+                  <span translate="specimens.bulk_transfer.new_location">New Location</span>
+                  <button class="btn btn-xs btn-default" style="font-weight: normal"
+                    os-tooltip="{{'common.copy_first_to_all' | translate}}" ng-click="copyFirstLocationToAll()">
+                    <span class="fa fa-copy"></span>
+                  </button>
+                </th>
+                <th class="col os-col-15">
+                  <span translate="specimens.bulk_transfer.time">Transfer Time</span>
+                  <button class="btn btn-xs btn-default" style="font-weight: normal"
+                    os-tooltip="{{'common.copy_first_to_all' | translate}}" ng-click="copyFirstTimeToAll()">
+                    <span class="fa fa-copy"></span>
+                  </button>
+                </th>
+                <th class="col os-col-15">
+                  <span translate="specimens.bulk_transfer.comments">Comments</span>
+                  <button class="btn btn-xs btn-default" style="font-weight: normal"
+                    os-tooltip="{{'common.copy_first_to_all' | translate}}" ng-click="copyFirstCommentsToAll()">
+                    <span class="fa fa-copy"></span>
+                  </button>
+                </th>
+                <th class="col os-col-10">
+                  <span translate="specimens.qty">Available Quantity</span>
+                  <button class="btn btn-xs btn-default" style="font-weight: normal"
+                    os-tooltip="{{'common.copy_first_to_all' | translate}}" ng-click="copyFirstQtyToAll()">
+                    <span class="fa fa-copy"></span>
+                  </button>
+                </th>
+                <th class="col os-col-3">
+                  <div class="clearfix" os-tooltip="{{'specimens.increment_freeze_thaw' | translate}}">
+                    <span class="fa fa-thermometer-empty" style="font-size: 24px;">
+                    </span>
+                    <os-checkbox ng-model="ctx.incrFreezeThaw" ng-change="toggleAllIncrFreezeThaw()"></os-checkbox>
+                  </div>
+                </th>
+                <th class="col os-col-2">
+                  <span>&nbsp;</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="os-table-body">
+              <tr class="row" ng-repeat="spmn in specimens">
+                <td class="col">
+                  <a ui-sref="specimen({specimenId: spmn.id})">
+                    <span>{{spmn.label}}</span>
+                  </a>
+                  <span>({{spmn.cpShortTitle}}, {{spmn.type}})</span>
+                </td>
+                <td class="col">
+                  <os-disp-storage-position position="spmn.oldLocation"></os-disp-storage-position>
+                </td>
+                <td class="col">
+                  <os-storage-position os-md-input entity="spmn" cp-id="spmn.cpId" hide-placeholder>
+                  </os-storage-position>
+                </td>
+                <td class="col">
+                  <div class="os-date-time clearfix">
+                    <os-date-picker class="col-xs-9 os-no-left-padding" date="spmn.transferTime" md-type="true">
+                    </os-date-picker>
+                    <div class="col-xs-3 os-md-time os-no-padding">
+                      <timepicker class="os-md-input os-time-no-wheels" ng-model="spmn.transferTime" show-meridian="false">
+                      </timepicker>
+                    </div>
+                  </div>
+                </td>
+                <td class="col">
+                  <input type="text" os-md-input ng-model="spmn.transferComments">
+                </td>
+                <td class="col">
+                  <os-spmn-measure specimen="spmn" md-input quantity="spmn.availableQty"></os-spmn-measure>
+                </td>
+                <td class="col">
+                  <os-checkbox ng-model="spmn.incrFreezeThaw" ng-change="toggleIncrFreezeThaw(spmn)"></os-checkbox>
+                </td>
+                <td class="col">
+                  <button class="btn btn-xs btn-default" ng-click="removeSpecimen($index)">
+                    <span class="fa fa-remove"></span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="os-divider"></div>
+
+        <div class="form-group right-btns">
+          <div class="col-xs-offset-3 col-xs-9">
+            <button class="btn os-btn-text" ng-click="back()">
+              <span translate="common.buttons.cancel">Cancel</span>
+            </button>
+            <button class="btn btn-primary" os-form-submit="transferSpecimens()">
+              <span translate="common.buttons.submit">Submit</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

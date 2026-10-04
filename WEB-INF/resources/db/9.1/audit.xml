@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Container display name chosen by the user">
+    <addColumn tableName="OS_STORAGE_CONTAINERS_AUD">
+      <column name="DISPLAY_NAME" type="${text.type}(255)" />
+      <column name="displayName_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Visit level consents">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="VISIT_CONSENTS" type="${boolean.type}" />
+      <column name="visitLevelConsents_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Form save/delete notification settings">
+    <addColumn tableName="CATISSUE_FORM_CONTEXT_AUD">
+      <column name="NOTIFS_ENABLED" type="${boolean.type}" />
+      <column name="notifEnabled_MOD" type="${boolean.type}" />
+      <column name="DATA_IN_NOTIF" type="${boolean.type}" />
+      <column name="dataInNotif_MOD" type="${boolean.type}" />
+      <column name="notifUserGroups_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Form save/delete notification user groups">
+    <createTable tableName="OS_FORM_NOTIF_USER_GRPS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="FORM_CTXT_ID" type="${int.type}" />
+      <column name="USER_GROUP_ID" type="${int.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail of CP workflows">
+    <createTable tableName="OS_CP_WORKFLOWS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="CP_ID" type="${int.type}" />
+      <column name="cp_MOD" type="${boolean.type}" />
+      <column name="WORKFLOWS" type="${clob.type}" />
+      <column name="workflowsJson_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: CP consent tier collection">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="consentTier_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: CP report settings">
+    <createTable tableName="OS_CP_REPORT_SETTINGS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="CP_ID" type="${int.type}" />
+      <column name="cp_MOD" type="${boolean.type}" />
+      <column name="ENABLED" type="${boolean.type}" />
+      <column name="enabled_MOD" type="${boolean.type}" />
+      <column name="DATA_QUERY_ID" type="${int.type}" />
+      <column name="dataQuery_MOD" type="${boolean.type}" />
+      <column name="CONFIG" type="${clob.type}" />
+      <column name="configJson_MOD" type="${boolean.type}" />
+      <column name="EMAIL_TMPL" type="${clob.type}" />
+      <column name="emailTmpl_MOD" type="${boolean.type}" />
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)" />
+      <column name="activityStatus_MOD" type="${boolean.type}" />
+      <column name="recipients_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: CP report email recipients">
+    <createTable tableName="OS_CP_REPORT_RCPTS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="REPORT_ID" type="${int.type}" />
+      <column name="USER_ID" type="${int.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Change password update time field data type to timestamp">
+    <modifyDataType tableName="CATISSUE_PASSWORD" columnName="UPDATE_DATE" newDataType="${timestamp.type}" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Config settings">
+    <createTable tableName="OS_CFG_SETTINGS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="PROPERTY_ID" type="${int.type}" />
+      <column name="property_MOD" type="${boolean.type}" />
+      <column name="VALUE" type="${text.type}(255)" />
+      <column name="value_MOD" type="${boolean.type}" />
+      <column name="ACTIVATED_BY" type="${int.type}" />
+      <column name="activatedBy_MOD" type="${boolean.type}" />
+      <column name="ACTIVATION_DATE" type="${timestamp.type}" />
+      <column name="activationDate_MOD" type="${boolean.type}" />
+      <column name="ACTIVITY_STATUS" type="${text.type}(32)" />
+      <column name="activityStatus_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: print rules">
+    <createTable tableName="OS_PRINT_RULES_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="DESCRIPTION" type="${text.type}(255)" />
+      <column name="description_MOD" type="${boolean.type}" />
+      <column name="OBJECT_TYPE" type="${text.type}(32)" />
+      <column name="objectType_MOD" type="${boolean.type}" />
+      <column name="INSTITUTE_ID" type="${int.type}" />
+      <column name="institute_MOD" type="${boolean.type}" />
+      <column name="UPDATED_BY" type="${int.type}" />
+      <column name="updatedBy_MOD" type="${boolean.type}" />
+      <column name="UPDATED_ON" type="${timestamp.type}" />
+      <column name="updatedOn_MOD" type="${boolean.type}" />
+      <column name="RULE_DEF" type="${clob.type}" />
+      <column name="ruleDefJson_MOD" type="${boolean.type}" />
+      <column name="ACTIVITY_STATUS" type="${text.type}(32)" />
+      <column name="activityStatus_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: DP consents modified or not">
+    <addColumn tableName="CAT_DISTRIBUTION_PROTOCOL_AUD">
+      <column name="consentTiers_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: DP consents">
+    <createTable tableName="OS_DP_CONSENT_TIERS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="DP_ID" type="${int.type}" />
+      <column name="distributionProtocol_MOD" type="${boolean.type}" />
+      <column name="CONSENT_STMT_ID" type="${int.type}" />
+      <column name="statement_MOD" type="${boolean.type}" />
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)" />
+      <column name="activityStatus_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Scheduled jobs">
+    <createTable tableName="OS_SCHEDULED_JOBS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="NAME" type="${text.type}(255)" />
+      <column name="name_MOD" type="${boolean.type}" />
+      <column name="CREATED_BY" type="${int.type}" />
+      <column name="createdBy_MOD" type="${boolean.type}" />
+      <column name="START_DATE" type="${nullable.ts.type}" />
+      <column name="startDate_MOD" type="${boolean.type}" />
+      <column name="END_DATE" type="${nullable.ts.type}" />
+      <column name="endDate_MOD" type="${boolean.type}" />
+      <column name="HOURLY_INTERVAL" type="${smallint.type}" />
+      <column name="hourlyInterval_MOD" type="${boolean.type}" />
+      <column name="MINUTELY_INTERVAL" type="${smallint.type}" />
+      <column name="minutelyInterval_MOD" type="${boolean.type}" />
+      <column name="SCHEDULED_HOUR" type="${smallint.type}" />
+      <column name="scheduledHour_MOD" type="${boolean.type}" />
+      <column name="SCHEDULED_MINUTE" type="${smallint.type}" />
+      <column name="scheduledMinute_MOD" type="${boolean.type}" />
+      <column name="SCHEDULED_DAY_OF_WEEK" type="${text.type}(16)" />
+      <column name="scheduledDayOfWeek_MOD" type="${boolean.type}" />
+      <column name="SCHEDULED_DAY_OF_MONTH" type="${smallint.type}" />
+      <column name="scheduledDayOfMonth_MOD" type="${boolean.type}" />
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)" />
+      <column name="activityStatus_MOD" type="${boolean.type}" />
+      <column name="REPEAT_SCHEDULE" type="${text.type}(16)" />
+      <column name="repeatSchedule_MOD" type="${boolean.type}" />
+      <column name="TYPE" type="${text.type}(16)" />
+      <column name="type_MOD" type="${boolean.type}" />
+      <column name="COMMAND" type="${text.type}(255)" />
+      <column name="command_MOD" type="${boolean.type}" />
+      <column name="FIXED_ARGS" type="${clob.type}" />
+      <column name="fixedArgs_MOD" type="${boolean.type}" />
+      <column name="TASK_IMPL_FQN" type="${text.type}(255)" />
+      <column name="taskImplfqn_MOD" type="${boolean.type}" />
+      <column name="QUERY_ID" type="${int.type}" />
+      <column name="savedQuery_MOD" type="${boolean.type}" />
+      <column name="RUN_AS_USER_ID" type="${int.type}" />
+      <column name="runAs_MOD" type="${boolean.type}" />
+      <column name="RT_ARGS_PROVIDED" type="${boolean.type}" />
+      <column name="rtArgsProvided_MOD" type="${boolean.type}" />
+      <column name="RT_ARGS_HELP_TEXT" type="${text.type}(255)" />
+      <column name="rtArgsHelpText_MOD" type="${boolean.type}" />
+      <column name="recipients_MOD" type="${boolean.type}" />
+      <column name="sharedWith_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Job run status notification recipients">
+    <createTable tableName="OS_SCHED_JOBS_NOTIF_RCPTS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="SCHEDULED_JOB_ID" type="${int.type}" />
+      <column name="USER_ID" type="${int.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Users with whom the scheduled job is shared">
+    <createTable tableName="OS_SCHED_JOB_SHARED_USERS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="SCHEDULED_JOB_ID" type="${int.type}" />
+      <column name="USER_ID" type="${int.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: User groups">
+    <createTable tableName="OS_USER_GROUPS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="NAME" type="${text.type}(64)" />
+      <column name="name_MOD" type="${boolean.type}" />
+      <column name="DESCRIPTION" type="${text.type}(255)" />
+      <column name="description_MOD" type="${boolean.type}" />
+      <column name="INSTITUTE_ID" type="${int.type}" />
+      <column name="institute_MOD" type="${boolean.type}" />
+      <column name="ACTIVITY_STATUS" type="${text.type}(32)" />
+      <column name="activityStatus_MOD" type="${boolean.type}" />
+      <column name="users_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: User group users">
+    <createTable tableName="OS_USER_GROUP_USERS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="GROUP_ID" type="${int.type}" />
+      <column name="USER_ID" type="${int.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Saved queries">
+    <createTable tableName="CATISSUE_SAVED_QUERIES_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="TITLE" type="${text.type}(128)" />
+      <column name="title_MOD" type="${boolean.type}" />
+      <column name="CP_ID" type="${int.type}" />
+      <column name="cpId_MOD" type="${boolean.type}" />
+      <column name="CP_GROUP_ID" type="${int.type}" />
+      <column name="cpGroupId_MOD" type="${boolean.type}" />
+      <column name="QUERY_DEF" type="${clob.type}" />
+      <column name="queryDefJson_MOD" type="${boolean.type}" />
+      <column name="DELETED_ON" type="${nullable.ts.type}" />
+      <column name="deletedOn_MOD" type="${boolean.type}" />
+      <column name="subQueries_MOD" type="${boolean.type}" />
+      <column name="dependentQueries_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Saved query - sub queries">
+    <createTable tableName="OS_SAVED_QUERY_DEPS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="QUERY_ID" type="${int.type}" />
+      <column name="SUB_QUERY_ID" type="${int.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Query folders">
+    <createTable tableName="CATISSUE_QUERY_FOLDERS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="NAME" type="${text.type}(64)" />
+      <column name="name_MOD" type="${boolean.type}" />
+      <column name="OWNER" type="${int.type}" />
+      <column name="owner_MOD" type="${boolean.type}" />
+      <column name="SHARED_WITH_ALL" type="${boolean.type}" />
+      <column name="sharedWithAll_MOD" type="${boolean.type}" />
+      <column name="sharedWith_MOD" type="${boolean.type}" />
+      <column name="sharedWithGroups_MOD" type="${boolean.type}" />
+      <column name="savedQueries_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Query folder users">
+    <createTable tableName="OS_QUERY_FOLDER_USERS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="FOLDER_ID" type="${int.type}" />
+      <column name="USER_ID" type="${int.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Query folder user groups">
+    <createTable tableName="OS_QUERY_FOLDER_USER_GRPS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="FOLDER_ID" type="${int.type}" />
+      <column name="GROUP_ID" type="${int.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Query folder queries">
+    <createTable tableName="OS_QUERY_FOLDER_QUERIES_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="FOLDER_ID" type="${int.type}" />
+      <column name="QUERY_ID" type="${int.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Permissible values">
+    <createTable tableName="CATISSUE_PERMISSIBLE_VALUE_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="PUBLIC_ID" type="${text.type}(32)" />
+      <column name="attribute_MOD" type="${boolean.type}" />
+      <column name="VALUE" type="${text.type}(255)" />
+      <column name="value_MOD" type="${boolean.type}" />
+      <column name="CONCEPT_CODE" type="${text.type}(32)" />
+      <column name="conceptCode_MOD" type="${boolean.type}" />
+      <column name="SORTORDER" type="${int.type}" />
+      <column name="sortOrder_MOD" type="${boolean.type}" />
+      <column name="PARENT_IDENTIFIER" type="${int.type}" />
+      <column name="parent_MOD" type="${boolean.type}" />
+      <column name="ACTIVITY_STATUS" type="${text.type}(32)" />
+      <column name="activityStatus_MOD" type="${boolean.type}" />
+      <column name="props_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Permissible value props">
+    <createTable tableName="OS_PV_PROPS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="PV_ID" type="${int.type}" />
+      <column name="NAME" type="${text.type}(32)" />
+      <column name="VALUE" type="${text.type}(255)" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Specimen lists shared groups and folders">
+    <addColumn tableName="CATISSUE_SPECIMENLIST_TAGS_AUD">
+      <column name="sharedWithGroups_MOD" type="${boolean.type}" />
+      <column name="folders_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Specimen lists - shared users">
+    <createTable tableName="SHARED_SPECIMENLIST_TAGS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="TAG_ID" type="${int.type}" />
+      <column name="USER_ID" type="${int.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Specimen lists - shared user groups">
+    <createTable tableName="OS_SPMN_LIST_SHARED_GRPS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="LIST_ID" type="${int.type}" />
+      <column name="GROUP_ID" type="${int.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Specimen lists - specimens">
+    <createTable tableName="CATISSUE_SPEC_TAG_ITEMS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="OBJ_ID" type="${int.type}" />
+      <column name="specimen_MOD" type="${boolean.type}" />
+      <column name="TAG_ID" type="${int.type}" />
+      <column name="list_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Specimen lists - folders" >
+    <createTable tableName="OS_SPECIMEN_CART_FOLDERS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="NAME" type="${text.type}(128)" />
+      <column name="name_MOD" type="${boolean.type}" />
+      <column name="DESCRIPTION" type="${text.type}(255)" />
+      <column name="description_MOD" type="${boolean.type}" />
+      <column name="OWNER_ID" type="${int.type}" />
+      <column name="owner_MOD" type="${boolean.type}" />
+      <column name="CREATION_TIME" type="${nullable.ts.type}" />
+      <column name="creationTime_MOD" type="${boolean.type}" />
+      <column name="ACTIVITY_STATUS" type="${text.type}(32)" />
+      <column name="activityStatus_MOD" type="${boolean.type}" />
+      <column name="userGroups_MOD" type="${boolean.type}" />
+      <column name="lists_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Specimen lists - folder user groups">
+    <createTable tableName="OS_CART_FOLDER_USER_GROUPS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="FOLDER_ID" type="${int.type}" />
+      <column name="GROUP_ID" type="${int.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Specimen lists - folder lists">
+    <createTable tableName="OS_CART_FOLDER_CARTS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="FOLDER_ID" type="${int.type}" />
+      <column name="CART_ID" type="${int.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Participant consent tier responses">
+    <addColumn tableName="CAT_CONSENT_TIER_RESPONSE_AUD">
+      <column name="CONSENT_TIER_ID" type="${int.type}" />
+      <column name="consentTier_MOD" type="${boolean.type}" />
+      <column name="COLL_PROT_REG_ID" type="${int.type}" />
+      <column name="cpr_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Drop the older specimen request audit table">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="OS_SPECIMEN_REQUESTS_AUD" />
+    </preConditions>
+
+    <dropTable tableName="OS_SPECIMEN_REQUESTS_AUD" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Specimen requests">
+    <createTable tableName="OS_SPECIMEN_REQUESTS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="CATALOG_ID" type="${int.type}" />
+      <column name="catalogId_MOD" type="${boolean.type}" />
+      <column name="CATALOG_QUERY_DEF" type="${clob.type}" />
+      <column name="catalogQueryDef_MOD" type="${boolean.type}" />
+      <column name="REQUESTOR_ID" type="${int.type}" />
+      <column name="requestor_MOD" type="${boolean.type}" />
+      <column name="REQUESTOR_EMAIL_ID" type="${text.type}(255)" />
+      <column name="requestorEmailId_MOD" type="${boolean.type}" />
+      <column name="IRB_ID" type="${text.type}(255)" />
+      <column name="irbId_MOD" type="${boolean.type}" />
+      <column name="REQUEST_DATE" type="${nullable.ts.type}" />
+      <column name="dateOfRequest_MOD" type="${boolean.type}" />
+      <column name="SCREENING_STATUS" type="${text.type}(16)" />
+      <column name="screeningStatus_MOD" type="${boolean.type}" />
+      <column name="SCREENED_BY" type="${int.type}" />
+      <column name="screenedBy_MOD" type="${boolean.type}" />
+      <column name="SCREENING_DATE" type="${nullable.ts.type}" />
+      <column name="dateOfScreening_MOD" type="${boolean.type}" />
+      <column name="SCREENING_COMMENTS" type="${text.type}(255)" />
+      <column name="screeningComments_MOD" type="${boolean.type}" />
+      <column name="PROCESSOR_ID" type="${int.type}" />
+      <column name="processedBy_MOD" type="${boolean.type}" />
+      <column name="PROCESSING_DATE" type="${nullable.ts.type}" />
+      <column name="dateOfProcessing_MOD" type="${boolean.type}" />
+      <column name="CP_ID" type="${int.type}" />
+      <column name="cp_MOD" type="${boolean.type}" />
+      <column name="DP_ID" type="${int.type}" />
+      <column name="dp_MOD" type="${boolean.type}" />
+      <column name="COMMENTS" type="${text.type}(255)" />
+      <column name="comments_MOD" type="${boolean.type}" />
+      <column name="ITEMS_CRIT_JSON" type="${clob.type}" />
+      <column name="itemsCriteriaJson_MOD" type="${boolean.type}" />
+      <column name="ACTIVITY_STATUS" type="${text.type}(16)" />
+      <column name="activityStatus_MOD" type="${boolean.type}" />
+      <column name="items_MOD" type="${boolean.type}" />
+      <column name="orders_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Drop the older specimen request item audit table">
+    <preConditions onFail="MARK_RAN">
+      <tableExists tableName="OS_SPECIMEN_REQUEST_ITEMS_AUD" />
+    </preConditions>
+
+    <dropTable tableName="OS_SPECIMEN_REQUEST_ITEMS_AUD" />
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Specimen request items">
+    <createTable tableName="OS_SPECIMEN_REQUEST_ITEMS_AUD">
+      <column name="REV" type="${int.type}" />
+      <column name="REVTYPE" type="${tinyint.type}" />
+      <column name="IDENTIFIER" type="${int.type}" />
+      <column name="REQUEST_ID" type="${int.type}" />
+      <column name="request_MOD" type="${boolean.type}" />
+      <column name="SPECIMEN_ID" type="${int.type}" />
+      <column name="specimen_MOD" type="${boolean.type}" />
+      <column name="STATUS" type="${text.type}(32)" />
+      <column name="status_MOD" type="${boolean.type}" />
+      <column name="DISTRIBUTION_ID" type="${int.type}" />
+      <column name="distribution_MOD" type="${boolean.type}" />
+      <column name="SHIPMENT_ID" type="${int.type}" />
+      <column name="shipment_MOD" type="${boolean.type}" />
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Populate the PVs so that they appear in the audit log string">
+    <sql>
+      insert into
+        catissue_permissible_value_aud (rev, revtype, identifier, public_id, attribute_mod, value, value_mod,
+        concept_code, conceptcode_mod, sortorder, sortorder_mod, parent_identifier, parent_mod,
+        activity_status, activitystatus_mod, props_mod)
+      select
+        -1, 0, p.identifier, p.public_id, 1, p.value, 1, p.concept_code, 1, p.sortorder, 1, p.parent_identifier, 1,
+        p.activity_status, 1, 1
+      from
+        catissue_permissible_value p
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Index on PV audit trail">
+    <createIndex tableName="CATISSUE_PERMISSIBLE_VALUE_AUD" indexName="OS_PVS_AUD_IDS_IDX">
+      <column name="IDENTIFIER" />
+      <column name="REV" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: User groups that were created before audit">
+    <sql>
+      insert into
+        os_user_groups_aud (rev, revtype, identifier, name, name_mod, description, description_mod,
+        institute_id, institute_mod, activity_status, activitystatus_mod, users_mod)
+      select
+        -1, 0, g.identifier, g.name, 1, g.description, 1, g.institute_id, 1, g.activity_status, 1, 1
+      from
+        os_user_groups g
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Audit trail: Index on user groups">
+    <createIndex tableName="OS_USER_GROUPS_AUD" indexName="OS_UG_AUD_IDS_IDX">
+      <column name="IDENTIFIER" />
+      <column name="REV" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet author="vpawar" id="User default printer">
+    <addColumn tableName="CATISSUE_USER_AUD">
+      <column name="DEFAULT_PRINTER_ID" type="${int.type}" />
+      <column name="defaultPrinter_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Additional specimen label format">
+    <addColumn tableName="CAT_COLLECTION_PROTOCOL_AUD">
+      <column name="ADDL_LABEL_FORMAT" type="${text.type}(255)" />
+      <column name="additionalLabelFormat_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Additional specimen label">
+    <addColumn tableName="CATISSUE_SPECIMEN_AUD">
+      <column name="ADDITIONAL_LABEL" type="${text.type}(255)" />
+      <column name="additionalLabel_MOD" type="${boolean.type}" />
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Change width of API users' allowed IP range">
+    <modifyDataType tableName="CATISSUE_USER_AUD" columnName="IP_RANGE" newDataType="${text.type}(255)" />
+  </changeSet>
+</databaseChangeLog>

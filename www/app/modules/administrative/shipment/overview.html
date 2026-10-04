@@ -1,0 +1,125 @@
+<div>
+  <div class="os-page-commands">
+    <div class="left">
+      <button class="default" show-if-allowed="shipmentResource.updateOpts"
+        ui-sref="shipment-addedit({shipmentId: shipment.id})"
+        ng-if="shipment.status == 'Pending' || shipment.status == 'Shipped'">
+        <span class="fa fa-pencil"></span>
+        <span translate="common.buttons.edit">Edit</span>
+      </button>
+      <button class="default" show-if-allowed="shipmentResource.updateOpts"
+        ui-sref="shipment-receive({shipmentId: shipment.id})"
+        ng-if="shipment.status == 'Received'">
+        <span class="fa fa-pencil"></span>
+        <span translate="common.buttons.edit">Edit</span>
+      </button>
+      <button class="default" show-if-allowed="shipmentResource.updateOpts"
+        ui-sref="shipment-receive({shipmentId: shipment.id})" ng-if="shipment.status == 'Shipped'">
+        <span class="fa fa-inbox"></span>
+        <span translate="shipments.buttons.receive">Receive</span>
+      </button>
+      <button class="default" ng-click="downloadReport()">
+        <span class="fa fa-download"></span>
+        <span translate="shipments.buttons.download_report">Download Report</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="clearfix">
+    <div class="col-xs-8">
+      <ul class="os-key-values os-one-col">
+        <li class="item">
+          <strong class="key key-sm" translate="shipments.courier_name">Courier Name</strong>
+          <span class="value value-md">{{shipment.courierName | osNoValue}}</span>
+        </li>
+  
+        <li class="item">
+          <strong class="key key-sm" translate="shipments.tracking_number">Tracking Number</strong>
+          <span class="value value-md">{{shipment.trackingNumber | osNoValue}}</span>
+        </li>
+  
+        <li class="item">
+          <strong class="key key-sm" translate="shipments.tracking_url">Tracking URL</strong>
+          <span class="value value-md">
+            <a href="{{shipment.trackingUrl}}" target="_blank" rel="noopener" ng-class="{'disabled': !shipment.trackingUrl}">
+              <span>{{shipment.trackingUrl | osNoValue}}</span>
+            </a>
+          </span>
+        </li>
+        
+        <li class="item">
+          <strong class="key key-sm" translate="shipments.sending_site">Sending Site</strong>
+          <span class="value value-md">{{shipment.sendingSite}}</span>
+          </span>
+        </li>
+  
+        <li class="item">
+          <strong class="key key-sm" translate="shipments.receiving_site">Receiving Site</strong>
+          <span class="value value-md">{{shipment.receivingSite}}</span>
+        </li>
+          
+        <li class="item">
+          <strong class="key key-sm" translate="shipments.status">Status</strong>
+          <ng-switch on="shipment.status">
+            <span class="value value-md os-status-received" ng-switch-when="Received">{{'shipments.statuses.Received' | translate}}</span>
+            <span class="value value-md os-status-shipped" ng-switch-when="Shipped">{{'shipments.statuses.Shipped' | translate}}</span>
+            <span class="value value-md os-status-pending" ng-switch-default>{{'shipments.statuses.Pending' | translate}}</span>
+          </ng-switch>
+        </li>
+          
+        <li class="item">
+          <strong class="key key-sm" translate="shipments.shipped_date">Shipped Date</strong>
+          <span class="value value-md">
+            {{shipment.shippedDate | date: global.dateTimeFmt | osNoValue}}
+          </span>
+        </li>
+  
+        <li class="item">
+          <strong class="key key-sm" translate="shipments.sender">Sender</strong>
+          <span class="value value-md">{{shipment.sender | osUserDisplayName}}</span>
+        </li>
+          
+        <li class="item" ng-if="shipment.status == 'Received'">
+          <strong class="key key-sm" translate="shipments.received_date">Received Date</strong>
+          <span class="value value-md">
+            {{shipment.receivedDate | date: global.dateTimeFmt | osNoValue}}
+          </span>
+        </li>
+  
+        <li class="item" ng-if="shipment.status == 'Received'">
+          <strong class="key key-sm" translate="shipments.receiver">Receiver</strong>
+          <span class="value value-md">{{shipment.receiver | osUserDisplayName}}</span>
+        </li>
+
+        <li class="item">
+          <strong class="key key-sm" translate="shipments.notify_users">Notify Users</strong>
+          <span class="value value-md">{{shipment.notifyUsers | osUserDisplayName | osNoValue}}</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="col-xs-4">
+      <os-audit-overview object-name="'shipment'" object-id="shipment.id"></os-audit-overview>
+    </div>
+  </div>
+
+  <div class="clearfix">
+    <div class="col-xs-8">
+      <div class="os-section os-line-section" ng-if="!!shipment.senderComments">
+        <strong class="key key-sm">
+          <span translate="shipments.sender_comments">Sender Comments</span>
+          <span>&nbsp;</span>
+        </strong>
+        <span class="value value-md">{{shipment.senderComments}}</span>
+      </div>
+  
+      <div class="os-section os-line-section" ng-if="!!shipment.receiverComments">
+        <strong class="key key-sm">
+          <span translate="shipments.receiver_comments">Receiver Comments</span>
+          <span>&nbsp;</span>
+        </strong>
+        <span class="value value-md">{{shipment.receiverComments}}</span>
+      </div>
+    </div>
+  </div>
+</div>

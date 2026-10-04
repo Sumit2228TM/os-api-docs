@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Default admin user" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">
+        select count(*) from catissue_institution
+      </sqlCheck>
+    </preConditions>
+    <sql>
+      insert into catissue_institution
+        (identifier, name, activity_status)
+      values
+        (default, 'Biobank Institute', 'Active')
+    </sql>
+    <sql>
+      insert into catissue_user
+        (identifier, email_address, first_name, last_name, login_name, password,
+         activity_status, first_time_login, domain_name, type, institute_id)
+      values
+        (default, 'admin@localhost', 'System', 'Administrator', 'admin', '$2a$10$4dtnGBiY5GAxIRCsPK2LbO6Cwf9SfpWIjNponBbdAci0PdhfO3XvS',
+         'Active', 0, 'openspecimen', 'SUPER', last_insert_id())
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Default admin user" dbms="oracle">
+    <preConditions onFail="MARK_RAN">
+      <sqlCheck expectedResult="0">
+        select count(*) from catissue_institution
+      </sqlCheck>
+    </preConditions>
+    <sql>
+      insert into catissue_institution
+        (identifier, name, activity_status)
+      values
+        (CATISSUE_INSTITUTE_SEQ.nextval, 'Biobank Institute', 'Active')
+    </sql>
+    <sql>
+      insert into catissue_user
+        (identifier, email_address, first_name, last_name, login_name, password,
+         activity_status, first_time_login, domain_name, type, institute_id)
+      values
+        (CATISSUE_USER_SEQ.nextval, 'admin@localhost', 'System', 'Administrator', 'admin', '$2a$10$4dtnGBiY5GAxIRCsPK2LbO6Cwf9SfpWIjNponBbdAci0PdhfO3XvS',
+         'Active', 0, 'openspecimen', 'SUPER', CATISSUE_INSTITUTE_SEQ.currval)
+    </sql>
+  </changeSet>
+</databaseChangeLog>

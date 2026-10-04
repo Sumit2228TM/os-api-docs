@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="mdnasim" id="Config property to enable/disable storing PHI data">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'store_phi',
+        'store_phi', 'store_phi_desc',
+        'BOOLEAN', 'true'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Config property to enable/disable storing surgical pathology report">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'store_spr',
+        'store_spr', 'store_spr_desc',
+        'BOOLEAN', 'true'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="mdnasim" id="Config property to specify user manual search URL">
+    <sql>
+      call add_cfg_prop(
+        'training', 'manual_search_link',
+        'manual_search_link', 'manual_search_link_desc',
+        'STRING', 'https://openspecimen.atlassian.net/wiki/dosearchsite.action?queryString='
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Config property to enable or disable unique specimen barcode per CP">
+    <sql>
+      call add_cfg_prop(
+        'biospecimen', 'unique_spmn_barcode_per_cp',
+        'unique_spmn_barcode_per_cp', 'unique_spmn_barcode_per_cp_desc',
+        'BOOLEAN', 'false'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Settings to specify time interval between execution of failed store lists">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <changeSetExecuted
+          changeLogFile="db/5.0/config.xml"
+          author="vgaikwad"
+          id="Settings to specify time interval between execution of failed store lists"/>
+      </not>
+    </preConditions>
+
+    <sql>
+      call add_cfg_prop(
+        'administrative', 'store_list_retry_interval',
+        'store_list_retry_interval', 'store_list_retry_interval_desc',
+        'INT', '24'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Settings to specify max retries to execute failed store lists">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <changeSetExecuted
+          changeLogFile="db/5.0/config.xml"
+          author="vgaikwad"
+          id="Settings to specify max retries to execute failed store lists"/>
+      </not>
+    </preConditions>
+
+    <sql>
+      call add_cfg_prop(
+        'administrative', 'store_list_max_retries',
+        'store_list_max_retries', 'store_list_max_retries_desc',
+        'INT', '5'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Automated freezers report generator" dbms="mysql">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <changeSetExecuted
+          changeLogFile="db/5.0/config.xml"
+          author="vgaikwad"
+          id="Automated freezers report generator"/>
+      </not>
+    </preConditions>
+
+    <sql>
+      select identifier into @userId from catissue_user where login_name = '$system';
+
+      insert into os_scheduled_jobs
+        (identifier, name, created_by, start_date, end_date, scheduled_minute, scheduled_hour, scheduled_day_of_week,
+        scheduled_day_of_month, activity_status, repeat_schedule, type, command,
+        task_impl_fqn, rt_args_provided, rt_args_help_text)
+      values
+        (default, "Automated freezers report", @userId, now(), null, 50, 23, null,
+        null, 'Active', 'DAILY', 'INTERNAL', null,
+        'com.krishagni.catissueplus.core.administrative.services.impl.AutomatedFreezerReportGenerator', 0, null);
+    </sql>
+  </changeSet>
+
+  <changeSet author="vgaikwad" id="Automated freezers report generator" dbms="oracle">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <changeSetExecuted
+          changeLogFile="db/5.0/config.xml"
+          author="vgaikwad"
+          id="Automated freezers report generator"/>
+      </not>
+    </preConditions>
+
+    <sql endDelimiter="//">
+      declare
+        userId number;
+      begin
+        select identifier into userId from catissue_user where login_name like '$system';
+
+        insert into os_scheduled_jobs
+          (identifier, name, created_by, start_date, end_date, scheduled_minute, scheduled_hour, scheduled_day_of_week,
+          scheduled_day_of_month, activity_status, repeat_schedule, type, command,
+          task_impl_fqn, rt_args_provided, rt_args_help_text)
+        values
+          (OS_SCHEDULED_JOBS_SEQ.nextVal, 'Automated freezers report', userId, SYSDATE, null, 50, 23, null,
+          null, 'Active', 'DAILY', 'INTERNAL', null,
+          'com.krishagni.catissueplus.core.administrative.services.impl.AutomatedFreezerReportGenerator', 0, null);
+         end;
+      //
+    </sql>
+  </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,34 @@
+<div dropdown  class="btn-group os-inline-btn">
+  <button class="btn btn-default dropdown-toggle default">
+    <span class="fa fa-group"></span>
+    <span translate="user.add_to_group">Add to Group</span>
+    <span class="caret"></span>
+  </button>
+  
+  <ul class="dropdown-menu os-query-folders-dd" ng-class="{'dropdown-menu-right': !leftAlign}">
+    <li class="os-no-label-form">
+      <input ng-model="groupFilters.query" type="text" class="form-control"
+        placeholder="{{'user.search_group' | translate}}" ng-click="$event.stopPropagation()">
+    </li>
+    <li>
+      <ul class="dropdown-menu-subgroup">
+        <li ng-repeat="group in groups" ng-click="addToGroup(group)">
+          <a>
+            <span>{{group.name}}</span>
+          </a>
+        </li>
+      </ul>
+    </li>
+    <li class="divider"></li>
+    <li>
+      <a ng-click="addToGroup()">
+        <span translate="user.create_new_group">Create New</span>
+      </a>
+    </li>
+    <li ng-if="groups.length > 0">
+      <a ui-sref="user-groups">
+        <span translate="user.manage_groups">Manage Groups</span>
+      </a>
+    </li>
+  </ul>
+</div>

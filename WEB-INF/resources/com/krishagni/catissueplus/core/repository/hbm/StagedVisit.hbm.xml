@@ -1,0 +1,110 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.biospecimen.domain.StagedVisit" table="OS_STAGED_VISITS" batch-size="100" polymorphism="explicit"
+    entity-name="com.krishagni.catissueplus.core.biospecimen.domain.StagedVisit">
+
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_STAGED_VISITS_SEQ</param>
+      </generator>
+    </id>
+
+    <property name="name" column="NAME"/>
+
+    <property name="clinicalStatus" column="CLINICAL_STATUS"/>
+
+    <property name="status" column="COLLECTION_STATUS"/>
+
+    <property name="visitDate" type="timestamp" column="COLLECTION_TIMESTAMP"/>
+
+    <property name="surgicalPathologyNumber" column="SURGICAL_PATHOLOGY_NUMBER"/>
+
+    <property name="comments" type="string" column="COMMENTS"/>
+
+    <property name="missedReason" column="MISSED_REASON" />
+
+    <set name="clinicalDiagnoses" table="OS_STAGED_VISIT_DIAGNOSES" cascade="all-delete-orphan">
+      <key column="VISIT_ID"/>
+      <element column="CLINICAL_DIAGNOSIS" type="string"/>
+    </set>
+
+    <property name="eventLabel" column="EVENT_LABEL"/>
+
+    <property name="collectionSite" column="COLLECTION_SITE"/>
+
+    <property name="cohort" column="COHORT"/>
+
+    <property name="additionalInfoJson" column="ADDITIONAL_INFO_JSON"/>
+
+    <property name="activityStatus" column="ACTIVITY_STATUS"/>
+
+    <many-to-one name="participant" column="PARTICIPANT_ID"/>
+
+    <property name="updateTime" column="UPDATE_TIME"/>
+
+    <query name="getByName">
+      select
+        v
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.StagedVisit v
+      where
+        lower(v.name) = :name
+    </query>
+
+    <query name="getBySprNo">
+      select
+        v
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.StagedVisit v
+      where
+        lower(v.surgicalPathologyNumber) = :sprNo
+    </query>
+
+    <query name="getByEmpiOrMrn">
+      select
+        v
+      from
+        com.krishagni.catissueplus.core.biospecimen.domain.StagedVisit v
+      where
+        v.id in (
+          select
+            distinct v.id
+          from
+            com.krishagni.catissueplus.core.biospecimen.domain.StagedVisit v
+            join v.participant p
+            left join p.pmiList pmi
+          where
+            lower(p.empi) = :empiOrMrn or lower(pmi.medicalRecordNumber) = :empiOrMrn
+        )
+    </query>
+
+    <sql-query name="deleteOldVisitDiagnoses">
+      <![CDATA[
+        delete from
+          os_staged_visit_diagnoses
+        where
+          visit_id in (
+            select
+              v.identifier
+            from
+              os_staged_visits v
+            where
+              v.update_time < :olderThanDt
+          )
+      ]]>
+    </sql-query>
+
+    <sql-query name="deleteOldVisits">
+      <![CDATA[
+        delete from
+          os_staged_visits
+        where
+          update_time < :olderThanDt
+      ]]>
+    </sql-query>
+  </class>
+</hibernate-mapping>

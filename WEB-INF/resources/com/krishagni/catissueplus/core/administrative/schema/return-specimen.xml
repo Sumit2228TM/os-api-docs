@@ -1,0 +1,74 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+
+<object-schema>
+  <name>returnSpecimen</name>
+  <record>
+    <name>com.krishagni.catissueplus.core.administrative.events.ReturnedSpecimenDetail</name>
+
+    <field>
+      <attribute>orderName</attribute>
+      <caption>#getMessage("return_order")</caption>
+    </field>
+
+    <field>
+      <attribute>specimenLabel</attribute>
+      <caption>#getMessage("return_specimen")</caption>
+    </field>
+
+    <field>
+      <attribute>quantity</attribute>
+      <caption>#getMessage("return_quantity")</caption>
+    </field>
+
+    <record>
+      <attribute>location</attribute>
+      <caption>#getMessage("specimen_location")</caption>
+
+      <field>
+        <attribute>name</attribute>
+        <caption>#getMessage("specimen_location_container")</caption>
+      </field>
+
+      <field>
+        <attribute>positionY</attribute>
+        <caption>#getMessage("specimen_location_row")</caption>
+      </field>
+
+      <field>
+        <attribute>positionX</attribute>
+        <caption>#getMessage("specimen_location_column")</caption>
+      </field>
+
+      <field>
+        <attribute>position</attribute>
+        <caption>#getMessage("specimen_location_position")</caption>
+      </field>
+    </record>
+
+    <record>
+      <attribute>user</attribute>
+      <caption>#getMessage("return_user")</caption>
+
+      <field>
+        <attribute>emailAddress</attribute>
+        <caption>#getMessage("user_email")</caption>
+      </field>
+    </record>
+
+    <field>
+      <attribute>time</attribute>
+      <caption>#getMessage("return_date")</caption>
+      <type>datetime</type>
+    </field>
+
+    <field>
+      <attribute>incrFreezeThaw</attribute>
+      <caption>#getMessage("return_incr_freeze_thaw")</caption>
+    </field>
+
+    <field>
+      <attribute>comments</attribute>
+      <caption>#getMessage("return_comments")</caption>
+    </field>
+  </record>
+</object-schema>

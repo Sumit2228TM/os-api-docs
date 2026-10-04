@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Remove unwanted survey jobs">
+    <sql>
+      update
+        os_scheduled_jobs
+      set
+        activity_status = 'Disabled'
+      where
+        task_impl_fqn = 'com.krishagni.catissueplus.core.biospecimen.services.impl.PdeReminderNotifTask'
+    </sql>
+  </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Column specifying whether the entire import job was run in a single transaction">
+    <addColumn tableName="OS_BULK_IMPORT_JOBS">
+      <column name="ATOMIC" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen carts view">
+    <createView viewName="OS_SPECIMEN_CARTS_VIEW" replaceIfExists="true">
+      select
+        ci.obj_id as specimen_id, c.tag_label as name, ci.identifier as item_id
+      from
+        catissue_specimenlist_tags c
+        inner join catissue_spec_tag_items ci on ci.tag_id = c.identifier
+      where
+        c.deleted_on is null
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Storage container usage mode">
+    <addColumn tableName="OS_STORAGE_CONTAINERS">
+      <column name="USED_FOR" type="${text.type}(32)" defaultValue="STORAGE">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container allowed DPs">
+    <createTable tableName="OS_STOR_CONTAINER_DPS">
+      <column name="STORAGE_CONTAINER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="DP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on container ID of container allowed DPs">
+    <addForeignKeyConstraint constraintName="FK_OS_STORE_CONT_DP_CONT_ID"
+      baseTableName="OS_STOR_CONTAINER_DPS" baseColumnNames="STORAGE_CONTAINER_ID"
+      referencedTableName="OS_STORAGE_CONTAINERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on DP ID of container allowed DPs">
+    <addForeignKeyConstraint constraintName="FK_OS_STORE_CONT_DP_DP_ID"
+      baseTableName="OS_STOR_CONTAINER_DPS" baseColumnNames="DP_ID"
+      referencedTableName="CATISSUE_DISTRIBUTION_PROTOCOL" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Container allowed DPs - computed set">
+    <createTable tableName="OS_STOR_CONTAINER_COMP_DPS">
+      <column name="STORAGE_CONTAINER_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="DP_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on container ID of container allowed DPs - computed set">
+    <addForeignKeyConstraint constraintName="FK_OS_STORE_CONT_CDPS_CONT_ID"
+      baseTableName="OS_STOR_CONTAINER_COMP_DPS" baseColumnNames="STORAGE_CONTAINER_ID"
+      referencedTableName="OS_STORAGE_CONTAINERS" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on DP ID of container allowed DPs - computed set">
+    <addForeignKeyConstraint constraintName="FK_OS_STORE_CONT_CDPS_DP_ID"
+      baseTableName="OS_STOR_CONTAINER_COMP_DPS" baseColumnNames="DP_ID"
+      referencedTableName="CATISSUE_DISTRIBUTION_PROTOCOL" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimens requestor ID">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <columnExists tableName="OS_SPECIMEN_REQUESTS" columnName="REQUESTOR_ID"/>
+      </not>
+    </preConditions>
+    <addColumn tableName="OS_SPECIMEN_REQUESTS">
+      <column name="REQUESTOR_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on specimen requestor ID">
+    <preConditions onFail="MARK_RAN">
+      <not>
+        <foreignKeyConstraintExists foreignKeyTableName="OS_SPECIMEN_REQUESTS" foreignKeyName="FK_OS_SPMN_REQS_REQUESTOR"/>
+      </not>
+    </preConditions>
+    <addForeignKeyConstraint
+      constraintName="FK_OS_SPMN_REQS_REQUESTOR"
+      baseTableName="OS_SPECIMEN_REQUESTS" baseColumnNames="REQUESTOR_ID"
+      referencedTableName="CATISSUE_USER" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to control DP email notifications">
+    <addColumn tableName="CATISSUE_DISTRIBUTION_PROTOCOL">
+      <column name="DISABLE_EMAIL_NOTIFS" type="${boolean.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen external identifiers">
+    <createTable tableName="OS_SPMN_EXTERNAL_IDS">
+      <column name="IDENTIFIER" type="${int.type}" autoIncrement="${autoIncrement}">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="SPECIMEN_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="NAME" type="${text.type}(128)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="VALUE" type="${text.type}(128)">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen external identifiers sequence" dbms="oracle">
+    <createSequence sequenceName="OS_SPMN_EXT_ID_SEQ" incrementBy="1" minValue="1" ordered="true"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on specimen ID of external identifiers">
+    <addForeignKeyConstraint constraintName="FK_EXT_IDS_SPMN_ID"
+      baseTableName="OS_SPMN_EXTERNAL_IDS" baseColumnNames="SPECIMEN_ID"
+      referencedTableName="CATISSUE_SPECIMEN" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Association of saved query with collection protocol">
+    <addColumn tableName="CATISSUE_SAVED_QUERIES">
+      <column name="CP_ID" type="${int.type}"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on saved query CP">
+    <addForeignKeyConstraint constraintName="FK_SAVED_QUERY_CP"
+      baseTableName="CATISSUE_SAVED_QUERIES" baseColumnNames="CP_ID"
+      referencedTableName="CATISSUE_COLLECTION_PROTOCOL" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Update CP ID of all saved queries">
+    <customChange class="com.krishagni.catissueplus.core.upgrade.InitializeSavedQueryCpId"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Query dependencies">
+    <createTable tableName="OS_SAVED_QUERY_DEPS">
+      <column name="QUERY_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+      <column name="SUB_QUERY_ID" type="${int.type}">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on parent query">
+    <addForeignKeyConstraint constraintName="FK_DEPS_PARENT_QUERY"
+      baseTableName="OS_SAVED_QUERY_DEPS" baseColumnNames="QUERY_ID"
+       referencedTableName="CATISSUE_SAVED_QUERIES" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Foreign key on child query">
+    <addForeignKeyConstraint constraintName="FK_DEPS_CHILD_QUERY"
+      baseTableName="OS_SAVED_QUERY_DEPS" baseColumnNames="SUB_QUERY_ID"
+      referencedTableName="CATISSUE_SAVED_QUERIES" referencedColumnNames="IDENTIFIER"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen image ID / URL">
+    <addColumn tableName="CATISSUE_SPECIMEN">
+      <column name="IMAGE_ID" type="${text.type}(255)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Unique constraint on participant eMPI">
+    <addUniqueConstraint constraintName="PART_EMPI_ID_UQ" tableName="CATISSUE_PARTICIPANT" columnNames="EMPI_ID"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Updated user view to include system user" runOnChange="true">
+    <sql>
+      create or replace view USER_VIEW as (
+        select
+          u.identifier as identifier, u.first_name as first_name, u.last_name as last_name,
+          u.email_address as email_address, concat(u.first_name, concat(' ', u.last_name)) as name,
+          i.name as institute_name, s.identifier as primary_site_id, s.name as primary_site_name
+        from
+          catissue_user u
+          left join catissue_institution i on i.identifier = u.institute_id
+          left join catissue_site s on s.identifier = u.primary_site_id
+        where
+          u.activity_status != 'Disabled' and
+          (u.login_name = '$system' or i.activity_status != 'Disabled') and
+          (s.identifier is null or s.activity_status != 'Disabled')
+      )
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen requests view - used in query interface" runOnChange="true">
+    <createView viewName="os_specimen_requests_view" replaceIfExists="true">
+      select
+        ri.identifier as identifier, ri.specimen_id as specimen_id, r.identifier as request_id,
+        r.requestor_email_id as requestor_email_id, r.requestor_id as requestor_id,
+        r.request_date as req_date, r.screening_status as screening_status,
+        r.screening_date as screening_date, r.processing_date as processing_date,
+        r.activity_status as activity_status
+      from
+        os_specimen_requests r
+        inner join os_specimen_request_items ri on ri.request_id = r.identifier
+      where
+        r.activity_status != 'Disabled'
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Updating participant visits statistics to include not collected visits" runOnChange="true">
+    <createView viewName="OS_CPR_VISIT_STATS_VIEW" replaceIfExists="true">
+      select
+        cpr.identifier as identifier,
+        sum(case when visit.collection_status = 'Complete' then 1 else 0 end) as visits_completed,
+        sum(case when visit.collection_status = 'Missed Collection' then 1 else 0 end) as visits_missed,
+        sum(case when visit.collection_status = 'Not Collected' then 1 else 0 end) as visits_not_collected,
+        sum(case when ((visit.collection_status = 'Pending' or visit.identifier is null) and cpe.identifier is not null) then 1 else 0 end) as visits_pending
+      from
+        catissue_coll_prot_reg cpr
+        left join catissue_coll_prot_event cpe
+          on cpe.collection_protocol_id = cpr.collection_protocol_id and cpe.activity_status!= 'Disabled'
+        left join catissue_specimen_coll_group visit
+          on visit.collection_protocol_event_id = cpe.identifier and
+            visit.collection_protocol_reg_id = cpr.identifier and
+            visit.activity_status!= 'Disabled'
+      group by
+        cpr.identifier
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Updating participant specimen collection status to include not collected specimens" runOnChange="true">
+    <createView viewName="OS_CPR_SPMN_STATS_VIEW" replaceIfExists="true">
+      select
+        cpr.identifier as identifier,
+        count(distinct
+          case when spmn.collection_status = 'Collected' then
+            spmn.identifier
+          else
+            null
+          end
+        ) as specimens_collected,
+        count(distinct
+          case when spmn.collection_status = 'Missed Collection' then
+            spmn.identifier
+          else
+            null
+          end
+        ) as specimens_missed,
+        count(distinct
+          case when spmn.collection_status = 'Not Collected' then
+            spmn.identifier
+          else
+            null
+          end
+        ) as specimens_not_collected,
+        count(distinct
+          case when ((sr.identifier is not null and spmn.identifier is null) or spmn.collection_status = 'Pending') then
+            case when (spmn.identifier is not null and spmn.req_specimen_id is null) then
+              concat('s', spmn.identifier)
+            else
+              concat('sr', sr.identifier)
+            end
+          else
+            null
+          end
+        ) as specimens_pending
+      from
+        catissue_coll_prot_reg cpr
+        left join catissue_coll_prot_event cpe
+          on cpe.collection_protocol_id = cpr.collection_protocol_id
+        left join catissue_cp_req_specimen sr
+          on sr.collection_protocol_event_id = cpe.identifier and sr.activity_status != 'Disabled'
+        left join catissue_specimen_coll_group visit
+          on (visit.collection_protocol_event_id = cpe.identifier or visit.collection_protocol_event_id is null)
+            and visit.collection_protocol_reg_id = cpr.identifier and visit.activity_status != 'Disabled'
+        left join catissue_specimen spmn
+          on (spmn.req_specimen_id is null or spmn.req_specimen_id = sr.identifier)
+            and spmn.specimen_collection_group_id = visit.identifier and spmn.activity_status != 'Disabled'
+      group by
+        cpr.identifier
+    </createView>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Label format for distributed specimens">
+    <addColumn tableName="CATISSUE_DISTRIBUTION_PROTOCOL">
+      <column name="ORDER_ITEM_LABEL_FORMAT" type="${text.type}(255)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Distributed specimen label">
+    <addColumn tableName="OS_ORDER_ITEMS">
+      <column name="LABEL" type="${text.type}(255)"/>
+    </addColumn>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the width of print job item type column">
+    <modifyDataType tableName="OS_LABEL_PRINT_JOBS" columnName="ITEM_TYPE" newDataType="${text.type}(32)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen count is no longer mandatory in DP requirement">
+    <dropNotNullConstraint tableName="OS_DP_REQUIREMENTS" columnName="SPECIMEN_COUNT" columnDataType="${int.type}"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Specimen quantity is no longer mandatory in DP requirement">
+    <dropNotNullConstraint tableName="OS_DP_REQUIREMENTS" columnName="QUANTITY" columnDataType="${decimal.type}(24,8)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the width of shipment specimen received quality to match the PV width">
+    <modifyDataType tableName="OS_SHIPMENT_SPECIMENS" columnName="RECEIVED_QUALITY" newDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Increase the width of shipment container received quality to match the PV width">
+    <modifyDataType tableName="OS_SHIPMENT_CONTAINERS" columnName="RECEIVED_QUALITY" newDataType="${text.type}(255)"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Initialize the visit dates for the pre-created records that do not have visit dates" dbms="oracle">
+    <sql>
+      merge into
+        catissue_specimen_coll_group dv
+      using (
+        select
+          v.identifier as visit_id,
+          case
+            when cpe.event_point_unit = 'DAYS' then r.registration_date + cpe.study_calendar_event_point
+            when cpe.event_point_unit = 'WEEKS' then r.registration_date + cpe.study_calendar_event_point * 7
+            when cpe.event_point_unit = 'MONTHS' then add_months(r.registration_date, cpe.study_calendar_event_point)
+            when cpe.event_point_unit = 'YEARS' then add_months(r.registration_date, cpe.study_calendar_event_point * 12)
+            else r.registration_date
+          end as visit_date
+        from
+          catissue_coll_prot_reg r
+          inner join catissue_specimen_coll_group v on v.collection_protocol_reg_id = r.identifier
+          left join catissue_coll_prot_event cpe on cpe.identifier = v.collection_protocol_event_id
+        where
+          v.collection_timestamp is null
+      ) sv on (sv.visit_id = dv.identifier)
+      when matched then
+        update set dv.collection_timestamp = sv.visit_date
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Initialize the visit dates for the pre-created records that do not have visit dates" dbms="mysql" runOnChange="true">
+    <sql>
+      update
+        catissue_specimen_coll_group v
+        inner join catissue_coll_prot_reg r on r.identifier = v.collection_protocol_reg_id
+        left join catissue_coll_prot_event cpe on cpe.identifier = v.collection_protocol_event_id
+      set
+        v.collection_timestamp = (
+          case
+            when cpe.event_point_unit = 'DAYS'   then adddate(r.registration_date, cpe.study_calendar_event_point)
+            when cpe.event_point_unit = 'WEEKS'  then adddate(r.registration_date, cpe.study_calendar_event_point * 7)
+            when cpe.event_point_unit = 'MONTHS' then adddate(r.registration_date, interval cpe.study_calendar_event_point month)
+            when cpe.event_point_unit = 'YEARS'  then adddate(r.registration_date, interval cpe.study_calendar_event_point * 12 month)
+            else r.registration_date
+          end
+        )
+      where
+        v.collection_timestamp is null
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add not null constraint on visit date column" dbms="mysql">
+    <addNotNullConstraint tableName="CATISSUE_SPECIMEN_COLL_GROUP" columnName="COLLECTION_TIMESTAMP" columnDataType="datetime"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add not null constraint on visit date column" dbms="oracle">
+    <addNotNullConstraint tableName="CATISSUE_SPECIMEN_COLL_GROUP" columnName="COLLECTION_TIMESTAMP" columnDataType="date"/>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Initialize the created on dates of the collected primary specimens - 1 (dup events)" dbms="oracle">
+    <sql>
+      merge into
+        catissue_specimen ds
+      using (
+        select
+          s.identifier as sid, max(r.event_timestamp) as created_on
+        from
+          catissue_specimen s
+          inner join catissue_form_record_entry re on re.object_id = s.identifier
+          inner join catissue_received_event_param r on r.identifier = re.record_id
+        where
+          s.created_on is null and s.lineage = 'New' and s.collection_status = 'Collected'
+        group by
+          s.identifier
+      ) ss on (ss.sid = ds.identifier)
+      when matched then
+        update set ds.created_on = ss.created_on
+    </sql>
+  </changeSet>
+
+
+  <changeSet author="vpawar" id="Initialize the created on dates of the collected primary specimens - 2" dbms="oracle">
+    <sql>
+      merge into
+        catissue_specimen ds
+      using (
+        select
+          s.identifier as sid,
+          v.collection_timestamp as created_on
+        from
+          catissue_specimen s
+          inner join catissue_specimen_coll_group v on v.identifier = s.specimen_collection_group_id
+        where
+          s.created_on is null and s.lineage = 'New' and s.collection_status = 'Collected'
+      ) ss on (ss.sid = ds.identifier)
+      when matched then
+        update set ds.created_on = ss.created_on
+    </sql>
+  </changeSet>
+
+
+  <changeSet author="vpawar" id="Initialize the created on dates of the collected primary specimens - 1" dbms="mysql">
+    <sql>
+      update
+        catissue_specimen s
+        inner join catissue_form_record_entry re on re.object_id = s.identifier
+        inner join catissue_received_event_param r on r.identifier = re.record_id
+      set
+        s.created_on = r.event_timestamp
+      where
+        s.created_on is null and s.lineage = 'New' and s.collection_status = 'Collected'
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Initialize the created on dates of the collected primary specimens - 2" dbms="mysql">
+    <sql>
+      update
+        catissue_specimen s
+        inner join catissue_specimen_coll_group v on v.identifier = s.specimen_collection_group_id
+      set
+        s.created_on = v.collection_timestamp
+      where
+        s.created_on is null and s.lineage = 'New' and s.collection_status = 'Collected'
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Initialize the created on dates of the collected child specimens" dbms="oracle">
+    <sql>
+      merge into
+        catissue_specimen ds
+      using (
+        select
+          s.identifier as sid, max(a.created_on) as created_on
+        from
+          catissue_specimen s
+          inner join catissue_specimen_hierarchy h on h.descendent_id = s.identifier
+          inner join catissue_specimen a on a.identifier = h.ancestor_id
+        where
+          s.created_on is null and s.lineage in ('Derived', 'Aliquot') and s.collection_status = 'Collected'
+        group by
+          s.identifier
+      ) ss on (ss.sid = ds.identifier)
+      when matched then
+        update set ds.created_on = ss.created_on
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Initialize the created on dates of the collected child specimens" dbms="mysql">
+    <sql>
+      update
+        catissue_specimen ds
+        inner join (
+          select
+            s.identifier as sid, max(a.created_on) as created_on
+          from
+            catissue_specimen s
+            inner join catissue_specimen_hierarchy h on h.descendent_id = s.identifier
+            inner join catissue_specimen a on a.identifier = h.ancestor_id
+          where
+            s.created_on is null and s.lineage in ('Derived', 'Aliquot') and s.collection_status = 'Collected'
+          group by
+            s.identifier
+        ) as ss on ss.sid = ds.identifier
+      set
+        ds.created_on = ss.created_on
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Rename duplicate CP short titles" dbms="mysql">
+    <sql>
+      update
+        catissue_collection_protocol ocp
+        inner join (
+          select
+            cp.identifier, cp.short_title, t.min_cp_id
+          from
+            catissue_collection_protocol cp
+            inner join (
+              select
+                short_title, min(identifier) as min_cp_id
+              from
+                catissue_collection_protocol
+              group by
+                short_title
+              having
+                count(*) > 1
+            ) t on t.short_title = cp.short_title and t.min_cp_id != cp.identifier
+        ) dup_cp on dup_cp.identifier = ocp.identifier
+      set
+        ocp.short_title = concat(ocp.short_title, concat('_', ocp.identifier))
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Rename duplicate CP short titles" dbms="oracle">
+    <sql>
+      merge into catissue_collection_protocol ocp
+      using (
+        select
+          cp.identifier, cp.short_title, t.min_cp_id
+        from
+          catissue_collection_protocol cp
+          inner join (
+            select
+              short_title, min(identifier) as min_cp_id
+            from
+              catissue_collection_protocol
+            group by
+              short_title
+            having
+              count(*) > 1
+          ) t on t.short_title = cp.short_title and t.min_cp_id != cp.identifier
+      ) dup_cp on (dup_cp.identifier = ocp.identifier)
+      when matched then
+        update set ocp.short_title = concat(ocp.short_title, concat('_', ocp.identifier))
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Initialise null CP short titles to their respective CP identifier">
+    <sql>update catissue_collection_protocol set short_title = concat('', identifier) where short_title is null</sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Add unique constraint on CP short title">
+    <addUniqueConstraint tableName="catissue_collection_protocol" columnNames="short_title"/>
+  </changeSet>
+</databaseChangeLog>

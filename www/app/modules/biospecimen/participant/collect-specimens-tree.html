@@ -1,0 +1,439 @@
+<form name="collectionForm" os-no-label-form os-form-validator="collectionForm" novalidate>
+  <div ng-include src="'specimen_coll_visit_details.html'"></div>
+
+  <table class="os-table os-table-fixed os-table-tree bulk-edit os-border os-table-muted-hdr">
+    <thead class="os-table-head">
+      <tr class="row">
+        <th class="col"
+          ng-show="uiOpts.treeColumns.description"
+          ng-style="{width: uiOpts.treeColumns.description.width + '%'}">
+          <span translate="specimens.description">Description</span>
+        </th>
+        <th class="col"
+          ng-show="uiOpts.treeColumns.label"
+          ng-style="{width: uiOpts.treeColumns.label.width + '%'}">
+          <span>{{(barcodingEnabled ? 'specimens.barcode' : 'specimens.label') | translate}}</span>
+        </th>
+        <th class="col"
+          ng-show="uiOpts.treeColumns.quantity"
+          ng-style="{width: uiOpts.treeColumns.quantity.width + '%'}">
+          <span translate="specimens.qty">Quantity</span>
+        </th>
+        <th class="col" ng-if="storeSpmnsAllowed"
+          ng-show="uiOpts.treeColumns.position"
+          ng-style="{width: uiOpts.treeColumns.position.width + '%'}">
+          <div class="os-col-60 os-no-left-padding">
+            <span translate="specimens.container">Container</span>
+            <span class="os-more-options">
+              <div dropdown style="margin: -3px 0px 0px 5px;">
+                <button class="btn btn-xs btn-default dropdown-toggle">
+                  <span translate="common.buttons.more">More</span>
+                  <span class="fa fa-caret-down"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                  <li ng-if="autoAlloc.enabled">
+                    <a ng-click="reallocatePositions()">
+                      <span translate="specimens.reallocate">Reallocate</span>
+                    </a>
+                  </li>
+                  <li ng-if="autoAlloc.enabled && !autoAlloc.manual">
+                    <a ng-click="selectPositionsManually(0)">
+                      <span translate="specimens.manual_selection">Manual selection</span>
+                    </a>
+                  </li>
+                  <li ng-if="!autoAlloc.enabled || autoAlloc.manual">
+                    <a ng-click="applyFirstLocationToAll()">
+                      <span translate="common.copy_first_to_all">Copy first to all</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a ng-click="selectPositionsManually(1)">
+                      <span translate="specimens.clear_positions">Clear positions</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a ng-click="selectPositionsManually(2)">
+                      <span translate="specimens.clear_positions_incl_boxes">Clear positions</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </span>
+          </div>
+          <div class="os-col-30 os-no-left-padding">
+            <span translate="specimens.position">Position</span>
+          </div>
+        </th>
+        <th class="col"
+          ng-show="uiOpts.treeColumns.collector && showCollector"
+          ng-style="{width: uiOpts.treeColumns.collector.width + '%'}">
+          <span translate="specimens.col_event.user">Collector</span>
+        </th>
+        <th class="col"
+          ng-show="uiOpts.treeColumns.collectionDate && showCollector"
+          ng-style="{width: uiOpts.treeColumns.collectionDate.width + '%'}">
+          <span translate="specimens.col_event.date">Collection Date</span>
+        </th>
+        <th class="col"
+          ng-show="uiOpts.treeColumns.status"
+          ng-style="{width: uiOpts.treeColumns.status.width + '%'}">
+          <span>Status</span>
+        </th>
+        <th class="col os-col-5">
+          <div class="pull-left" ng-show="uiOpts.treeColumns.printLabel">
+            <span class="fa fa-print"></span>
+          </div>
+          <div class="pull-left" ng-show="uiOpts.treeColumns.closeSpecimen"
+            ng-style="{'margin-left': uiOpts.treeColumns.printLabel ? '12px' : '0px'}">
+            <span class="fa fa-ban"></span>
+          </div>
+        </th>
+        <th class="col os-col-5">&nbsp;</th>
+      </tr>
+    </thead>
+    <tbody class="os-table-body" os-storage-positions>
+      <tr class="row" ng-class="{'os-pool-specimen': !!specimen.pooledSpecimen}"
+        ng-repeat="specimen in specimens | openedTreeNodes" ng-form="sform" ng-if="specimen.showInTree">
+        <td class="col"
+          ng-show="uiOpts.treeColumns.description"
+          ng-style="{width: uiOpts.treeColumns.description.width + '%'}">
+          <div ng-style="{'padding-left': (specimen.hasChildren || specimen.depth == 0 ? specimen.depth * 20 : specimen.depth * 20 + 16) + 'px'}">
+            <a ng-if="specimen.hasChildren && specimen.isOpened"
+              class="fa fa-chevron-circle-down"
+              ng-click="closeSpecimenNode(specimen)">
+            </a>
+            <a ng-if="specimen.hasChildren && !specimen.isOpened"
+              class="fa fa-chevron-circle-right"
+              ng-click="openSpecimenNode(specimen)">
+            </a>
+            <span class="fa fa-circle"
+              ng-class="{'os-status-collected': specimen.existingStatus == 'Collected',
+                         'os-status-pending': specimen.existingStatus == 'Pending' || !specimen.existingStatus,
+                         'os-status-not-collected': specimen.existingStatus == 'Missed Collection' ||
+                                                    specimen.existingStatus == 'Not Collected'}">
+            </span>
+
+            <a ui-sref="specimen-detail.overview({
+              cpId: specimen.cpId, cprId: cpr.id,
+              eventId: specimen.eventId, visitId: specimen.visitId,
+              specimenId: specimen.id, srId: specimen.reqId})" target="_blank" rel="noopener">
+
+              <os-specimen-desc cp="cp" specimen="specimen" show-req-label="true"></os-specimen-desc>
+
+            </a>
+
+            <span ng-if="specimen.aliquotGrp.length > 0">
+              <div class="btn-group">
+                <button class="btn btn-xs btn-default" ng-if="specimen.expanded"
+                  ng-click="collapseAliquotsGroup(specimen)">
+                  <span ng-show="specimen.aliquotGrp.length > 1" class="fa fa-minus"></span>
+                  <span>({{specimen.aliquotGrp.length}})</span>
+                </button>
+                <button class="btn btn-xs btn-default" ng-if="!specimen.expanded"
+                  ng-click="expandAliquotsGroup(specimen)">
+                  <span ng-show="specimen.aliquotGrp.length > 1" class="fa fa-plus"></span>
+                  <span>({{specimen.aliquotGrp.length}})</span>
+                </button>
+                <button class="btn btn-xs btn-default" ng-disabled="specimen.expanded"
+                   bs-popover trigger="click" data-container="body"
+                   placement="bottom" content-template="aliquot-count.html"
+                   ng-if="!cp.manualSpecLabelEnabled && !!specimen.labelFmt">
+                   <span class="fa fa-ellipsis-h"></span>
+                </button>
+              </div>
+            </span>
+          </div>
+        </td>
+        <td class="col" ng-switch="barcodingEnabled"
+          ng-show="uiOpts.treeColumns.label"
+          ng-style="{width: uiOpts.treeColumns.label.width + '%'}">
+          <div ng-switch-when="true" ng-switch="spmnBarcodesAutoGen">
+            <div ng-switch-when="true">
+              <span translate="specimens.auto">Auto</span>
+            </div>
+            <div ng-switch-default os-unique-items>
+              <div ng-switch="!!specimen.aliquotGrp && !specimen.expanded">
+                <span ng-switch-when="true">
+                  <textarea os-md-input rows="1" name="barcode"
+                    ng-model="specimen.aliquotBarcodes" edit-when="!specimen.pBarcode"
+                    ng-focus="getBarcodes(specimen, $event)"
+                    ng-blur="assignBarcodes(specimen, specimen.aliquotBarcodes)">
+                  </textarea>
+                </span>
+
+                <span ng-switch-default>
+                  <input type="text" os-md-input edit-when="!specimen.pBarcode"
+                    name="barcode" ng-model="specimen.barcode" os-unique-item>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div ng-switch-default ng-switch="!cp.manualSpecLabelEnabled && !specimen.label && !!specimen.labelFmt">
+            <div ng-switch-when="true">
+              <span translate="specimens.auto">Auto</span>
+            </div>
+            <div ng-switch-default>
+              <span ng-switch on="!!specimen.aliquotGrp && !specimen.expanded">
+                <span ng-switch-when="true">
+                  <textarea os-md-input rows="1" name="label"
+                    ng-model="specimen.aliquotLabels" edit-when="!specimen.pLabel"
+                    ng-focus="getLabels(specimen, $event)"
+                    ng-blur="assignLabels(specimen, specimen.aliquotLabels)"
+                    ng-required="specimen.$$collectedOrPending">
+                  </textarea>
+                </span>
+
+                <span ng-switch-default>
+                  <input type="text" os-md-input edit-when="!specimen.pLabel"
+                    name="label" ng-model="specimen.label"
+                    ng-required="(specimen.status == 'Collected' || specimen.status == 'Pending') &&
+                      (!specimen.labelFmt || cp.manualSpecLabelEnabled)"
+                    ng-model-options="{updateOn: 'blur', allowInvalid: 'true'}" os-unique-specimen-label>
+                </span>
+              </span>
+              <div os-field-error field="sform.label"></div>
+            </div>
+          </div>
+        </td>
+        <td class="col"
+          ng-show="uiOpts.treeColumns.quantity"
+          ng-style="{width: uiOpts.treeColumns.quantity.width + '%'}">
+          <div ng-switch on="!!specimen.existingStatus && specimen.existingStatus != 'Pending'">
+            <span ng-switch-when="true">
+              <os-spmn-measure-val value="specimen.availableQty" specimen="specimen"></os-spmn-measure-val>
+            </span>
+            <span ng-switch-when="false">
+              <os-spmn-measure name="qty" specimen="specimen" quantity="specimen.initialQty"
+                md-input ng-required="specimen.lineage == 'Aliquot' && aliquotQtyReq"
+                on-change="changeQuantity(specimen, specimen.initialQty)">
+              </os-spmn-measure>
+            </span>
+          </div>
+          <div os-field-error field="sform.qty"></div>
+        </td>
+        <td class="col"
+          ng-switch on="autoAlloc.enabled && !autoAlloc.manual"
+          ng-if="storeSpmnsAllowed && uiOpts.treeColumns.position"
+          ng-style="{width: uiOpts.treeColumns.position.width + '%',
+            overflow: !autoAlloc.enabled || autoAlloc.manual ? 'visible' : 'initial'}">
+          <span ng-switch-when="true">
+            <os-disp-storage-position position="specimen.storageLocation"></os-disp-storage-position>
+          </span>
+          <span ng-switch-default>
+            <os-storage-position os-md-input edit-when="!entity.existingStatus || entity.existingStatus == 'Pending'"
+              entity="specimen" cp-id="cpr.cpId" virtual="specimen.isVirtual" hide-placeholder>
+            </os-storage-position>
+          </span>
+        </td>
+        <td class="col"
+          ng-show="uiOpts.treeColumns.collector && showCollector"
+          ng-style="{width: uiOpts.treeColumns.collector.width + '%'}">
+          <os-users class="os-md-input" ng-model="specimen.collectionEvent.user"
+            ng-if="specimen.lineage == 'New' && (!specimen.existingStatus || specimen.existingStatus == 'Pending')"
+            required>
+          </os-users>
+          <span ng-if="specimen.lineage == 'New' &&
+            (!!specimen.existingStatus && specimen.existingStatus != 'Pending')">
+            {{specimen.collectionEvent.user | osUserDisplayName | osNoValue}}
+          </span>
+        </td>
+        <td class="col" style="overflow: visible;"
+          ng-show="uiOpts.treeColumns.collectionDate && showCollector"
+          ng-style="{width: uiOpts.treeColumns.collectionDate.width + '%'}">
+
+          <div class="row" ng-if="specimen.lineage == 'New' &&
+            (!specimen.existingStatus || specimen.existingStatus == 'Pending')">
+            <div class="form-group">
+              <div class="col-xs-8 input" style="padding-left: 0px;">
+                <os-date-picker date="specimen.collectionEvent.time" md-type="true">
+                </os-date-picker>
+              </div>
+              <div class="col-xs-4 input os-md-time" style="padding-right: 0px;">
+                <timepicker name="time" class="os-time-no-wheels os-md-input" ng-model="specimen.collectionEvent.time"
+                  show-meridian="false">
+                </timepicker>
+              </div>
+            </div>
+          </div>
+
+          <span ng-if="specimen.lineage == 'New' &&
+            (!!specimen.existingStatus && specimen.existingStatus != 'Pending')">
+            {{specimen.collectionEvent.time | date: global.dateTimeFmt | osNoValue}}
+          </span>
+        </td>
+        <td class="col" style="overflow: visible;"
+          ng-show="uiOpts.treeColumns.status"
+          ng-style="{width: uiOpts.treeColumns.status.width + '%'}">
+          <os-select os-md-input edit-when="!specimen.existingStatus || specimen.existingStatus == 'Pending'"
+            list="specimenStatuses" ng-model="specimen.status" on-select="statusChanged(specimen)" required>
+          </os-select>
+        </td>
+        <td class="col">
+          <div class="pull-left" ng-show="uiOpts.treeColumns.printLabel">
+            <os-checkbox ng-model="specimen.printLabel" ng-change="togglePrintLabels(specimen)"></os-checkbox>
+          </div>
+          <div class="pull-left" ng-show="specimen.children.length > 0 && uiOpts.treeColumns.closeSpecimen"
+            ng-style="{'margin-left': uiOpts.treeColumns.printLabel ? '12px' : '0px'}">
+            <os-checkbox ng-model="specimen.closeAfterChildrenCreation"></os-checkbox>
+          </div>
+        </td>
+        <td class="col os-col-5">
+          <button class="btn btn-xs btn-default" ng-click="remove(specimen)"
+            ng-show="specimen.hasChildren || specimen.existingStatus == 'Pending' || !specimen.existingStatus">
+            <span class="fa fa-remove"></span>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="os-divider"></div>
+
+  <div class="row">
+    <div class="col-xs-10">
+      <button type="submit" class="btn btn-primary" os-form-submit="saveSpecimens()" mousedown-click="true"> 
+        <span translate="common.buttons.submit"> Submit </span>
+      </button>
+      <button type="submit" class="btn btn-primary" os-form-submit="saveSpecimens(true)" mousedown-click="true"
+        ng-show="showManifestPrint">
+        <span translate="common.buttons.submit_n_print"> Submit & Print</span>
+      </button>
+      <button class="btn os-btn-text" ng-click="cancel()">
+        <span translate="common.buttons.cancel"> Cancel </span>
+      </button>
+    </div>
+  </div>
+</form>
+
+<script type="text/ng-template" id="specimen_coll_visit_details.html">
+  <div class="form-horizontal os-md-form">
+    <div class="row" ng-if="!cp.specimenCentric && uiOpts.showVisitDetails">
+      <div class="col-xs-12">
+        <div class="form-group">
+          <label class="col-xs-2 control-label" translate="specimens.visit_details">Visit Details</label>
+          <div ng-if="visit.status != 'Complete'">
+            <div class="col-xs-3 input" ng-if="!cp.visitNameFmt || cp.manualVisitNameEnabled">
+              <input name="visitName" ng-model="visit.name" class="form-control" type="text" 
+                os-md-input ng-required="!!cp.manualVisitNameEnabled"
+                placeholder="{{'specimens.visit_name' | translate}}">
+              <div os-field-error field="collectionForm.visitName"></div>
+            </div>
+            <div class="col-xs-3 input">
+              <os-date-picker name="visitDate" date="visit.visitDate" required md-type="true"
+                on-change="updateCollDate(visit.visitDate)" placeholder="{{'specimens.visit_date' | translate}}">
+              </os-date-picker>
+              <div os-field-error field="collectionForm.visitDate"></div>
+            </div>
+            <div class="col-xs-3 input">
+              <os-sites name="site" md-type="true" ng-model="visit.site" list-all="{{!mrnAccessRestriction}}"
+                show-label="true" placeholder="{{'specimens.visit_site' | translate}}" required>
+              </os-sites>
+              <div os-field-error field="collectionForm.site"></div>
+            </div>
+          </div>
+
+          <div ng-if="visit.status == 'Complete'">
+            <div class="col-xs-3 os-md-input read">
+              <label class="os-md-input-label" translate="specimens.visit_date">Visit Date</label>
+              <span>{{visit.visitDate | date: global.dateFmt}}</span>
+            </div>
+            <div class="col-xs-3 os-md-input read">
+              <label class="os-md-input-label" translate="specimens.visit_site">Visit Site</label>
+              <span>{{visit.site}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" ng-if="showCollVisitDetails && uiOpts.showCollectionEvent">
+      <div class="col-xs-12">
+        <div class="form-group">
+          <label class="col-xs-2 control-label" translate="specimens.col_event.title">Collection Details</label>
+          <div class="col-xs-3 input">
+            <div os-md-input ng-model="collDetail.collector" placeholder="{{'specimens.col_event.user' | translate}}">
+              <os-users ng-model="collDetail.collector" placeholder="{{'specimens.col_event.user' | translate}}"
+                on-select="updateCollUser(user)">
+              </os-users>
+            </div>
+          </div>
+          <div class="col-xs-2 input">
+            <os-date-picker name="collDate" date="collDetail.collectionDate" md-type="true"
+              on-change="updateCollDate(collDetail.collectionDate)" required
+              placeholder="{{'specimens.col_event.date' | translate}}">
+            </os-date-picker>
+            <div os-field-error field="collectionForm.collDate"></div>
+          </div>
+          <div class="col-xs-1 input os-md-time">
+            <timepicker class="os-time-no-wheels" os-md-input ng-model="collDetail.collectionDate" show-meridian="false"></timepicker>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" ng-if="showCollVisitDetails && uiOpts.showReceivedEvent">
+      <div class="col-xs-12">
+        <div class="form-group">
+          <label class="col-xs-2 control-label" translate="specimens.recv_event.title">Receive Details</label>
+          <div class="col-xs-3 input">
+            <div os-md-input ng-model="collDetail.receiver" placeholder="{{'specimens.recv_event.user' | translate}}">
+              <os-users ng-model="collDetail.receiver" placeholder="{{'specimens.recv_event.user' | translate}}"> </os-users>
+            </div>
+          </div>
+          <div class="col-xs-2 input">
+            <os-date-picker name="receiveDate" date="collDetail.receiveDate" required md-type="true"
+              placeholder="{{'specimens.recv_event.date' | translate}}">
+            </os-date-picker>
+            <div os-field-error field="collectionForm.receiveDate"></div>
+          </div>
+          <div class="col-xs-1 input os-md-time">
+            <timepicker class="os-time-no-wheels" os-md-input ng-model="collDetail.receiveDate" show-meridian="false">
+            </timepicker>
+          </div>
+          <div class="col-xs-3 input" style="padding-left: 15px;">
+            <os-pvs os-md-input ng-model="collDetail.receiveQuality" attribute="receive_quality"
+              placeholder="{{'specimens.recv_event.received_quality' | translate}}">
+            </os-pvs>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</script>
+
+<script type="text/ng-template" id="aliquot-count.html">
+  <div>
+    <div class="form-group">
+      <input type="text" os-md-input  ng-model="specimen.newAliquotsCnt" ng-pattern="/^[1-9][0-9]*$/"
+        placeholder="{{'specimens.new_aliquot_count' | translate}}">
+    </div>
+    <div>
+      <button class="btn btn-xs btn-success" ng-click="updateCount(specimen)">
+        <span translate="common.buttons.ok"> Ok </span>
+      </button>
+      <button class="btn os-btn-text-secondary" ng-click="closePopover()">
+        <span translate="common.buttons.cancel"> Cancel </span>
+      </button>
+    </div>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/biospecimen/participant/collect-barcodes.html">
+  <div class="os-modal">
+    <div class="os-modal-header">
+      <span translate="{{title}}"></span>
+    </div>
+    <div class="os-modal-body os-no-label-form">
+      <textarea class="form-control" rows="5" ng-model="inputBarcodes" placeholder="{{placeholder | translate}}">
+      </textarea>
+    </div>
+    <div class="os-modal-footer">
+      <button class="btn os-btn-text" ng-click="cancel()">
+        <span translate="common.buttons.cancel">Cancel</span>
+      </button>
+      <button class="btn btn-primary" ng-click="ok()">
+        <span translate="common.buttons.done">Done</span>
+      </button>
+    </div>
+  </div>
+</script>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+  <changeSet author="vpawar" id="Setting to specify the text to use for displaying unspecified field values">
+    <sql>
+      call add_cfg_prop(
+        'common', 'not_specified_text',
+        'not_specified_text', 'not_specified_text_desc',
+        'STRING', 'messageKey: common.not_specified'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Saved query to use for cart specimens report">
+    <sql>
+      call add_cfg_prop(
+        'common', 'cart_specimens_rpt_query',
+        'cart_specimens_rpt_query', 'cart_specimens_rpt_query_desc',
+        'INT', ''
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to specify maximum number of specimens allowed in distribution UI">
+    <sql>
+      call add_cfg_prop(
+        'administrative', 'max_order_spmns_ui_limit',
+        'max_order_spmns_ui_limit', 'max_order_spmns_ui_limit_desc',
+        'INT', '100'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to enable or disable relabeling of specimens when shipments are received">
+    <sql>
+      call add_cfg_prop(
+        'administrative', 'allow_spmn_relabeling',
+        'allow_spmn_relabeling', 'allow_spmn_relabeling_desc',
+        'BOOLEAN', 'false'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Setting to enable or disable printing of distribution labels">
+    <sql>
+      call add_cfg_prop(
+        'administrative', 'allow_dist_label_printing',
+        'allow_dist_label_printing', 'allow_dist_label_printing_desc',
+        'BOOLEAN', 'false'
+      );
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Change the module of config settings that enables/disables download of print control files">
+    <sql>
+      update
+        os_cfg_props
+      set
+        module_id = (select identifier from os_modules where name = 'administrative')
+      where
+        name = 'download_labels_print_file';
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job to remind requestors to pick distributed specimens" dbms="mysql">
+    <sql>
+      select identifier into @userId from catissue_user where login_name = '$system';
+
+      insert into os_scheduled_jobs (
+        identifier, name, created_by, start_date, end_date, scheduled_minute, scheduled_hour, scheduled_day_of_week,
+        scheduled_day_of_month, activity_status, repeat_schedule, type, command,
+        task_impl_fqn, rt_args_provided, rt_args_help_text)
+      values (
+        default, 'Remind requestors to pick distributed specimens', @userId, now(), null, 45, 23, null,
+        null, 'Active', 'DAILY', 'INTERNAL', null,
+        'com.krishagni.catissueplus.core.administrative.services.impl.PickDistributedSpecimensNotification', 0, null)
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Scheduled job to remind requestors to pick distributed specimens" dbms="oracle">
+    <sql endDelimiter="//">
+      declare
+        userId number;
+      begin
+        select identifier into userId from catissue_user where login_name like '$system';
+
+        insert into os_scheduled_jobs (
+          identifier, name, created_by, start_date, end_date, scheduled_minute, scheduled_hour, scheduled_day_of_week,
+          scheduled_day_of_month, activity_status, repeat_schedule, type, command,
+          task_impl_fqn, rt_args_provided, rt_args_help_text)
+        values (
+          OS_SCHEDULED_JOBS_SEQ.nextVal, 'Remind requestors to pick distributed specimens', userId, SYSDATE, null, 45, 23, null,
+          null, 'Active', 'DAILY', 'INTERNAL', null,
+          'com.krishagni.catissueplus.core.administrative.services.impl.PickDistributedSpecimensNotification', 0, null);
+      end;
+      //
+    </sql>
+  </changeSet>
+
+  <changeSet author="vpawar" id="Precision of floating point numbers">
+    <sql>
+      call add_cfg_prop(
+        'query', 'floating_point_precision',
+        'floating_point_precision', 'floating_point_precision_desc',
+        'INT', '2'
+      );
+    </sql>
+  </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,45 @@
+<form class="os-home-widgets-settings">
+  <div class="os-modal">
+    <div class="os-modal-header">
+      <span translate="common.select_widgets">Add or remove widget</span>
+    </div>
+    <div class="os-modal-body">
+      <table class="os-table os-table-fixed bulk-edit" ng-if="sctx.display">
+        <thead class="os-table-head">
+          <tr class="row">
+            <th class="col os-col-5">
+              <span>&nbsp;</span>
+            </th>
+            <th class="col os-col-80">
+              <span translate="common.widget">Widget</span>
+            </th>
+            <th class="col os-col-15">
+              <span translate="common.width">Width</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="os-table-body" ui-sortable="sctx.sortOpts" ng-model="sctx.widgets">
+          <tr class="row" ng-repeat="widget in sctx.widgets">
+            <td class="col">
+              <os-checkbox style="top: 6px;" ng-model="widget.selected"></os-checkbox>
+            </td>
+            <td class="col handle">
+              <span translate="{{widget.title}}"></span>
+            </td>
+            <td class="col" style="overflow: visible;">
+              <os-select os-md-input ng-model="widget.width" list="sctx.widths" required></os-select>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="os-modal-footer">
+      <button class="btn os-btn-text" ng-click="cancel()">
+        <span translate="common.buttons.cancel">Cancel</span>
+      </button>
+      <button class="btn btn-primary" ng-click="save()">
+        <span translate="common.buttons.save">Save</span>
+      </button>
+    </div>
+  </div>
+</form>

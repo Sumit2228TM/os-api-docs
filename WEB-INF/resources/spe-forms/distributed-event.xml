@@ -1,0 +1,87 @@
+#macro(getMessage $code)$messageSource.getMessage($code, null, $locale)#end
+#macro(getPrecision)$cfgSvc.getIntSetting("query", "floating_point_precision", 0)#end
+
+<form>
+  <view>
+    <name>SpecimenDistributedEvent</name>
+    <caption>#getMessage("distributed_event")</caption>
+    <table>OS_SPMN_DISTRIBUTIONS_VIEW</table>
+    <primaryKey>IDENTIFIER</primaryKey>
+
+    <row>
+      <textField>
+        <name>name</name>
+        <udn>name</udn>
+        <caption>#getMessage("order_name")</caption>
+        <column>NAME</column>
+        <recordUrl>#/object-state-params-resolver?stateName=OrderDetail.Overview&amp;objectName=distribution_order&amp;key=name&amp;value={{$value}}</recordUrl>
+      </textField>
+    </row>
+
+    <row>
+      <dropDown>
+        <name>dpShortTitle</name>
+        <udn>dpShortTitle</udn>
+        <caption>#getMessage("order_dp_short_title")</caption>
+        <column>DP_SHORT_TITLE</column>
+        <options>
+          <sql>select short_title from catissue_distribution_protocol where activity_status != 'Disabled' order by short_title</sql>
+        </options>
+        <recordUrl>#/object-state-params-resolver?stateName=DpDetail.Overview&amp;objectName=distribution_protocol&amp;key=shortTitle&amp;value={{$value}}</recordUrl>
+      </dropDown>
+    </row>
+
+    <row>
+      <userField>
+        <name>requester</name>
+        <udn>requester</udn>
+        <caption>#getMessage("order_requester")</caption>
+        <column>REQUESTER_ID</column>
+      </userField>
+    </row>
+
+    <row>
+      <numberField>
+        <name>quantity</name>
+        <udn>quantity</udn>
+        <caption>#getMessage("order_items_quantity")</caption>
+        <column>QUANTITY</column>
+        <mandatory>true</mandatory>
+        <noOfDigitsAfterDecimal>#getPrecision()</noOfDigitsAfterDecimal>
+      </numberField>
+    </row>
+
+    <row>
+      <userField>
+        <name>user</name>
+        <udn>user</udn>
+        <caption>#getMessage("order_distributor")</caption>
+        <column>DISTRIBUTOR_ID</column>
+        <showInGrid>true</showInGrid>
+      </userField>
+    </row>
+
+    <row>
+      <datePicker>
+        <name>time</name>
+        <udn>time</udn>
+        <caption>#getMessage("order_execution_date")</caption>
+        <column>EXECUTION_DATE</column>
+        <format>MM-dd-yyyy HH:mm</format>
+        <showInGrid>true</showInGrid>
+        <default>current_date</default>
+        <mandatory>true</mandatory>
+      </datePicker>
+    </row>
+
+    <row>
+      <textArea>
+        <name>comments</name>
+        <udn>comments</udn>
+        <caption>#getMessage("order_comments")</caption>
+        <column>COMMENTS</column>
+        <height>2</height>
+      </textArea>
+    </row>
+  </view>
+</form>

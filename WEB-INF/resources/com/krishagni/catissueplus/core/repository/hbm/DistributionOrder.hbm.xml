@@ -1,0 +1,190 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="false">
+  <class name="com.krishagni.catissueplus.core.administrative.domain.DistributionOrder" table="OS_ORDERS"
+    entity-name="com.krishagni.catissueplus.core.administrative.domain.DistributionOrder">
+	
+    <id name="id" column="IDENTIFIER">
+      <generator class="native">
+        <param name="sequence">OS_ORDERS_SEQ</param>
+      </generator>
+    </id>
+    
+    <property name="name" column="NAME"/>
+
+    <many-to-one name="requester" column="REQUESTER_ID"/>
+      
+    <property name="creationDate" column="CREATION_DATE"/>
+    
+    <property name="executionDate" column="EXECUTION_DATE"/>
+      
+    <property name="status" column="STATUS" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.administrative.domain.DistributionOrder$Status</param>
+        <param name="type">12</param>
+      </type>
+    </property> 
+    
+    <property name="activityStatus" column="ACTIVITY_STATUS" />
+    
+    <property name="trackingUrl" column="TRACKING_URL"/>
+
+    <property name="comments" column="COMMENTS"/>
+    
+    <set name="orderItems" table="OS_ORDER_ITEMS" cascade="all-delete-orphan" inverse="true">
+      <key column="ORDER_ID"/>
+      <one-to-many class="com.krishagni.catissueplus.core.administrative.domain.DistributionOrderItem"/>
+    </set>     
+    
+    <many-to-one name="site" column="SITE_ID"/>
+    
+    <many-to-one name="distributionProtocol" column="DISTRIBUTION_PROTOCOL_ID"/>
+        
+    <many-to-one name="distributor" column="DISTRIBUTOR_ID"/>
+
+    <many-to-one name="request" column="REQUEST_ID"/>
+
+    <many-to-one name="specimenList" column="SPECIMEN_LIST_ID"/>
+
+    <property name="clearListId" column="CLEAR_LIST_ID"/>
+
+    <property name="clearListMode" column="CLEAR_LIST_MODE">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">com.krishagni.catissueplus.core.administrative.domain.DistributionOrder$ClearListMode</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+
+    <property name="allReservedSpecimens" column="SPMNS_RESERVED_FOR_DP"/>
+
+    <property name="checkoutSpecimens" column="CHECKOUT_SPECIMENS" />
+      
+    <filter name="activeEntity"/>
+        
+    <query name="getOrdersByName">
+      from 
+        com.krishagni.catissueplus.core.administrative.domain.DistributionOrder
+      where
+        name in (:names)
+    </query>
+
+    <query name="getDistributedItemsBySpmnIds">
+      select
+        oi
+      from
+        com.krishagni.catissueplus.core.administrative.domain.DistributionOrder o
+        inner join o.orderItems oi
+        inner join oi.specimen spmn
+      where
+        spmn.id in (:ids) and
+        o.status = 'EXECUTED' and
+        (oi.status = 'DISTRIBUTED' or oi.status = 'DISTRIBUTED_AND_CLOSED')
+    </query>
+
+    <query name="getUnpickedSpecimenOrders">
+      select
+        o
+      from
+        com.krishagni.catissueplus.core.administrative.domain.DistributionOrder o
+      where
+        o.id in (
+          select
+            distinct po.id
+          from
+            com.krishagni.catissueplus.core.administrative.domain.DistributionOrder po
+            join po.orderItems oi
+            join oi.specimen s
+            join s.position pos
+            join pos.container box
+          where
+            po.status = 'EXECUTED' and
+            po.executionDate &lt;= :distEarlierThan and
+            po.status != 'RETURNED' and
+            box.usedFor = 'DISTRIBUTION'
+        )
+      order by
+        o.id
+    </query>
+
+    <sql-query name="getOrderItemsCount">
+      <return-scalar column="ordId"    type="long"/>
+      <return-scalar column="itemsCnt" type="long"/>
+      
+      select
+        ord.identifier as ordId, count(orderItem.identifier) as itemsCnt
+      from
+        os_orders ord
+        inner join os_order_items orderItem on orderItem.order_id = ord.identifier
+        inner join catissue_specimen s on s.identifier = orderItem.specimen_id
+      where
+        ord.identifier in (:orderIds) and
+        ord.activity_status != 'Disabled' and
+        s.activity_status != 'Disabled'
+      group by
+        ord.identifier
+    </sql-query>
+
+    <sql-query name="getListItemsCount">
+      <return-scalar column="ordId"    type="long"/>
+      <return-scalar column="itemsCnt" type="long"/>
+
+      select
+        ord.identifier as ordId, count(li.identifier) as itemsCnt
+      from
+        os_orders ord
+        inner join catissue_spec_tag_items li on li.tag_id = ord.specimen_list_id
+        inner join catissue_specimen s on s.identifier = li.obj_id
+      where
+        ord.identifier in (:orderIds) and
+        ord.activity_status != 'Disabled' and
+        s.activity_status != 'Disabled'
+      group by
+        ord.identifier
+    </sql-query>
+
+    <sql-query name="getCustomFieldRecordId">
+      <return-scalar column="recordId" type="long" />
+
+      select
+        record_id as recordId
+      from
+        os_order_cust_fields
+      where
+        order_id = :orderId and
+        form_id = :formId and
+        form_ctxt_id = :formCtxtId
+    </sql-query>
+
+    <sql-query name="getCustomFieldRecordIds">
+      <return-scalar column="orderId" type="long" />
+      <return-scalar column="recordId" type="long" />
+
+      select
+        order_id as orderId, record_id as recordId
+      from
+        os_order_cust_fields
+      where
+        order_id in (:orderIds) and
+        form_id = :formId and
+        form_ctxt_id = :formCtxtId
+    </sql-query>
+
+    <sql-query name="insertCustomFieldRecord">
+      insert into
+        os_order_cust_fields(order_id, form_id, form_ctxt_id, record_id)
+      values
+        (:orderId, :formId, :formCtxtId, :recordId)
+    </sql-query>
+
+    <sql-query name="insertCustomFieldRecordStatus">
+      insert into
+        os_form_record_statuses (identifier, form_id, record_id, form_status)
+      values
+        (:orderId, :formId, :recordId, 'COMPLETE')
+    </sql-query>
+
+  </class>
+</hibernate-mapping>

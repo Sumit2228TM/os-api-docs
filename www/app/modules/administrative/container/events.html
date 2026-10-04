@@ -1,0 +1,72 @@
+<div>
+  <table class="os-table">
+    <thead class="os-table-head">
+      <tr class="row">
+        <th class="col">
+          <span translate="container.event_id">Event ID</span>
+        </th>
+        <th class="col">
+          <span translate="container.event_from_site">From Site</span>
+        </th>
+        <th class="col">
+          <span translate="container.event_from_location">From Location</span>
+        </th>
+        <th class="col">
+          <span translate="container.event_to_site">To Site</span>
+        </th>
+        <th class="col">
+          <span translate="container.event_to_location">To Location</span>
+        </th>
+        <th class="col">
+          <span translate="container.event_user">User</span>
+        </th>
+        <th class="col">
+          <span translate="container.event_time">Time</span>
+        </th>
+      </tr>
+    </thead>
+    <tbody class="os-table-body os-border">
+      <tr class="row" ng-if="lctx.emptyState.loading || lctx.emptyState.empty">
+        <td class="col" colspan="100%">
+          <os-empty-list state="lctx.emptyState"></os-empty-list>
+        </td>
+      </tr>
+
+      <tr class="row" ng-repeat="event in lctx.events">
+        <td class="col">
+          <span>#{{event.id}}</span>
+        </td>
+        <td class="col">
+          <span>{{event.fromSite}}</span>
+        </td>
+        <td class="col" ng-switch on="!!event.fromLocation.name">
+          <a ng-switch-when="true" ui-sref="container-detail.overview({containerId: event.fromLocation.id})">
+            <span>{{event.fromLocation.name}}</span>
+            <span ng-show="!!event.fromLocation.position">
+              ({{event.fromLocation.positionY}} x {{event.fromLocation.positionX}}, {{event.fromLocation.position}})
+            </span>
+          </a>
+          <span ng-switch-default>{{'' | osNoValue}}</span>
+        </td>
+        <td class="col">
+          <span>{{event.toSite}}</span>
+        </td>
+        <td class="col" ng-switch on="!!event.toLocation.name">
+          <a ng-switch-when="true" ui-sref="container-detail.overview({containerId: event.toLocation.id})">
+            <span>{{event.toLocation.name}}</span>
+            <span ng-show="!!event.toLocation.position">
+              ({{event.toLocation.positionY}} x {{event.toLocation.positionX}}, {{event.toLocation.position}})
+            </span>
+          </span>
+          <span ng-switch-default>{{'' | osNoValue}}</span>
+        </td>
+        <td class="col">
+          <span>{{event.user | osUserDisplayName}}</span>
+        </td>
+        <td class="col">
+          <span>{{event.time | date: global.dateTimeFmt}}</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

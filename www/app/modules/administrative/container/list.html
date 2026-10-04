@@ -1,0 +1,179 @@
+<div>
+  <div os-page-header>
+    <div class="os-page-header-content">
+      <h3> 
+        <span translate="container.list">Storage Containers</span>
+      </h3>
+    </div>
+    <div class="os-page-header-actions">
+      <os-list-pager opts="pagerOpts"></os-list-pager>
+    </div>
+  </div>
+  <div class="os-page-commands">
+    <div class="left">
+      <div ng-if="!ctx.checkList.anySelected">
+        <div ng-include="'modules/administrative/container/single-container-ops.html'"></div>
+      </div>
+
+      <div ng-if="ctx.checkList.anySelected">
+        <div ng-include="'modules/administrative/container/bulk-container-ops.html'"></div>
+      </div>
+    </div>
+    <div class="right">
+      <button class="default" os-right-drawer-toggle title="{{'container.tooltip.search' | translate}}">
+        <span class="fa fa-search"></span>
+        <span translate="common.buttons.search">Search</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="alert alert-info os-lean-box" ng-show="ctx.checkList.count > 0">
+      <span> {{'common.items_selected_info' | translate: ctx.checkList}} </span>
+    </div>
+
+    <table class="os-table os-table-hover">
+      <thead class="os-table-head">
+        <tr class="row">
+          <th class="col os-click-esc" style="width: 50px;">
+            <div class="os-select-specimen-cb" ng-if="containerResource.deleteAllowed">
+              <os-checkbox ng-change="ctx.checkList.toggleSelectAll()" ng-model="ctx.checkList.allSelected">
+              </os-checkbox>
+            </div>
+            <span>&nbsp;</span>
+          </th>
+          <th class="col">
+            <span translate="container.name">Name</span>
+          </th>
+          <th class="col">
+            <span translate="container.site">Site</span>
+          </th>
+          <th class="col">
+            <span translate="container.created_by">Created By</span>
+          </th>
+          <th class="col">
+            <span translate="container.dimension">Dimension</span>
+          </th>
+          <th class="col">
+            <span translate="container.stored_spmns">Stored Specimens</span>
+          </th>
+          <th class="col">
+            <span translate="container.capacity">Capacity</span>
+          </th>
+          <th class="col">
+            <span translate="container.utilisation">Utilisation</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody class="os-table-body">
+        <tr class="row" ng-if="ctx.emptyState.loading || ctx.emptyState.empty">
+          <td class="col" colspan="100%">
+            <os-empty-list state="ctx.emptyState"></os-empty-list>
+          </td>
+        </tr>
+
+        <tr class="row" ng-repeat="container in ctx.containerList" os-row-click="showContainerDetail(container)">
+          <td class="col os-click-esc">
+            <div class="os-select-specimen-cb" ng-if="containerResource.deleteAllowed">
+              <os-checkbox ng-change="ctx.checkList.toggleSelectItem($index)"
+                ng-model="ctx.checkList.items[$index].selected">
+              </os-checkbox>
+            </div>
+            <span class="os-starred-item fa"
+              ng-class="{true: 'fa-star starred', false: 'fa-star-o'}[container.starred == true]"
+              ng-click="toggleStar(container)">
+            </span>
+          </td>
+          <td class="col">
+            <span class="fa fa-truck" ng-if="container.usedFor == 'DISTRIBUTION'"></span>
+            <a ui-sref="container-detail.locations({containerId: container.id})">
+              <span>{{container.name}}</span>
+            </a>
+          </td>
+          <td class="col">
+            <span>{{container.siteName}}</span>
+          </td>
+          <td class="col">
+            <span>{{container.createdBy | osUserDisplayName}}</span>
+          </td>
+          <td class="col" ng-switch on="container.positionLabelingMode != 'NONE'">
+            <span ng-switch-when="true">{{container.noOfRows}} X {{container.noOfColumns}}</span>
+            <span ng-switch-when="false" translate="common.not_applicable">Not Applicable</span>
+          </td>
+          <td class="col">
+            <span>{{container.storedSpecimens | number: 0}}</span>
+          </td>
+          <td class="col">
+            <span>{{container.capacity | number: 0 | osNoValue}}</span>
+          </td>
+          <td class="col">
+            <progress class="progress" max="100">
+              <bar value="container.utilisation" type="danger">
+                <span><b>{{container.utilisation}}%</b></span>
+              </bar>
+              <bar value="100 - container.utilisation" type="success">
+                <span><b>{{100 - container.utilisation}}%</b></span>
+              </bar>
+            </progress>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div os-right-drawer ng-include="'modules/administrative/container/search.html'"></div>
+
+</div>
+
+<script type="text/ng-template" id="modules/administrative/container/single-container-ops.html">
+  <div>
+    <button show-if-allowed="containerResource.createOpts" class="default"
+      title="{{'container.tooltip.add' | translate}}" ui-sref="container-addedit({containerId: ''})">
+      <span class="fa fa-plus"></span>
+      <span translate="common.buttons.create">Create</span>
+    </button>
+    <button class="default" ui-sref="container-type-list">
+      <span class="fa fa-cubes"></span>
+      <span translate="container.types">Types</span>
+    </button>
+    <button class="default" ui-sref="container-task-list">
+      <span class="fa fa-tasks"></span>
+      <span translate="container.maintenance.tasks">Tasks</span>
+    </button>
+    <div show-if-allowed="containerResource.importOpts" dropdown class="os-inline-btn">
+      <button class="default dropdown-toggle">
+        <span translate="common.buttons.import">Import</span>
+        <span class="fa fa-caret-down"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li>
+          <a ui-sref="container-import">
+            <span class="fa fa-dropbox"></span>
+            <span translate="container.list">Containers</span>
+          </a>
+        </li>
+        <li>
+          <a ui-sref="container-import-jobs">
+            <span class="fa fa-list-alt"></span>
+            <span translate="bulk_imports.view_jobs">View Past Imports</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <os-export show-if-allowed="containerResource.importOpts" class="default" detail="ctx.exportDetail"></os-export>
+    <os-help class="os-btns btn default" link="container_help_link"></os-help>
+  </div>
+</script>
+
+<script type="text/ng-template" id="modules/administrative/container/bulk-container-ops.html">
+  <div>
+    <button class="default" title="{{'container.tooltip.delete_containers' | translate}}" ng-click="deleteContainers()">
+      <span class="fa fa-trash"></span>
+      <span translate="common.buttons.delete">Delete</span>
+    </button>
+
+    <os-export show-if-allowed="containerResource.importOpts" class="default" detail="ctx.exportDetail"
+      check-list="ctx.checkList">
+    </os-export>
+  </div>
+</script>
