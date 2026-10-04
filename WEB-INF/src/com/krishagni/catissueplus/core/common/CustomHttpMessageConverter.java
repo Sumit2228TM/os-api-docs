@@ -3,6 +3,7 @@ package com.krishagni.catissueplus.core.common;
 import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
@@ -37,5 +38,11 @@ public class CustomHttpMessageConverter extends MappingJackson2HttpMessageConver
 			}
 		});
 		mapper.registerModule(module);
+	}
+
+	@Override
+	public boolean canWrite(Class<?> clazz, MediaType mediaType) {
+		// let ByteArrayHttpMessageConverter write byte[] as-is (springdoc returns the spec as byte[])
+		return !byte[].class.equals(clazz) && super.canWrite(clazz, mediaType);
 	}
 }

@@ -18,7 +18,14 @@
   
   <context:component-scan base-package="com.krishagni.catissueplus.rest"/>
   <context:component-scan base-package="edu.wustl.dynamicextensions.formdesigner"/>
+  <bean class="org.springdoc.core.configuration.SpringDocConfiguration"/>
+  <bean class="org.springdoc.core.properties.SpringDocConfigProperties">
+    <property name="defaultProducesMediaType" value="application/json"/>
+  </bean>
+  <bean id="mvcConversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean"/>
+  <bean class="org.springdoc.webmvc.core.configuration.SpringDocWebMvcConfiguration"/>
 
   <import resource="classpath:com/krishagni/openspecimen/**/apiContext.xml"/>
   <import resource="classpath*:pluginApiContext.xml"/>
+
 </beans>
