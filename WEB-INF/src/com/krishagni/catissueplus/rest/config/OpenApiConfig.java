@@ -183,6 +183,64 @@ public class OpenApiConfig {
 		op.getRequestBody().getContent().values().forEach(mt -> mt.setSchema(schema));
 	}
 
+	// Documentation only: schemas generated as additionalProperties {} / items {} are rewritten as
+	// explicit free-form schemas with a description.
+	@Bean
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	public OpenApiCustomizer freeFormSchemaCustomizer() {
+		return openApi -> {
+			if (openApi.getPaths() == null) {
+				return;
+			}
+
+			openApi.getPaths().values().forEach(item -> item.readOperations().forEach(op -> {
+				if (op.getRequestBody() != null && op.getRequestBody().getContent() != null) {
+					op.getRequestBody().getContent().values().forEach(mt -> describeOpen(mt.getSchema()));
+				}
+
+				if (op.getResponses() != null) {
+					op.getResponses().values().forEach(r -> {
+						if (r.getContent() != null) {
+							r.getContent().values().forEach(mt -> describeOpen(mt.getSchema()));
+						}
+					});
+				}
+			}));
+		};
+	}
+
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	private static void describeOpen(Schema s) {
+		if (s == null || s.get$ref() != null) {
+			return;
+		}
+
+		Object ap = s.getAdditionalProperties();
+		if (ap instanceof Schema && isBlank((Schema) ap)) {
+			s.setAdditionalProperties(Boolean.TRUE);
+			if (s.getDescription() == null) {
+				s.setDescription("Free-form JSON object: keys and values vary.");
+			}
+		}
+
+		Schema items = s.getItems();
+		if (items != null && items.get$ref() == null) {
+			if (isBlank(items)) {
+				items.setDescription("Any JSON value.");
+			} else {
+				describeOpen(items);
+			}
+		}
+	}
+
+	@SuppressWarnings("rawtypes")
+	private static boolean isBlank(Schema a) {
+		return a.get$ref() == null && a.getType() == null &&
+			(a.getTypes() == null || a.getTypes().isEmpty()) &&
+			a.getProperties() == null && a.getItems() == null && a.getEnum() == null &&
+			a.getAllOf() == null && a.getAnyOf() == null && a.getOneOf() == null;
+	}
+
 	private static String cap(String s) {
 		return s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
 	}
