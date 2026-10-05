@@ -241,6 +241,67 @@ public class OpenApiConfig {
 			a.getAllOf() == null && a.getAnyOf() == null && a.getOneOf() == null;
 	}
 
+	// Documentation only: same idea as freeFormSchemaCustomizer, but for fields inside the models
+	// (components/schemas) that are declared as Object / Map<String, Object> / raw List.
+	@Bean
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	public OpenApiCustomizer componentSchemaCustomizer() {
+		return openApi -> {
+			if (openApi.getComponents() == null || openApi.getComponents().getSchemas() == null) {
+				return;
+			}
+
+			for (Object s : openApi.getComponents().getSchemas().values()) {
+				describeOpenDeep((Schema) s);
+			}
+		};
+	}
+
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	private static void describeOpenDeep(Schema s) {
+		if (s == null || s.get$ref() != null) {
+			return;
+		}
+
+		Object ap = s.getAdditionalProperties();
+		if (ap instanceof Schema) {
+			Schema aps = (Schema) ap;
+			if (isBlank(aps)) {
+				s.setAdditionalProperties(Boolean.TRUE);
+				if (s.getDescription() == null) {
+					s.setDescription("Free-form JSON object: keys and values vary.");
+				}
+			} else {
+				describeOpenDeep(aps);
+			}
+		}
+
+		Schema items = s.getItems();
+		if (items != null && items.get$ref() == null) {
+			if (isBlank(items)) {
+				if (items.getDescription() == null) {
+					items.setDescription("Any JSON value.");
+				}
+			} else {
+				describeOpenDeep(items);
+			}
+		}
+
+		Map<String, Schema> props = s.getProperties();
+		if (props != null) {
+			for (Schema prop : props.values()) {
+				describeOpenDeep(prop);
+			}
+		}
+
+		List<Schema> allOf = s.getAllOf();
+		if (allOf != null) {
+			for (Schema x : allOf) {
+				describeOpenDeep(x);
+			}
+		}
+	}
+
 	private static String cap(String s) {
 		return s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
 	}
