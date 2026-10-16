@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Create Specimen — OpenSpecimen API</title>
+  <style>
+    :root { --text: #1a1a1a; --border: #bbb; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+      font-weight: 400;
+      color: var(--text);
+      max-width: 46rem;
+      margin: 1.5rem auto;
+      padding: 0 1.25rem;
+    }
+    /* Page title */
+    h1 {
+      font-family: inherit;
+      font-size: 1.35rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin: 0 0 0.35rem;
+    }
+    /* Major sections (numbered) */
+    h2 {
+      font-family: inherit;
+      font-size: 1.2rem;
+      font-weight: 600;
+      line-height: 1.35;
+      margin: 1.6rem 0 0.5rem;
+      padding-top: 0.25rem;
+      border-top: 1px solid var(--border);
+    }
+    h2:first-of-type { border-top: none; }
+    /* Subsections (table groups, JSON examples) */
+    h3 {
+      font-family: inherit;
+      font-size: 1.05rem;
+      font-weight: 600;
+      line-height: 1.35;
+      margin: 1rem 0 0.35rem;
+    }
+    p, li, ul, ol, td, th, .summary, .meta, .endpoint, .tag, .footer, .toc, summary {
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 400;
+      line-height: 1.45;
+    }
+    strong { font-weight: 600; }
+    .endpoint { margin: 0.25rem 0 0.75rem; }
+    .meta { margin: 0.5rem 0 1rem; padding: 0; list-style: none; }
+    .meta li { margin: 0.15rem 0; }
+    .summary { margin: 0.5rem 0 1rem; }
+    .toc { margin: 1rem 0; padding: 0.75rem 1rem; border: 1px solid var(--border); }
+    .toc-title { font-weight: 600; margin: 0; }
+    .toc ul { margin: 0.35rem 0 0; padding-left: 1.25rem; }
+    .toc a { color: inherit; text-decoration: underline; }
+    .tag { font-style: italic; margin: 0.25rem 0 0.5rem; }
+    code {
+      font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+      font-size: 0.93em;
+      font-weight: 400;
+    }
+    pre {
+      font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 1.4;
+      border: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      overflow-x: auto;
+      margin: 0.35rem 0 1rem;
+    }
+    pre code { font-size: inherit; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 0.35rem 0 1rem;
+      font-family: inherit;
+      font-size: 15px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.35rem 0.5rem;
+      text-align: left;
+      vertical-align: top;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 400;
+      line-height: 1.45;
+    }
+    th { font-weight: 600; }
+    details { margin: 0.5rem 0 1rem; border: 1px solid var(--border); }
+    summary {
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    details pre { margin: 0; border: none; border-top: 1px solid var(--border); }
+    hr { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+    .footer { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+
+<h1>Create Specimen</h1>
+<p class="endpoint">POST /rest/ng/specimens</p>
+<p class="summary">
+  Creates one specimen (primary, derivative, or aliquot) on a visit and returns the saved record.
+  Use <code>POST /rest/ng/specimens/collect</code> when you need multiple specimens or nested children in a single call.
+</p>
+<ul class="meta">
+  <li><strong>Method:</strong> <code>POST</code></li>
+  <li><strong>Path:</strong> <code>/rest/ng/specimens</code></li>
+  <li><strong>Content-Type:</strong> <code>application/json</code></li>
+  <li><strong>Success status:</strong> <code>200 OK</code></li>
+</ul>
+
+<nav class="toc" aria-label="Table of contents">
+  <p class="toc-title">Table of Contents</p>
+  <ul>
+    <li><a href="#1-quick-start-examples">1. Quick Start Examples</a></li>
+    <li><a href="#2-request-parameters-reference">2. Request Parameters Reference</a></li>
+    <li><a href="#3-key-response-fields">3. Key Response Fields</a></li>
+    <li><a href="#4-error-cases">4. Error Cases</a></li>
+    <li><a href="#5-python-sample-code">5. Python Sample Code</a></li>
+    <li><a href="#6-related-endpoints">6. Related Endpoints</a></li>
+  </ul>
+</nav>
+
+<hr>
+
+<h2 id="1-quick-start-examples">1. Quick Start Examples</h2>
+<p class="tag">Illustrative example. Substitute your own visit, specimen fields, and quantities in the request body below.</p>
+
+<h3>Request body example</h3>
+<pre><code>{
+  "visitId": 1001,
+  "specimenClass": "Fluid",
+  "type": "Serum",
+  "initialQty": 5
+}</code></pre>
+
+<h3>Response body example</h3>
+<pre><code>{
+  "id": 90001,
+  "visitId": 1001,
+  "cpShortTitle": "DemoCP",
+  "label": "DEMO-001-S1",
+  "lineage": "New",
+  "specimenClass": "Fluid",
+  "type": "Serum",
+  "status": "Collected",
+  "availabilityStatus": "Available",
+  "initialQty": 5,
+  "availableQty": 5,
+  "storageLocation": { "id": -1 }
+}</code></pre>
+
+<h2 id="2-request-parameters-reference">2. Request Parameters Reference</h2>
+<p class="tag">Omit response-only fields (<code>cprId</code>, <code>ppid</code>, computed <code>availabilityStatus</code> on input, etc.).</p>
+
+<h3>Visit, requirement, lineage</h3>
+<table>
+  <thead><tr><th>Parameter</th><th>Type</th><th>Required?</th><th>Description &amp; constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>visitId</code></td><td>Number</td><td>Conditional</td><td>Visit id. Required unless <code>visitName</code>, parent specimen, or specimen-centric <code>cpId</code>/<code>cpShortTitle</code> supplies visit.</td></tr>
+    <tr><td><code>visitName</code></td><td>String</td><td>Conditional</td><td>Alternative to <code>visitId</code>.</td></tr>
+    <tr><td><code>cpId</code>, <code>cpShortTitle</code></td><td>Number / String</td><td>Conditional</td><td>Protocol; with <code>reqCode</code> for requirement lookup; specimen-centric CP provides visit.</td></tr>
+    <tr><td><code>reqId</code>, <code>reqCode</code></td><td>Number / String</td><td>No</td><td>Planned requirement; copies class, type, lineage. <code>reqCode</code> needs CP + visit event.</td></tr>
+    <tr><td><code>lineage</code></td><td>String</td><td>No</td><td><code>New</code> | <code>Aliquot</code> | <code>Derived</code>. Default <code>New</code> or from requirement.</td></tr>
+    <tr><td><code>parentId</code>, <code>parentLabel</code></td><td>Number / String</td><td>Conditional</td><td>Required for Aliquot/Derived if parent not resolved via requirement.</td></tr>
+  </tbody>
+</table>
+
+<h3>Specimen attributes</h3>
+<table>
+  <thead><tr><th>Parameter</th><th>Type</th><th>Required?</th><th>Description &amp; constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>specimenClass</code>, <code>type</code></td><td>String</td><td>Conditional</td><td>PVs; required without <code>reqId</code> (aliquot copies parent). Class may infer from <code>type</code>.</td></tr>
+    <tr><td><code>status</code></td><td>String</td><td>No</td><td>Default <code>Collected</code>. Also: <code>Pending</code>, <code>Missed Collection</code>, <code>Not Collected</code>.</td></tr>
+    <tr><td><code>activityStatus</code></td><td>String</td><td>No</td><td>Default <code>Active</code> (<code>Active</code> | <code>Disabled</code> | <code>Closed</code>).</td></tr>
+    <tr><td><code>anatomicSite</code>, <code>laterality</code>, <code>pathology</code></td><td>String</td><td>No</td><td>PVs; aliquots use parent; else requirement or Not Specified.</td></tr>
+    <tr><td><code>biohazards</code></td><td>Array</td><td>No</td><td>String PV list; aliquots inherit parent.</td></tr>
+    <tr><td><code>label</code>, <code>additionalLabel</code>, <code>barcode</code></td><td>String</td><td>Conditional</td><td>Unique if set; label required when collected + no auto-label; barcode blocked if CP auto-barcode (unless pre-barcoded requirement).</td></tr>
+    <tr><td><code>preBarcodedTube</code></td><td>Boolean</td><td>No</td><td>Request flag; server barcode rules also use requirement pre-barcode setting.</td></tr>
+    <tr><td><code>initialQty</code>, <code>availableQty</code></td><td>Number</td><td>Conditional</td><td>≥ 0; available defaults to initial; aliquot qty required if <code>mandatory_aliquot_qty</code> on.</td></tr>
+    <tr><td><code>concentration</code>, <code>freezeThawCycles</code></td><td>Number</td><td>No</td><td>Aliquot concentration from parent if omitted; freeze-thaw ≥ 0.</td></tr>
+    <tr><td><code>externalIds</code></td><td>Array</td><td>No</td><td>Objects <code>{name, value}</code>; unique names.</td></tr>
+    <tr><td><code>comments</code>, <code>opComments</code>, <code>imageId</code></td><td>String</td><td>No</td><td><code>opComments</code> used when <code>closeParent</code> is true.</td></tr>
+    <tr><td><code>uid</code>, <code>parentUid</code></td><td>String</td><td>No</td><td>Client correlation ids.</td></tr>
+  </tbody>
+</table>
+
+<h3>Storage</h3>
+<table>
+  <thead><tr><th>Parameter</th><th>Type</th><th>Required?</th><th>Description &amp; constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>storageLocation</code></td><td>Object</td><td>No</td><td>Only if <code>Collected</code>. Fields: <code>id</code>, <code>name</code>, <code>barcode</code>, <code>positionX</code>/<code>positionY</code> or <code>position</code>, <code>reservationId</code>.</td></tr>
+    <tr><td><code>containerLocation</code>, <code>containerTypeId</code>, <code>containerTypeName</code></td><td>mixed</td><td>Conditional</td><td>Auto-create box when container missing.</td></tr>
+    <tr><td><code>holdingLocation</code>, <code>dpId</code></td><td>Object / Number</td><td>Conditional</td><td><code>dpId</code> required with holding location.</td></tr>
+    <tr><td><code>checkout</code>, <code>transferUser</code>, <code>transferTime</code>, <code>transferComments</code></td><td>mixed</td><td>No</td><td>Checkout clears storage; transfer user via <code>id</code> or <code>emailAddress</code>.</td></tr>
+  </tbody>
+</table>
+
+<h3>Events &amp; extensions</h3>
+<table>
+  <thead><tr><th>Parameter</th><th>Type</th><th>Required?</th><th>Description &amp; constraints</th></tr></thead>
+  <tbody>
+    <tr><td><code>collectionEvent</code></td><td>Object</td><td>No</td><td>Primary: <code>procedure</code>, <code>container</code>, <code>user</code>, <code>time</code>, <code>comments</code> (PVs + user).</td></tr>
+    <tr><td><code>receivedEvent</code></td><td>Object</td><td>No</td><td><code>receivedQuality</code>, <code>user</code>, <code>time</code>, <code>comments</code>, <code>newLabel</code>.</td></tr>
+    <tr><td><code>createdOn</code>, <code>createdBy</code></td><td>String / Object</td><td>No</td><td>Child specimens; <code>createdOn</code> only if collected.</td></tr>
+    <tr><td><code>extensionDetail</code></td><td>Object</td><td>No</td><td>Custom fields: <code>attrs</code> or <code>attrsMap</code>.</td></tr>
+    <tr><td><code>printLabel</code>, <code>closeParent</code>, <code>incrParentFreezeThaw</code></td><td>Boolean / Number</td><td>No</td><td>Print after save; close parent; bump parent freeze-thaw.</td></tr>
+    <tr><td><code>autoCollectParents</code></td><td>Boolean</td><td>No</td><td>Accepted on request; server auto-collects pending parents when adding collected children.</td></tr>
+    <tr><td><code>specimensPool</code>, <code>closeAfterPooledCreation</code></td><td>Array / Boolean</td><td>No</td><td>Prefer <code>POST /specimens/pooled</code>.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="3-key-response-fields">3. Key Response Fields</h2>
+<table>
+  <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>id</code></td><td>Number</td><td>Specimen id for GET/PUT and <code>parentId</code>.</td></tr>
+    <tr><td><code>label</code>, <code>barcode</code></td><td>String</td><td>Identifiers (may be auto-generated).</td></tr>
+    <tr><td><code>visitId</code>, <code>cpShortTitle</code>, <code>reqId</code></td><td>Number / String</td><td>Protocol context.</td></tr>
+    <tr><td><code>lineage</code>, <code>status</code>, <code>availabilityStatus</code></td><td>String</td><td>Lineage and post-save states.</td></tr>
+    <tr><td><code>initialQty</code>, <code>availableQty</code></td><td>Number</td><td>Quantities; parent may decrease for aliquots.</td></tr>
+    <tr><td><code>parentId</code>, <code>parentLabel</code></td><td>Number / String</td><td>Parent link for child specimens.</td></tr>
+    <tr><td><code>storageLocation</code>, <code>storageLocation.id</code></td><td>Object / Number</td><td>Slot; <code>id: -1</code> = not stored.</td></tr>
+    <tr><td><code>collectionEvent</code>, <code>receivedEvent</code></td><td>Object</td><td>Primary collection/receive metadata.</td></tr>
+    <tr><td><code>extensionDetail</code>, <code>children</code></td><td>Object / Array</td><td>Custom data; planned/existing children.</td></tr>
+    <tr><td><code>uid</code></td><td>String</td><td>Echo of request correlation id.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="4-error-cases">4. Error Cases</h2>
+<table>
+  <thead><tr><th>Status code</th><th>Applies to</th><th>Status message / resolution</th></tr></thead>
+  <tbody>
+    <tr><td><code>200</code></td><td>Success</td><td>Resource processed and saved; body is specimen JSON.</td></tr>
+    <tr><td><code>400</code></td><td>Bad request</td><td>JSON array of errors. Business rules: duplicate label/barcode (<code>SPECIMEN_DUP_*</code>), missing class/type (<code>SPECIMEN_SPECIMEN_*_REQUIRED</code>), visit/parent (<code>SPECIMEN_VISIT_REQUIRED</code>, <code>SPECIMEN_PARENT_REQUIRED</code>), storage (<code>STORAGE_CONTAINER_*</code>), requirement mismatch (<code>SPECIMEN_REQ_*</code>). Fix fields per <code>message</code>.</td></tr>
+    <tr><td><code>401</code></td><td>Unauthorized</td><td>Missing or invalid <code>X-OS-API-TOKEN</code>. Re-authenticate via <code>POST /sessions</code>.</td></tr>
+    <tr><td><code>403</code></td><td>Forbidden</td><td>Insufficient privileges for this specimen or container. Often returned as <code>400</code> with <code>RBAC_ACCESS_DENIED</code> or <code>SPECIMEN_CONTAINER_ACCESS_DENIED</code> — grant specimen update / storage rights.</td></tr>
+    <tr><td><code>500</code></td><td>Server error</td><td><code>INTERNAL_ERROR</code>; retry or contact support.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="5-python-sample-code">5. Python Sample Code</h2>
+<p class="tag">Illustrative example. Replace placeholders with your base URL, credentials, and current specimen payload; do not commit secrets to source control.</p>
+
+<details>
+  <summary>Show / hide Python sample</summary>
+  <pre><code>import requests
+import json
+import os
+
+# Your OpenSpecimen REST base (include /rest/ng)
+BASE_URL   = os.environ["OS_BASE_URL"]
+LOGIN_NAME = os.environ["OS_LOGIN_NAME"]
+PASSWORD   = os.environ["OS_PASSWORD"]
+DOMAIN     = os.environ["OS_DOMAIN"]
+
+session = requests.Session()
+session.headers.update({"Content-Type": "application/json"})
+
+auth_response = session.post(f"{BASE_URL}/sessions", json={
+    "loginName": LOGIN_NAME,
+    "password":  PASSWORD,
+    "domainName": DOMAIN
+})
+
+auth = auth_response.json()
+
+if auth_response.status_code == 200:
+    print("Auth Successful")
+    session.headers.update({"X-OS-API-TOKEN": auth["token"]})
+else:
+    print("Unauth Access")
+    exit()
+
+# Your current create-specimen payload (same shape as Quick Start)
+payload = {
+    "visitId": 1001,
+    "specimenClass": "Fluid",
+    "type": "Serum",
+    "initialQty": 5
+}
+
+# Execute API Request
+response = session.post(f"{BASE_URL}/specimens", json=payload)
+
+if response.status_code == 200:
+    print("Success:", response.json())
+else:
+    print(f"Error {response.status_code}:", response.text)
+</code></pre>
+</details>
+
+<h2 id="6-related-endpoints">6. Related Endpoints</h2>
+<ul>
+  <li><code>POST /rest/ng/specimens/collect</code> — Collect or update many specimens, including nested <code>children</code>, in one call.</li>
+  <li><code>POST /rest/ng/specimens/pooled</code> — Create a pooled specimen from multiple sources.</li>
+  <li><code>GET /rest/ng/specimens/{id}</code> — Read back a specimen after create.</li>
+  <li><code>PUT /rest/ng/specimens/{id}</code> — Update an existing specimen instead of creating a new one.</li>
+</ul>
+
+<p class="footer">Last reviewed: 2026-10-16</p>
+
+</body>
+</html>
