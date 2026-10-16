@@ -140,6 +140,7 @@
   "visitId": 1001,
   "specimenClass": "Fluid",
   "type": "Serum",
+  "label": "DEMO-001-S1",
   "initialQty": 5
 }</code></pre>
 
@@ -241,7 +242,7 @@
   <thead><tr><th>Status code</th><th>Applies to</th><th>Status message / resolution</th></tr></thead>
   <tbody>
     <tr><td><code>200</code></td><td>Success</td><td>Resource processed and saved; body is specimen JSON.</td></tr>
-    <tr><td><code>400</code></td><td>Bad request</td><td>JSON array of errors. Business rules: duplicate label/barcode (<code>SPECIMEN_DUP_*</code>), missing class/type (<code>SPECIMEN_SPECIMEN_*_REQUIRED</code>), visit/parent (<code>SPECIMEN_VISIT_REQUIRED</code>, <code>SPECIMEN_PARENT_REQUIRED</code>), storage (<code>STORAGE_CONTAINER_*</code>), requirement mismatch (<code>SPECIMEN_REQ_*</code>). Fix fields per <code>message</code>.</td></tr>
+    <tr><td><code>400</code></td><td>Bad request</td><td>JSON array of errors. Business rules: missing label (<code>SPECIMEN_LABEL_REQUIRED</code> when collected and CP does not auto-label), duplicate label/barcode (<code>SPECIMEN_DUP_*</code>), missing class/type (<code>SPECIMEN_SPECIMEN_*_REQUIRED</code>), visit/parent (<code>SPECIMEN_VISIT_REQUIRED</code>, <code>SPECIMEN_PARENT_REQUIRED</code>), storage (<code>STORAGE_CONTAINER_*</code>), requirement mismatch (<code>SPECIMEN_REQ_*</code>). Fix fields per <code>message</code>.</td></tr>
     <tr><td><code>401</code></td><td>Unauthorized</td><td>Missing or invalid <code>X-OS-API-TOKEN</code>. Re-authenticate via <code>POST /sessions</code>.</td></tr>
     <tr><td><code>403</code></td><td>Forbidden</td><td>Insufficient privileges for this specimen or container. Often returned as <code>400</code> with <code>RBAC_ACCESS_DENIED</code> or <code>SPECIMEN_CONTAINER_ACCESS_DENIED</code> — grant specimen update / storage rights.</td></tr>
     <tr><td><code>500</code></td><td>Server error</td><td><code>INTERNAL_ERROR</code>; retry or contact support.</td></tr>
@@ -286,6 +287,7 @@ payload = {
     "visitId": 1001,
     "specimenClass": "Fluid",
     "type": "Serum",
+    "label": "DEMO-001-S1",
     "initialQty": 5
 }
 
