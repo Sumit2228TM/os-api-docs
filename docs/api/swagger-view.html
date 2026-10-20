@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenSpecimen API — Swagger UI</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+  <style>
+    html {
+      box-sizing: border-box;
+      overflow-y: scroll;
+    }
+    *,
+    *::before,
+    *::after {
+      box-sizing: inherit;
+    }
+    body {
+      margin: 0;
+      background: #fafafa;
+    }
+    #swagger-ui {
+      max-width: none;
+      margin: 0;
+    }
+    .swagger-ui .topbar {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    window.onload = function () {
+      window.ui = SwaggerUIBundle({
+        url: "https://raw.githubusercontent.com/Sumit2228TM/os-api-docs/main/docs/api/specimen-create.yaml",
+        dom_id: "#swagger-ui",
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIBundle.SwaggerUIStandalonePreset
+        ],
+        layout: "BaseLayout",
+        defaultModelsExpandDepth: 1,
+        defaultModelExpandDepth: 1,
+        docExpansion: "list",
+        filter: true,
+        tryItOutEnabled: true
+      });
+    };
+  </script>
+</body>
+</html>
