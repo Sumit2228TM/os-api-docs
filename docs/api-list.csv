@@ -1,5 +1,5 @@
 API_Name,HTTP_Method,Endpoint_URI,Controller_Class,DTO_Class
-Create Specimen,POST,/rest/ng/specimens,SpecimenController.java,SpecimenDetail.java
+Specimen Create,POST,/rest/ng/specimens,SpecimenController.java,SpecimenDetail.java
 Get Specimen,GET,/rest/ng/specimens/{id},SpecimenController.java,SpecimenDetail.java
 Update Specimen,PUT,/rest/ng/specimens/{id},SpecimenController.java,SpecimenDetail.java
 Delete Specimen,DELETE,/rest/ng/specimens/{id},SpecimenController.java,N/A

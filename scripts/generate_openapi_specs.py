@@ -20,8 +20,6 @@ CONTROLLER_PACKAGE_DIR = (
     JAVA_SRC / "com" / "krishagni" / "catissueplus" / "rest" / "controller"
 )
 
-PRESERVE_OUTPUT_FILES = frozenset({"specimen-create.yaml"})
-
 PRIMITIVE_OPENAPI: dict[str, dict[str, Any]] = {
     "String": {"type": "string"},
     "string": {"type": "string"},
@@ -780,8 +778,8 @@ def main() -> int:
             api_name = row["API_Name"].strip()
             out_path = output_file_for(api_name)
 
-            if out_path.name in PRESERVE_OUTPUT_FILES:
-                msg = "preserved Phase 1 artifact"
+            if out_path.is_file():
+                msg = "file already exists"
                 skipped.append(f"{out_path.name} — {msg}")
                 print(f"SKIP: {out_path.relative_to(REPO_ROOT)} ({msg})")
                 continue
