@@ -1,0 +1,558 @@
+openapi: 3.0.3
+info:
+  title: OpenSpecimen API — Get Specimen
+  version: 1.0.0
+  description: |
+    Get Specimen endpoint derived from `SpecimensController.java`
+    Java method `getSpecimen` (`GET /specimens/{id}`).
+    DTO: `SpecimenDetail`.
+    DTO source: `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/SpecimenDetail.java`.
+
+servers:
+  - url: /rest/ng
+    description: OpenSpecimen REST servlet context
+
+tags:
+  - name: Specimens
+    description: Biospecimen create/read/update/delete operations
+
+paths:
+  /specimens/{id}:
+    get:
+      operationId: getSpecimenById
+      summary: Get specimen details by ID
+      description: |
+        Authenticate with header `X-OS-API-TOKEN` (from `POST /sessions`).
+      tags:
+        - Specimens
+      security:
+        - OsApiToken: []
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Specimen identifier
+      responses:
+        '200':
+          description: Specimen details returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpecimenDetail'
+        '400':
+          description: |
+            Invalid request or business rule violation (`ErrorType.USER_ERROR`).
+            Body is a JSON array of `ErrorMessage` objects.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageList'
+        '401':
+          description: Missing or invalid API token (`ErrorType.UNAUTHORIZED`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageList'
+        '403':
+          description: |
+            Authenticated but not authorized (some sites return equivalent errors as HTTP 400).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageList'
+        '500':
+          description: Unexpected server error (`ErrorType.SYSTEM_ERROR`, code `internal_error`)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessageList'
+
+
+components:
+  securitySchemes:
+    OsApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: Token returned by `POST /sessions` after successful login
+
+  schemas:
+    ErrorMessage:
+      type: object
+      description: REST error entry produced by `RestErrorController` / `ErrorMessage`
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code (enum name or `internal_error`)
+          example: SPECIMEN_LABEL_REQUIRED
+        message:
+          type: string
+          description: Localized, HTML-escaped human-readable message
+          example: Specimen label is required.
+
+    ErrorMessageList:
+      type: array
+      items:
+        $ref: '#/components/schemas/ErrorMessage'
+
+    NameValuePair:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+
+    UserSummary:
+      type: object
+      description: User reference by id and/or email (see `UserSummary`)
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        loginName:
+          type: string
+        domain:
+          type: string
+        emailAddress:
+          type: string
+        instituteId:
+          type: integer
+          format: int64
+        instituteName:
+          type: string
+        primarySite:
+          type: string
+        admin:
+          type: boolean
+        instituteAdmin:
+          type: boolean
+        phoneNumber:
+          type: string
+        activityStatus:
+          type: string
+
+    StorageLocationSummary:
+      type: object
+      description: Storage slot or container location (`StorageLocationSummary`)
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Container or position id; `-1` means not stored (response)
+        name:
+          type: string
+        displayName:
+          type: string
+        barcode:
+          type: string
+        mode:
+          type: string
+        positionX:
+          type: string
+        positionY:
+          type: string
+        position:
+          type: integer
+        reservationId:
+          type: string
+        checkoutBy:
+          $ref: '#/components/schemas/UserSummary'
+        checkoutTime:
+          type: string
+          format: date-time
+        checkoutComments:
+          type: string
+        siteId:
+          type: integer
+          format: int64
+        siteName:
+          type: string
+        formattedPosition:
+          type: string
+        hierarchy:
+          type: string
+
+    SpecimenEventDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        time:
+          type: string
+          format: date-time
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        comments:
+          type: string
+        specimenLabel:
+          type: string
+        specimenId:
+          type: integer
+          format: int64
+        reason:
+          type: string
+
+    CollectionEventDetail:
+      allOf:
+        - $ref: '#/components/schemas/SpecimenEventDetail'
+        - type: object
+          properties:
+            procedure:
+              type: string
+              description: Collection procedure permissible value
+            container:
+              type: string
+              description: Collection container permissible value
+
+    ReceivedEventDetail:
+      allOf:
+        - $ref: '#/components/schemas/SpecimenEventDetail'
+        - type: object
+          properties:
+            receivedQuality:
+              type: string
+            newLabel:
+              type: string
+
+    ExtensionDetail:
+      type: object
+      description: Custom form extension (`ExtensionDetail`)
+      properties:
+        id:
+          type: integer
+          format: int64
+        objectId:
+          type: integer
+          format: int64
+        formId:
+          type: integer
+          format: int64
+        formCaption:
+          type: string
+        dataEntryStatus:
+          type: string
+        attrs:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttrDetail'
+        attrsMap:
+          type: object
+          additionalProperties: true
+          description: Alternative to `attrs`; deserialized into `attrs` on input
+
+    AttrDetail:
+      type: object
+      properties:
+        name:
+          type: string
+        value: {}
+        type:
+          type: string
+
+    SpecimenLineage:
+      type: string
+      enum:
+        - New
+        - Aliquot
+        - Derived
+      description: Values from `Specimen.NEW`, `ALIQUOT`, `DERIVED`
+
+    SpecimenCollectionStatus:
+      type: string
+      enum:
+        - Collected
+        - Pending
+        - Missed Collection
+        - Not Collected
+      description: Collection status; default on create is typically Collected
+
+    SpecimenActivityStatus:
+      type: string
+      enum:
+        - Active
+        - Disabled
+        - Closed
+
+    SpecimenCreateRequest:
+      type: object
+      description: |
+        JSON request body for create (`SpecimenDetail`). Omit response-only fields such as
+        `id`, `cpShortTitle`, `ppid`, and computed `availabilityStatus` unless updating via other APIs.
+      properties:
+        visitId:
+          type: integer
+          format: int64
+        visitName:
+          type: string
+        cpId:
+          type: integer
+          format: int64
+        cpShortTitle:
+          type: string
+        cprId:
+          type: integer
+          format: int64
+        eventId:
+          type: integer
+          format: int64
+        reqId:
+          type: integer
+          format: int64
+        reqCode:
+          type: string
+        label:
+          type: string
+        additionalLabel:
+          type: string
+        barcode:
+          type: string
+        type:
+          type: string
+          description: Specimen type permissible value
+        specimenClass:
+          type: string
+          description: Specimen class permissible value
+        lineage:
+          $ref: '#/components/schemas/SpecimenLineage'
+        anatomicSite:
+          type: string
+        laterality:
+          type: string
+        status:
+          $ref: '#/components/schemas/SpecimenCollectionStatus'
+        pathology:
+          type: string
+        initialQty:
+          type: number
+        availableQty:
+          type: number
+        concentration:
+          type: number
+        quantityUnit:
+          type: string
+        concentrationUnit:
+          type: string
+        parentId:
+          type: integer
+          format: int64
+        parentLabel:
+          type: string
+        storageLocation:
+          $ref: '#/components/schemas/StorageLocationSummary'
+        activityStatus:
+          $ref: '#/components/schemas/SpecimenActivityStatus'
+        createdOn:
+          type: string
+          format: date-time
+        createdBy:
+          $ref: '#/components/schemas/UserSummary'
+        freezeThawCycles:
+          type: integer
+        imageId:
+          type: string
+        externalIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/NameValuePair'
+        preBarcodedTube:
+          type: boolean
+        printLabel:
+          type: boolean
+          description: Request-only flag; not echoed in create response JSON
+        closeAfterPooledCreation:
+          type: boolean
+        closeAfterChildrenCreation:
+          type: boolean
+        biohazards:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        comments:
+          type: string
+        opComments:
+          type: string
+          description: Operation comments (e.g. when `closeParent` is true)
+        collectionEvent:
+          $ref: '#/components/schemas/CollectionEventDetail'
+        receivedEvent:
+          $ref: '#/components/schemas/ReceivedEventDetail'
+        extensionDetail:
+          $ref: '#/components/schemas/ExtensionDetail'
+        containerLocation:
+          $ref: '#/components/schemas/StorageLocationSummary'
+        containerTypeId:
+          type: integer
+          format: int64
+        containerTypeName:
+          type: string
+        holdingLocation:
+          $ref: '#/components/schemas/StorageLocationSummary'
+        dpId:
+          type: integer
+          format: int64
+        closeParent:
+          type: boolean
+        poolSpecimen:
+          type: boolean
+        incrParentFreezeThaw:
+          type: integer
+        transferUser:
+          $ref: '#/components/schemas/UserSummary'
+        transferTime:
+          type: string
+          format: date-time
+        transferComments:
+          type: string
+        checkout:
+          type: boolean
+        autoCollectParents:
+          type: boolean
+        uid:
+          type: string
+        parentUid:
+          type: string
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpecimenCreateRequest'
+        specimensPool:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpecimenInfoSummary'
+        kitLabel:
+          type: string
+        kitBarcode:
+          type: string
+
+    SpecimenInfoSummary:
+      type: object
+      description: Lightweight specimen reference (`SpecimenInfo` subset for pools and lists)
+      properties:
+        id:
+          type: integer
+          format: int64
+        label:
+          type: string
+        barcode:
+          type: string
+        visitId:
+          type: integer
+          format: int64
+        cpId:
+          type: integer
+          format: int64
+        cpShortTitle:
+          type: string
+        type:
+          type: string
+        specimenClass:
+          type: string
+        lineage:
+          $ref: '#/components/schemas/SpecimenLineage'
+        status:
+          $ref: '#/components/schemas/SpecimenCollectionStatus'
+        parentId:
+          type: integer
+          format: int64
+        parentLabel:
+          type: string
+
+    SpecimenDetail:
+      allOf:
+        - $ref: '#/components/schemas/SpecimenCreateRequest'
+        - type: object
+          description: Response payload after create (`SpecimenDetail.from`)
+          properties:
+            id:
+              type: integer
+              format: int64
+            ppid:
+              type: string
+            eventCode:
+              type: string
+            eventLabel:
+              type: string
+            visitStatus:
+              type: string
+            sprNo:
+              type: string
+            visitDate:
+              type: string
+              format: date-time
+            reqLabel:
+              type: string
+            sortOrder:
+              type: integer
+            availabilityStatus:
+              type: string
+              description: e.g. Available, Pending, Closed (see `Specimen` constants)
+            storageType:
+              type: string
+            storageSite:
+              type: string
+            collector:
+              $ref: '#/components/schemas/UserSummary'
+            collectionContainer:
+              type: string
+            collectionDate:
+              type: string
+              format: date-time
+            receiver:
+              $ref: '#/components/schemas/UserSummary'
+            code:
+              type: string
+            labelFmt:
+              type: string
+            labelAutoPrintMode:
+              type: string
+            reserved:
+              type: boolean
+            checkedOut:
+              type: boolean
+            checkoutPosition:
+              $ref: '#/components/schemas/StorageLocationSummary'
+            pooledSpecimens:
+              type: array
+              items:
+                $ref: '#/components/schemas/SpecimenInfoSummary'
+            ancestorId:
+              type: integer
+              format: int64
+
+    SpecimenErrorCode:
+      type: string
+      description: |
+        Representative `SpecimenErrorCode` values (prefix `SPECIMEN_` in API responses).
+        Full enum in `SpecimenErrorCode.java`.
+      enum:
+        - SPECIMEN_ACCESS_DENIED
+        - SPECIMEN_NOT_FOUND
+        - SPECIMEN_VISIT_REQUIRED
+        - SPECIMEN_LABEL_REQUIRED
+        - SPECIMEN_DUP_LABEL
+        - SPECIMEN_DUP_BARCODE
+        - SPECIMEN_PARENT_REQUIRED
+        - SPECIMEN_SPECIMEN_CLASS_REQUIRED
+        - SPECIMEN_SPECIMEN_TYPE_REQUIRED
+        - SPECIMEN_CONTAINER_ACCESS_DENIED
+        - SPECIMEN_REQ_LINEAGE_MISMATCH
+        - SPECIMEN_REQ_TYPE_MISMATCH
+        - SPECIMEN_INVALID_QTY
+        - SPECIMEN_ALIQUOT_QTY_REQ
+        - SPECIMEN_STORAGE_CONTAINER_NOT_FOUND
