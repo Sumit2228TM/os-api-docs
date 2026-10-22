@@ -1,0 +1,211 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Update Site"
+  version: 1.0.0
+  description: |
+    Update Site — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/SitesController.java` (`updateSite`).
+    DTO: `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/SiteDetail.java`.
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+tags:
+  - name: Sites
+    description: "Operations from `SitesController.java`"
+paths:
+  /sites/{id}:
+    put:
+      operationId: updateSite
+      summary: updateSite
+      description: "PUT /sites/{id} — `SitesController.java`.`updateSite`"
+      tags:
+        - Sites
+      responses:
+        '200':
+          description: "Successful response for Update Site"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteDetail"
+              examples:
+                biobankExample:
+                  summary: "Biobanking workflow example"
+                  value:
+                    id: 1001
+                    name: "Baseline Visit 1"
+                    instituteName: sample-institutename
+                    code: USER_ERROR
+                    type: "Frozen Tissue"
+                    activityStatus: Active
+                    cpCount: 1
+                    address: sample-address
+                    extensionDetail:
+                      id: 1001
+        '400':
+          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                validationError:
+                  summary: "Business rule violation"
+                  value:
+                    - code: SPECIMEN_LABEL_REQUIRED
+                      message: "Specimen label is required."
+        '401':
+          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                unauthorized:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated but not authorized for this operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                forbidden:
+                  summary: "Insufficient privileges"
+                  value:
+                    - code: RBAC_ACCESS_DENIED
+                      message: "You are not authorized to perform this operation."
+        '404':
+          description: "Resource not found (`ErrorType.NOT_FOUND`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                notFound:
+                  summary: "Entity not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Requested resource was not found."
+        '500':
+          description: "Unexpected server error (`internal_error`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+      security:
+        - OsApiToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteDetail"
+            examples:
+              biobankExample:
+                summary: "Biobanking workflow example"
+                value:
+                  id: 1001
+                  name: "Baseline Visit 1"
+                  instituteName: sample-institutename
+                  code: USER_ERROR
+                  type: "Frozen Tissue"
+                  activityStatus: Active
+                  cpCount: 1
+                  address: sample-address
+                  extensionDetail:
+                    id: 1001
+components:
+  securitySchemes:
+    OsApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  schemas:
+    SiteDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/SiteDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        instituteName:
+          type: string
+        code:
+          type: string
+        type:
+          type: string
+        activityStatus:
+          type: string
+        cpCount:
+          type: integer
+          format: int32
+        address:
+          type: string
+        extensionDetail:
+          $ref: "#/components/schemas/ExtensionDetail"
+    ExtensionDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/ExtensionDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        objectId:
+          type: integer
+          format: int64
+        formId:
+          type: integer
+          format: int64
+        formCaption:
+          type: string
+        dataEntryStatus:
+          type: string
+        attrsMap:
+          $ref: "#/components/schemas/Map"
+        useUdn:
+          type: boolean
+        name:
+          type: string
+        udn:
+          type: string
+        caption:
+          type: string
+        value:
+
+        type:
+          type: string
+        displayValue:
+          type: string
+        codedValue:
+          type: string
+    Map:
+      type: object
+      description: "Type `Map` (Java source not found in repository)"
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ErrorMessageList:
+      type: array
+      items:
+        $ref: "#/components/schemas/ErrorMessage"

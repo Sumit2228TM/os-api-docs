@@ -1,0 +1,452 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Delete CPR"
+  version: 1.0.0
+  description: |
+    Delete CPR — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/CollectionProtocolRegistrationsController.java` (`deleteRegistration`).
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+tags:
+  - name: CollectionProtocolRegistrations
+    description: "Operations from `CollectionProtocolRegistrationsController.java`"
+paths:
+  /collection-protocol-registrations/{id}:
+    delete:
+      operationId: deleteRegistration
+      summary: deleteRegistration
+      description: "DELETE /collection-protocol-registrations/{id} — `CollectionProtocolRegistrationsController.java`.`deleteRegistration`"
+      tags:
+        - CollectionProtocolRegistrations
+      responses:
+        '200':
+          description: "Successful response for Delete CPR"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionProtocolRegistrationDetail"
+              examples:
+                biobankExample:
+                  summary: "Biobanking workflow example"
+                  value:
+                    id: 1001
+                    participant:
+                      id: 1001
+                    cpId: 101
+                    cpTitle: sample-cptitle
+                    cpShortTitle: sample-cpshorttitle
+                    ppid: BBCP-001
+                    barcode: BBCP2024001S1
+                    activityStatus: Active
+                    dataEntryStatus: sample-dataentrystatus
+                    registrationDate: "2024-10-22T14:30:00Z"
+                    externalSubjectId: 1001
+                    site: sample-site
+                    consentDetails:
+                      id: 1001
+                    specimenLabelFmt: BBCP-2024-001-S1
+                    aliquotLabelFmt: BBCP-2024-001-S1
+                    derivativeLabelFmt: BBCP-2024-001-S1
+                    forceDelete: false
+        '400':
+          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                validationError:
+                  summary: "Business rule violation"
+                  value:
+                    - code: SPECIMEN_LABEL_REQUIRED
+                      message: "Specimen label is required."
+        '401':
+          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                unauthorized:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated but not authorized for this operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                forbidden:
+                  summary: "Insufficient privileges"
+                  value:
+                    - code: RBAC_ACCESS_DENIED
+                      message: "You are not authorized to perform this operation."
+        '404':
+          description: "Resource not found (`ErrorType.NOT_FOUND`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                notFound:
+                  summary: "Entity not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Requested resource was not found."
+        '500':
+          description: "Unexpected server error (`internal_error`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+      security:
+        - OsApiToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: forceDelete
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: reason
+          in: query
+          required: false
+          schema:
+            type: string
+            default: ""
+components:
+  securitySchemes:
+    OsApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  schemas:
+    CollectionProtocolRegistrationDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/CollectionProtocolRegistrationDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        participant:
+          $ref: "#/components/schemas/ParticipantDetail"
+        cpId:
+          type: integer
+          format: int64
+        cpTitle:
+          type: string
+        cpShortTitle:
+          type: string
+        ppid:
+          type: string
+        barcode:
+          type: string
+        activityStatus:
+          type: string
+        dataEntryStatus:
+          type: string
+        registrationDate:
+          type: string
+          format: date-time
+        externalSubjectId:
+          type: string
+        site:
+          type: string
+        consentDetails:
+          $ref: "#/components/schemas/ConsentDetail"
+        specimenLabelFmt:
+          type: string
+        aliquotLabelFmt:
+          type: string
+        derivativeLabelFmt:
+          type: string
+        forceDelete:
+          type: boolean
+    ParticipantDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/ParticipantDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        source:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        emailAddress:
+          type: string
+        emailOptIn:
+          type: boolean
+        phoneNumber:
+          type: string
+        textOptIn:
+          type: boolean
+        textOptInConsent:
+          type: boolean
+        birthDate:
+          type: string
+          format: date-time
+        deathDate:
+          type: string
+          format: date-time
+        gender:
+          type: string
+        races:
+          type: array
+          items:
+            type: string
+        vitalStatus:
+          type: string
+        pmis:
+          type: array
+          items:
+            $ref: "#/components/schemas/PmiDetail"
+        sexGenotype:
+          type: string
+        ethnicities:
+          type: array
+          items:
+            type: string
+        uid:
+          type: string
+        activityStatus:
+          type: string
+        empi:
+          type: string
+        phiAccess:
+          type: boolean
+        registeredCps:
+          type: array
+          items:
+            $ref: "#/components/schemas/CprSummary"
+        extensionDetail:
+          $ref: "#/components/schemas/ExtensionDetail"
+        stagedId:
+          type: integer
+          format: int64
+        dataEntryStatus:
+          type: string
+        reqRegInfo:
+          type: boolean
+        forceDelete:
+          type: boolean
+    PmiDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/PmiDetail.java`"
+      properties:
+
+    CprSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/CprSummary.java`"
+      properties:
+        participant:
+          $ref: "#/components/schemas/ParticipantSummary"
+        id:
+          type: integer
+          format: int64
+        cprId:
+          type: integer
+          format: int64
+        registrationDate:
+          type: string
+          format: date-time
+        ppid:
+          type: string
+        cpId:
+          type: integer
+          format: int64
+        cpShortTitle:
+          type: string
+        site:
+          type: string
+        scgCount:
+          type: integer
+          format: int64
+        specimenCount:
+          type: integer
+          format: int64
+    ParticipantSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/ParticipantSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        source:
+          type: string
+        empi:
+          type: string
+        uid:
+          type: string
+        emailAddress:
+          type: string
+        emailOptIn:
+          type: boolean
+        phoneNumber:
+          type: string
+        textOptIn:
+          type: boolean
+        textOptInConsent:
+          type: boolean
+        birthDate:
+          type: string
+          format: date-time
+    ExtensionDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/ExtensionDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        objectId:
+          type: integer
+          format: int64
+        formId:
+          type: integer
+          format: int64
+        formCaption:
+          type: string
+        dataEntryStatus:
+          type: string
+        attrsMap:
+          $ref: "#/components/schemas/Map"
+        useUdn:
+          type: boolean
+        name:
+          type: string
+        udn:
+          type: string
+        caption:
+          type: string
+        value:
+
+        type:
+          type: string
+        displayValue:
+          type: string
+        codedValue:
+          type: string
+    Map:
+      type: object
+      description: "Type `Map` (Java source not found in repository)"
+    ConsentDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/ConsentDetail.java`"
+      properties:
+        cprId:
+          type: integer
+          format: int64
+        cpId:
+          type: integer
+          format: int64
+        cpShortTitle:
+          type: string
+        ppid:
+          type: string
+        empi:
+          type: string
+        consentSignatureDate:
+          type: string
+          format: date-time
+        witness:
+          $ref: "#/components/schemas/UserSummary"
+        comments:
+          type: string
+        consentDocumentName:
+          type: string
+        statement:
+          type: string
+        code:
+          type: string
+        response:
+          type: string
+        documentFile:
+          $ref: "#/components/schemas/File"
+    UserSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/events/UserSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        loginName:
+          type: string
+        domain:
+          type: string
+        emailAddress:
+          type: string
+        instituteId:
+          type: integer
+          format: int64
+        instituteName:
+          type: string
+        primarySite:
+          type: string
+        admin:
+          type: boolean
+        instituteAdmin:
+          type: boolean
+        phoneNumber:
+          type: string
+        manageForms:
+          type: boolean
+        manageWfs:
+          type: boolean
+        managePrintJobs:
+          type: boolean
+        downloadLabelsPrintFile:
+          type: boolean
+        apiUser:
+          type: boolean
+        cpCount:
+          type: integer
+          format: int32
+        creationDate:
+          type: string
+          format: date-time
+        activityStatus:
+          type: string
+        impersonated:
+          type: boolean
+        daysBeforePasswordExpiry:
+          type: integer
+          format: int32
+    File:
+      type: object
+      description: "Type `File` (Java source not found in repository)"
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ErrorMessageList:
+      type: array
+      items:
+        $ref: "#/components/schemas/ErrorMessage"

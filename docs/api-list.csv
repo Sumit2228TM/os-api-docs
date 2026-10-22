@@ -1,5 +1,133 @@
 API_Name,HTTP_Method,Endpoint_URI,Controller_Class,DTO_Class
-Specimen Create,POST,/rest/ng/specimens,SpecimenController.java,SpecimenDetail.java
-Get Specimen,GET,/rest/ng/specimens/{id},SpecimenController.java,SpecimenDetail.java
-Update Specimen,PUT,/rest/ng/specimens/{id},SpecimenController.java,SpecimenDetail.java
-Delete Specimen,DELETE,/rest/ng/specimens/{id},SpecimenController.java,N/A
+Sign In,POST,/rest/ng/sessions,AuthenticationController.java,LoginDetail.java
+Sign Out,DELETE,/rest/ng/sessions,AuthenticationController.java,N/A
+Get Version,GET,/rest/ng/version,ConfigurationController.java,N/A
+Get About,GET,/rest/ng/about,ConfigurationController.java,N/A
+Get All Biohazards,GET,/rest/ng/biohazards,PermissibleValueController.java,PermissibleValueDetails.java
+Get Biohazard,GET,/rest/ng/biohazards/{id},PermissibleValueController.java,PermissibleValueDetails.java
+Create Biohazard,POST,/rest/ng/biohazards,PermissibleValueController.java,PermissibleValueDetails.java
+Update Biohazard,PUT,/rest/ng/biohazards/{id},PermissibleValueController.java,PermissibleValueDetails.java
+Patch Biohazard,PATCH,/rest/ng/biohazards/{id},PermissibleValueController.java,PermissibleValueDetails.java
+Delete Biohazard,DELETE,/rest/ng/biohazards/{id},PermissibleValueController.java,N/A
+Get All Collection Protocols,GET,/rest/ng/collection-protocols,CollectionProtocolsController.java,N/A
+Get Collection Protocol,GET,/rest/ng/collection-protocols/{id},CollectionProtocolsController.java,CollectionProtocolDetail.java
+Create Collection Protocol,POST,/rest/ng/collection-protocols,CollectionProtocolsController.java,CollectionProtocolDetail.java
+Update Collection Protocol,PUT,/rest/ng/collection-protocols/{id},CollectionProtocolsController.java,CollectionProtocolDetail.java
+Delete Collection Protocol,DELETE,/rest/ng/collection-protocols/{id},CollectionProtocolsController.java,N/A
+Merge Collection Protocols,POST,/rest/ng/collection-protocols/{id}/merge,CollectionProtocolsController.java,MergeCpDetail.java
+Get All Consent Tiers,GET,/rest/ng/collection-protocols/{cpId}/consent-tiers,CollectionProtocolsController.java,N/A
+Add Consent Tier,POST,/rest/ng/collection-protocols/{cpId}/consent-tiers,CollectionProtocolsController.java,ConsentTierDetail.java
+Update Consent Tier,PUT,/rest/ng/collection-protocols/{cpId}/consent-tiers/{tierId},CollectionProtocolsController.java,ConsentTierDetail.java
+Delete Consent Tier,DELETE,/rest/ng/collection-protocols/{cpId}/consent-tiers/{tierId},CollectionProtocolsController.java,N/A
+Get All Collection Protocol Events,GET,/rest/ng/collection-protocol-events,CollectionProtocolEventsController.java,N/A
+Get Collection Protocol Event,GET,/rest/ng/collection-protocol-events/{id},CollectionProtocolEventsController.java,CollectionProtocolEventDetail.java
+Create Collection Protocol Event,POST,/rest/ng/collection-protocol-events,CollectionProtocolEventsController.java,CollectionProtocolEventDetail.java
+Update Collection Protocol Event,PUT,/rest/ng/collection-protocol-events/{id},CollectionProtocolEventsController.java,CollectionProtocolEventDetail.java
+Delete Collection Protocol Event,DELETE,/rest/ng/collection-protocol-events/{id},CollectionProtocolEventsController.java,N/A
+Get Event Specimen Requirements,GET,/rest/ng/collection-protocol-events/{eventId}/specimen-requirements,SpecimenRequirementsController.java,N/A
+Get Specimen Requirement,GET,/rest/ng/specimen-requirements/{id},SpecimenRequirementsController.java,SpecimenRequirementDetail.java
+Create Specimen Requirement,POST,/rest/ng/specimen-requirements,SpecimenRequirementsController.java,SpecimenRequirementDetail.java
+Create Aliquot Requirements,POST,/rest/ng/specimen-requirements/{id}/aliquots,SpecimenRequirementsController.java,AliquotSpecimensRequirement.java
+Create Derived Specimen Requirement,POST,/rest/ng/specimen-requirements/{id}/derivatives,SpecimenRequirementsController.java,DerivedSpecimenRequirement.java
+Update Specimen Requirement,PUT,/rest/ng/specimen-requirements/{id},SpecimenRequirementsController.java,SpecimenRequirementDetail.java
+Reparent Specimen Requirement,PUT,/rest/ng/specimen-requirements/{id}/parent,SpecimenRequirementsController.java,SpecimenRequirementDetail.java
+Delete Specimen Requirement,DELETE,/rest/ng/specimen-requirements/{id},SpecimenRequirementsController.java,N/A
+Create CPR,POST,/rest/ng/collection-protocol-registrations,CollectionProtocolRegistrationsController.java,CollectionProtocolRegistrationDetail.java
+Get CPR,GET,/rest/ng/collection-protocol-registrations/{id},CollectionProtocolRegistrationsController.java,CollectionProtocolRegistrationDetail.java
+Get CPR List,GET,/rest/ng/collection-protocol-registrations,CollectionProtocolRegistrationsController.java,N/A
+Update CPR,PUT,/rest/ng/collection-protocol-registrations/{id},CollectionProtocolRegistrationsController.java,CollectionProtocolRegistrationDetail.java
+Delete CPR,DELETE,/rest/ng/collection-protocol-registrations/{id},CollectionProtocolRegistrationsController.java,N/A
+Get CPR Consents,GET,/rest/ng/collection-protocol-registrations/{cprId}/consents,CollectionProtocolRegistrationsController.java,ConsentDetail.java
+Create Participant,POST,/rest/ng/participants,ParticipantController.java,ParticipantDetail.java
+Get Participant,GET,/rest/ng/participants/{id},ParticipantController.java,ParticipantDetail.java
+Match Participants,POST,/rest/ng/participants/match,ParticipantController.java,ParticipantDetail.java
+Update Participant,PUT,/rest/ng/participants/{id},ParticipantController.java,ParticipantDetail.java
+Delete Participant,DELETE,/rest/ng/participants/{id},ParticipantController.java,N/A
+Create Visit,POST,/rest/ng/visits,VisitsController.java,VisitDetail.java
+Get Visit,GET,/rest/ng/visits/{id},VisitsController.java,VisitDetail.java
+Get Visits,GET,/rest/ng/visits,VisitsController.java,N/A
+Collect Visit And Specimen,POST,/rest/ng/visits/collect,VisitsController.java,VisitSpecimenDetail.java
+Update Visit,PUT,/rest/ng/visits/{id},VisitsController.java,VisitDetail.java
+Delete Visit,DELETE,/rest/ng/visits/{id},VisitsController.java,N/A
+Upload SPR File,POST,/rest/ng/visits/{id}/spr-file,VisitsController.java,N/A
+Create Specimen,POST,/rest/ng/specimens,SpecimensController.java,SpecimenDetail.java
+Get Specimen,GET,/rest/ng/specimens/{id},SpecimensController.java,SpecimenDetail.java
+Get Specimens,GET,/rest/ng/specimens,SpecimensController.java,N/A
+Check Specimen Exists,GET,/rest/ng/specimens/exists,SpecimensController.java,N/A
+Update Specimen,PUT,/rest/ng/specimens/{id},SpecimensController.java,SpecimenDetail.java
+Update Specimen Status,PUT,/rest/ng/specimens/{id}/status,SpecimensController.java,SpecimenStatusDetail.java
+Update Specimens Status,PUT,/rest/ng/specimens/status,SpecimensController.java,List.java
+Delete Specimen,DELETE,/rest/ng/specimens/{id},SpecimensController.java,N/A
+Delete Specimens,DELETE,/rest/ng/specimens,SpecimensController.java,N/A
+Get Specimen Dependent Entities,GET,/rest/ng/specimens/{id}/dependent-entities,SpecimensController.java,N/A
+Create Specimen List,POST,/rest/ng/specimen-lists,SpecimenListsController.java,SpecimenListDetail.java
+Get Specimen Lists,GET,/rest/ng/specimen-lists,SpecimenListsController.java,N/A
+Get Specimen List,GET,/rest/ng/specimen-lists/{id},SpecimenListsController.java,SpecimenListDetail.java
+Update Specimen List,PUT,/rest/ng/specimen-lists/{id},SpecimenListsController.java,SpecimenListDetail.java
+Delete Specimen List,DELETE,/rest/ng/specimen-lists/{id},SpecimenListsController.java,N/A
+Get Specimen List Specimens,GET,/rest/ng/specimen-lists/{id}/specimens,SpecimenListsController.java,N/A
+Update Specimen List Specimens,PUT,/rest/ng/specimen-lists/{id}/specimens,SpecimenListsController.java,List.java
+Share Specimen List,PUT,/rest/ng/specimen-lists/{id}/share,SpecimenListsController.java,List.java
+Create Distribution Protocol,POST,/rest/ng/distribution-protocols,DistributionProtocolController.java,DistributionProtocolDetail.java
+Get Distribution Protocol,GET,/rest/ng/distribution-protocols/{id},DistributionProtocolController.java,DistributionProtocolDetail.java
+Update Distribution Protocol,PUT,/rest/ng/distribution-protocols/{id},DistributionProtocolController.java,DistributionProtocolDetail.java
+Delete Distribution Protocol,DELETE,/rest/ng/distribution-protocols/{id},DistributionProtocolController.java,N/A
+Reserve Specimens For DP,POST,/rest/ng/distribution-protocols/{id}/reserved-specimens,DistributionProtocolController.java,ReserveSpecimensDetail.java
+Create Distribution Order,POST,/rest/ng/distribution-orders,DistributionOrderController.java,DistributionOrderDetail.java
+Get Distribution Order,GET,/rest/ng/distribution-orders/{id},DistributionOrderController.java,DistributionOrderDetail.java
+Get Distribution Orders,GET,/rest/ng/distribution-orders,DistributionOrderController.java,N/A
+Get Distribution Order Items,GET,/rest/ng/distribution-orders/{id}/items,DistributionOrderController.java,N/A
+Export Distribution Order,GET,/rest/ng/distribution-orders/{id}/export,DistributionOrderController.java,N/A
+Update Distribution Order,PUT,/rest/ng/distribution-orders/{id},DistributionOrderController.java,DistributionOrderDetail.java
+Delete Distribution Order,DELETE,/rest/ng/distribution-orders/{id},DistributionOrderController.java,N/A
+Create Storage Container,POST,/rest/ng/storage-containers,StorageContainersController.java,StorageContainerDetail.java
+Get Storage Container,GET,/rest/ng/storage-containers/{id},StorageContainersController.java,StorageContainerDetail.java
+Get All Storage Containers,GET,/rest/ng/storage-containers,StorageContainersController.java,N/A
+Update Storage Container,PUT,/rest/ng/storage-containers/{id},StorageContainersController.java,StorageContainerDetail.java
+Disable Storage Container,DELETE,/rest/ng/storage-containers/{id},StorageContainersController.java,N/A
+Create Container Type,POST,/rest/ng/container-types,ContainerTypesController.java,ContainerTypeDetail.java
+Get Container Type,GET,/rest/ng/container-types/{id},ContainerTypesController.java,ContainerTypeDetail.java
+Get Container Types,GET,/rest/ng/container-types,ContainerTypesController.java,N/A
+Update Container Type,PUT,/rest/ng/container-types/{id},ContainerTypesController.java,ContainerTypeDetail.java
+Delete Container Type,DELETE,/rest/ng/container-types/{id},ContainerTypesController.java,N/A
+Create Institute,POST,/rest/ng/institutes,InstitutesController.java,InstituteDetail.java
+Get Institute,GET,/rest/ng/institutes/{id},InstitutesController.java,InstituteDetail.java
+Get All Institutes,GET,/rest/ng/institutes,InstitutesController.java,N/A
+Update Institute,PUT,/rest/ng/institutes/{id},InstitutesController.java,InstituteDetail.java
+Delete Institute,DELETE,/rest/ng/institutes/{id},InstitutesController.java,N/A
+Create Department,POST,/rest/ng/departments,InstitutesController.java,InstituteDetail.java
+Get Department,GET,/rest/ng/departments/{id},InstitutesController.java,InstituteDetail.java
+Get All Departments,GET,/rest/ng/departments,InstitutesController.java,InstituteDetail.java
+Update Department,PUT,/rest/ng/departments/{id},InstitutesController.java,InstituteDetail.java
+Create Site,POST,/rest/ng/sites,SitesController.java,SiteDetail.java
+Get Site,GET,/rest/ng/sites/{id},SitesController.java,SiteDetail.java
+Get All Sites,GET,/rest/ng/sites,SitesController.java,N/A
+Update Site,PUT,/rest/ng/sites/{id},SitesController.java,SiteDetail.java
+Delete Site,DELETE,/rest/ng/sites/{id},SitesController.java,N/A
+Create User,POST,/rest/ng/users,UserController.java,UserDetail.java
+Get User,GET,/rest/ng/users/{id},UserController.java,UserDetail.java
+Get All Users,GET,/rest/ng/users,UserController.java,N/A
+Update User,PUT,/rest/ng/users/{id},UserController.java,UserDetail.java
+Delete User,DELETE,/rest/ng/users/{id},UserController.java,N/A
+Change User Password,PUT,/rest/ng/users/{id}/password,UserController.java,PasswordDetails.java
+Validate Password,POST,/rest/ng/users/validate-password,UserController.java,PasswordDetails.java
+Create Print Rule,POST,/rest/ng/print-rules,PrintRuleConfigsController.java,PrintRuleConfigDetail.java
+Get Print Rule,GET,/rest/ng/print-rules/{id},PrintRuleConfigsController.java,PrintRuleConfigDetail.java
+Update Print Rule,PUT,/rest/ng/print-rules/{id},PrintRuleConfigsController.java,PrintRuleConfigDetail.java
+Get Entity Form Metadata,GET,/rest/ng/{entity}/{objectId}/forms,SpecimensController.java,N/A
+Get Entity Form Records,GET,/rest/ng/{entity}/{objectId}/forms/{formCtxtId}/records,SpecimensController.java,N/A
+Save Form Data,POST,/rest/ng/forms/{formId}/data,FormsController.java,N/A
+Get Form Data Record,GET,/rest/ng/forms/{formId}/data/{recordId},FormsController.java,N/A
+Update Form Data Record,PUT,/rest/ng/forms/{formId}/data/{recordId},FormsController.java,N/A
+Delete Form Data Record,DELETE,/rest/ng/forms/{formId}/data/{recordId},FormsController.java,N/A
+Create Import Job,POST,/rest/ng/import-jobs,BulkObjectImportController.java,ImportDetail.java
+Get Import Job Status,GET,/rest/ng/import-jobs/{jobId},BulkObjectImportController.java,ImportJobDetail.java
+Download Import Job Output,GET,/rest/ng/import-jobs/{jobId}/output,BulkObjectImportController.java,N/A
+Create Export Job,POST,/rest/ng/export-jobs,ExportJobsController.java,ExportDetail.java
+Download Export Job Output,GET,/rest/ng/export-jobs/{jobId}/output,ExportJobsController.java,N/A
+Run Scheduled Job,POST,/rest/ng/scheduled-jobs/{jobId}/runs,ScheduledJobsController.java,ScheduledJobDetail.java
+List Scheduled Job Runs,GET,/rest/ng/scheduled-jobs/{jobId}/runs,ScheduledJobsController.java,N/A
+Run Query,POST,/rest/ng/query,QueryController.java,ExecuteQueryEventOp.java
+Get Query AQL,POST,/rest/ng/query/aql,QueryController.java,SavedQueryDetail.java
+Get All Config Settings,GET,/rest/ng/config-settings,ConfigurationController.java,N/A
+Update Config Setting,PUT,/rest/ng/config-settings/{module}/{property},ConfigurationController.java,ConfigSettingDetail.java

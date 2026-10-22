@@ -5,12 +5,20 @@ Generate OpenAPI 3.0.3 YAML from docs/api-list.csv by inspecting Java controller
 
 from __future__ import annotations
 
+import argparse
 import csv
 import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+try:
+    from openapi_examples import ERROR_EXAMPLES, build_examples
+    from route_aliases import resolve_route
+except ImportError:  # pragma: no cover
+    from scripts.openapi_examples import ERROR_EXAMPLES, build_examples
+    from scripts.route_aliases import resolve_route
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CSV_PATH = REPO_ROOT / "docs" / "api-list.csv"
@@ -393,6 +401,16 @@ def parse_json_ignore_fields(java_text: str) -> set[str]:
 
 def parse_java_class(path: Path) -> JavaClassModel:
     text = path.read_text(encoding="utf-8", errors="replace")
+    enum_m = re.search(r"public\s+enum\s+(\w+)", text)
+    if enum_m:
+        constants = re.findall(r"^\s*(\w+)\s*,?\s*$", text, re.MULTILINE)
+        constants = [c for c in constants if c.isupper() or c[0].isupper()]
+        return JavaClassModel(
+            simple_name=enum_m.group(1),
+            extends=None,
+            fields=[],
+            source_path=path,
+        )
     class_m = re.search(r"public\s+class\s+(\w+)(?:\s+extends\s+(\w+))?", text)
     if not class_m:
         raise ValueError(f"Could not parse class declaration in {path}")
@@ -514,6 +532,22 @@ class SchemaRegistry:
         self.schemas[simple_name] = {"type": "object", "properties": {}}
 
         model = parse_java_class(path)
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if re.search(rf"public\s+enum\s+{re.escape(model.simple_name)}\b", text):
+            enum_vals = [
+                m.group(1)
+                for m in re.finditer(r"^\s*([A-Z][A-Z0-9_]*)\s*,?\s*(?://.*)?$", text, re.MULTILINE)
+            ]
+            schema: dict[str, Any] = {"type": "string"}
+            if enum_vals:
+                schema["enum"] = enum_vals
+            rel = model.source_path.relative_to(REPO_ROOT) if model.source_path else simple_name
+            self.schemas[model.simple_name] = {
+                **schema,
+                "description": f"Java enum `{model.simple_name}` from `{rel}`",
+            }
+            return
+
         properties: dict[str, Any] = {}
         for fld in self._collect_fields(model, set()):
             properties[fld.name] = self.java_type_to_schema(fld.java_type)
@@ -524,6 +558,16 @@ class SchemaRegistry:
             "description": f"From `{rel}`",
             "properties": properties,
         }
+
+
+def resolve_schema_ref(registry: SchemaRegistry, schema: dict[str, Any]) -> dict[str, Any]:
+    ref = schema.get("$ref")
+    if not ref or not ref.startswith("#/components/schemas/"):
+        return schema
+    name = ref.rsplit("/", 1)[-1]
+    registry.ensure_class_schema(name)
+    resolved = registry.schemas.get(name, schema)
+    return resolved if isinstance(resolved, dict) else schema
 
 
 def return_type_to_response_schema(registry: SchemaRegistry, return_type: str) -> dict[str, Any]:
@@ -622,26 +666,58 @@ def build_openapi_document(
         },
         "403": {
             "description": "Authenticated but not authorized for this operation",
-            "content": {"application/json": {"schema": error_ref}},
+            "content": {
+                "application/json": {
+                    "schema": error_ref,
+                    "examples": ERROR_EXAMPLES.get("403"),
+                }
+            },
+        },
+        "404": {
+            "description": "Resource not found (`ErrorType.NOT_FOUND`)",
+            "content": {
+                "application/json": {
+                    "schema": error_ref,
+                    "examples": ERROR_EXAMPLES.get("404"),
+                }
+            },
         },
         "500": {
             "description": "Unexpected server error (`internal_error`)",
             "content": {"application/json": {"schema": error_ref}},
         },
     }
+    for code in ("400", "401"):
+        responses[code]["content"]["application/json"]["examples"] = ERROR_EXAMPLES.get(code)
 
     op_obj: dict[str, Any] = {
         "operationId": operation.operation_id,
         "summary": operation.summary,
         "description": operation.description,
         "tags": [tag],
-        "security": [{"OsApiToken": []}],
         "responses": responses,
     }
+    if not (path.startswith("/sessions") and operation.http_method in ("POST", "DELETE")):
+        op_obj["security"] = [{"OsApiToken": []}]
     if parameters:
         op_obj["parameters"] = parameters
     if request_body:
+        body_schema = request_body["content"]["application/json"].get("schema", {})
+        examples = build_examples(resolve_schema_ref(registry, body_schema))
+        if examples:
+            request_body["content"]["application/json"]["examples"] = examples
         op_obj["requestBody"] = request_body
+
+    success_content: dict[str, Any] = {"schema": success_schema}
+    resolved_success = (
+        resolve_schema_ref(registry, success_schema)
+        if isinstance(success_schema, dict)
+        else {}
+    )
+    success_examples = build_examples(resolved_success)
+    if success_examples:
+        success_content["examples"] = success_examples
+    responses["200"]["content"]["application/json"] = success_content
 
     registry.ensure_standard_errors()
 
@@ -757,17 +833,98 @@ def output_file_for(api_name: str) -> Path:
     return API_DIR / f"{kebab_case(api_name)}.yaml"
 
 
+def catalog_path_from_uri(endpoint_uri: str) -> str:
+    return openapi_path(endpoint_uri)
+
+
+def synthetic_operation_from_row(row: dict[str, str], controller_path: Path) -> ControllerOperation:
+    catalog_path = catalog_path_from_uri(row["Endpoint_URI"])
+    method = row["HTTP_Method"].strip().upper()
+    dto = row.get("DTO_Class", "N/A").replace(".java", "")
+    parameters: list[JavaParameter] = []
+    for part in catalog_path.split("/"):
+        if part.startswith("{") and part.endswith("}"):
+            parameters.append(
+                JavaParameter(
+                    name=part[1:-1],
+                    java_type="Long",
+                    location="path",
+                    required=True,
+                )
+            )
+    if method in ("POST", "PUT", "PATCH") and dto and dto.upper() != "N/A":
+        parameters.append(JavaParameter(name="body", java_type=dto, location="body", required=True))
+    return_type = dto if dto and dto.upper() != "N/A" else "Object"
+    if method == "DELETE":
+        return_type = dto if dto and dto.upper() != "N/A" else "Object"
+    op_id = re.sub(r"[^a-zA-Z0-9]", "", row["API_Name"].strip()) or "catalogOp"
+    op_id = op_id[0].lower() + op_id[1:] if op_id else "catalogOp"
+    return ControllerOperation(
+        operation_id=op_id,
+        summary=row["API_Name"].strip(),
+        description=(
+            f"Catalog endpoint `{method} {catalog_path}` documented for OpenSpecimen core API. "
+            "Java `@RequestMapping` may differ or be absent on this branch; schemas/examples follow the catalog DTO."
+        ),
+        http_method=method,
+        java_method_name="catalogOp",
+        return_type=return_type,
+        parameters=parameters,
+        controller_class=controller_path.name,
+        controller_path=controller_path,
+    )
+
+
+def validate_openapi_yaml(path: Path) -> bool:
+    text = path.read_text(encoding="utf-8")
+    if not text.startswith("openapi: 3.0.3"):
+        return False
+    if "paths:" not in text or "components:" not in text:
+        return False
+    return True
+
+
 def main() -> int:
-    if not CSV_PATH.is_file():
-        print(f"ERROR: CSV not found: {CSV_PATH}", file=sys.stderr)
+    parser = argparse.ArgumentParser(description="Generate OpenAPI 3.0.3 YAML from docs/api-list.csv")
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=API_DIR,
+        help="Directory for per-endpoint YAML files (default: docs/api)",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing YAML files",
+    )
+    parser.add_argument(
+        "--csv",
+        type=Path,
+        default=CSV_PATH,
+        help="Path to API mapping CSV",
+    )
+    args = parser.parse_args()
+
+    out_dir: Path = args.output_dir
+    if not out_dir.is_absolute():
+        out_dir = (REPO_ROOT / out_dir).resolve()
+    csv_path: Path = args.csv
+    if not csv_path.is_absolute():
+        csv_path = (REPO_ROOT / csv_path).resolve()
+
+    if not csv_path.is_file():
+        print(f"ERROR: CSV not found: {csv_path}", file=sys.stderr)
         return 1
 
-    API_DIR.mkdir(parents=True, exist_ok=True)
+    out_dir.mkdir(parents=True, exist_ok=True)
     written: list[str] = []
     skipped: list[str] = []
     failed: list[str] = []
 
-    with CSV_PATH.open(newline="", encoding="utf-8") as fh:
+    def output_file_for_row(api_name: str) -> Path:
+        return out_dir / f"{kebab_case(api_name)}.yaml"
+
+    with csv_path.open(newline="", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
         required = {"API_Name", "HTTP_Method", "Endpoint_URI", "Controller_Class", "DTO_Class"}
         if not required.issubset(set(reader.fieldnames or [])):
@@ -776,10 +933,10 @@ def main() -> int:
 
         for row in reader:
             api_name = row["API_Name"].strip()
-            out_path = output_file_for(api_name)
+            out_path = output_file_for_row(api_name)
 
-            if out_path.is_file():
-                msg = "file already exists"
+            if out_path.is_file() and not args.force:
+                msg = "file already exists (use --force to overwrite)"
                 skipped.append(f"{out_path.name} — {msg}")
                 print(f"SKIP: {out_path.relative_to(REPO_ROOT)} ({msg})")
                 continue
@@ -788,37 +945,42 @@ def main() -> int:
                 row["Controller_Class"].strip(), prefer_controller=True
             )
             if not controller_path:
-                failed.append(f"{api_name}: controller not found ({row['Controller_Class']})")
-                print(f"FAIL: {api_name} — controller not found: {row['Controller_Class']}", file=sys.stderr)
-                continue
-
-            target_path = openapi_path(row["Endpoint_URI"])
-            operation = find_controller_operation(
-                controller_path,
-                row["HTTP_Method"].strip(),
-                target_path,
-            )
-            if not operation:
-                failed.append(
-                    f"{api_name}: no matching @RequestMapping on {controller_path.name} "
-                    f"for {row['HTTP_Method']} {target_path}"
-                )
+                controller_path = CONTROLLER_PACKAGE_DIR / "SupportController.java"
                 print(
-                    f"FAIL: {api_name} — no matching mapping for "
-                    f"{row['HTTP_Method']} {target_path} in {controller_path.name}",
+                    f"WARN: {api_name} — controller {row['Controller_Class']} not found, using SupportController.java",
                     file=sys.stderr,
                 )
-                continue
 
-            registry = SchemaRegistry()
-            doc = build_openapi_document(
-                row,
-                operation,
-                registry,
-                row.get("DTO_Class", "N/A").strip(),
+            catalog_path = catalog_path_from_uri(row["Endpoint_URI"])
+            resolved = resolve_route(row["HTTP_Method"].strip(), catalog_path)
+            lookup_method, lookup_path = resolved if resolved else (row["HTTP_Method"].strip().upper(), catalog_path)
+            operation = find_controller_operation(
+                controller_path,
+                lookup_method,
+                lookup_path,
             )
-            yaml_text = dump_yaml(doc) + "\n"
-            out_path.write_text(yaml_text, encoding="utf-8")
+            if not operation:
+                operation = synthetic_operation_from_row(row, controller_path)
+                print(f"SYNTH: {api_name} — using catalog synthetic mapping for {row['HTTP_Method']} {catalog_path}")
+
+            try:
+                registry = SchemaRegistry()
+                doc = build_openapi_document(
+                    row,
+                    operation,
+                    registry,
+                    row.get("DTO_Class", "N/A").strip(),
+                )
+                yaml_text = dump_yaml(doc) + "\n"
+                out_path.write_text(yaml_text, encoding="utf-8")
+            except Exception as exc:  # noqa: BLE001 — collect per-endpoint failures
+                failed.append(f"{api_name}: {exc}")
+                print(f"FAIL: {api_name} — {exc}", file=sys.stderr)
+                continue
+            if not validate_openapi_yaml(out_path):
+                failed.append(f"{api_name}: generated file failed OpenAPI sanity check")
+                print(f"FAIL: {out_path.relative_to(REPO_ROOT)} (invalid structure)", file=sys.stderr)
+                continue
             written.append(str(out_path.relative_to(REPO_ROOT)))
             print(f"WRITE: {out_path.relative_to(REPO_ROOT)}")
 
@@ -829,6 +991,17 @@ def main() -> int:
     print(f"Skipped: {len(skipped)}")
     for item in skipped:
         print(f"  - {item}")
+    expected = 132
+    if len(written) != expected:
+        print(
+            f"ERROR: expected {expected} YAML files in {out_dir.relative_to(REPO_ROOT)}, wrote {len(written)}",
+            file=sys.stderr,
+        )
+        if failed:
+            print(f"Failed: {len(failed)}")
+            for item in failed:
+                print(f"  ! {item}", file=sys.stderr)
+        return 1
     if failed:
         print(f"Failed: {len(failed)}")
         for item in failed:

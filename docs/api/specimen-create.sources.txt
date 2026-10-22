@@ -1,0 +1,17 @@
+Create Specimen wiki — source trace
+Last reviewed: 2026-10-16
+
+Endpoint: SpecimensController.java POST /specimens, 200 OK
+Flow: SpecimenServiceImpl.createSpecimen -> saveOrUpdate -> SpecimenFactoryImpl.createSpecimen
+Request/response DTO: SpecimenDetail.java, SpecimenInfo.java, AttributeModifiedSupport.java (opComments)
+Errors: SpecimenErrorCode.java + messages.properties; RestErrorController USER_ERROR=400, UNAUTHORIZED=401, SYSTEM=500
+Storage/events: SpecimenFactoryImpl getPosition, setCollectionDetail; CollectionEventDetail, ReceivedEventDetail, StorageLocationSummary
+Auth for Python sample: LoginDetail.java uses domainName (not domain); AuthenticationController POST /sessions returns token in map
+
+403 row: RestErrorController has no FORBIDDEN mapping in getHttpStatus; RBAC typically 400 RBAC_ACCESS_DENIED — documented on page as alternate
+
+OPEN QUESTIONS:
+- 401 response body format without token (AuthTokenFilter)
+- JSON date format for Date fields on request
+- preBarcodedTube request vs requirement for barcode validation
+- autoCollectParents request field vs factory setAutoCollectParents(true)

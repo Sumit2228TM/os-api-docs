@@ -1,0 +1,473 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Get Storage Container"
+  version: 1.0.0
+  description: |
+    Get Storage Container — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/StorageContainersController.java` (`getStorageContainer`).
+    DTO: `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/StorageContainerDetail.java`.
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+tags:
+  - name: StorageContainers
+    description: "Operations from `StorageContainersController.java`"
+paths:
+  /storage-containers/{id}:
+    get:
+      operationId: getStorageContainer
+      summary: getStorageContainer
+      description: "GET /storage-containers/{id} — `StorageContainersController.java`.`getStorageContainer`"
+      tags:
+        - StorageContainers
+      responses:
+        '200':
+          description: "Successful response for Get Storage Container"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StorageContainerDetail"
+              examples:
+                biobankExample:
+                  summary: "Biobanking workflow example"
+                  value:
+                    id: 1001
+                    name: "Baseline Visit 1"
+                    barcode: BBCP2024001S1
+                    displayName: sample-displayname
+                    typeId: 1001
+                    typeName: sample-typename
+                    usedFor: sample-usedfor
+                    activityStatus: Active
+                    siteName: sample-sitename
+                    storageLocation:
+                      id: 1001
+                    createdBy:
+                      id: 1001
+                    noOfColumns: 1
+                    noOfRows: 1
+                    positionLabelingMode: BBCP-2024-001-S1
+                    positionAssignment: sample-positionassignment
+                    columnLabelingScheme: BBCP-2024-001-S1
+                    rowLabelingScheme: BBCP-2024-001-S1
+                    freePositions: 1
+                    usedPositions: 1
+                    totalPositions: 1
+                    capacity: 1
+                    storedSpecimens: 1
+                    automated: false
+                    autoFreezerProvider: sample-autofreezerprovider
+                    childContainers:
+                      - id: 1001
+        '400':
+          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                validationError:
+                  summary: "Business rule violation"
+                  value:
+                    - code: SPECIMEN_LABEL_REQUIRED
+                      message: "Specimen label is required."
+        '401':
+          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                unauthorized:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated but not authorized for this operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                forbidden:
+                  summary: "Insufficient privileges"
+                  value:
+                    - code: RBAC_ACCESS_DENIED
+                      message: "You are not authorized to perform this operation."
+        '404':
+          description: "Resource not found (`ErrorType.NOT_FOUND`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                notFound:
+                  summary: "Entity not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Requested resource was not found."
+        '500':
+          description: "Unexpected server error (`internal_error`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+      security:
+        - OsApiToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: includeStats
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+components:
+  securitySchemes:
+    OsApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  schemas:
+    StorageContainerDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/StorageContainerDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        barcode:
+          type: string
+        displayName:
+          type: string
+        typeId:
+          type: integer
+          format: int64
+        typeName:
+          type: string
+        usedFor:
+          type: string
+        activityStatus:
+          type: string
+        siteName:
+          type: string
+        storageLocation:
+          $ref: "#/components/schemas/StorageLocationSummary"
+        createdBy:
+          $ref: "#/components/schemas/UserSummary"
+        noOfColumns:
+          type: integer
+          format: int32
+        noOfRows:
+          type: integer
+          format: int32
+        positionLabelingMode:
+          type: string
+        positionAssignment:
+          type: string
+        columnLabelingScheme:
+          type: string
+        rowLabelingScheme:
+          type: string
+        freePositions:
+          type: integer
+          format: int32
+        usedPositions:
+          type: integer
+          format: int32
+        totalPositions:
+          type: integer
+          format: int32
+        capacity:
+          type: integer
+          format: int32
+        storedSpecimens:
+          type: integer
+          format: int32
+        automated:
+          type: boolean
+        autoFreezerProvider:
+          type: string
+        childContainers:
+          type: array
+          items:
+            $ref: "#/components/schemas/StorageContainerSummary"
+        starred:
+          type: boolean
+        status:
+          type: string
+        blockedLocation:
+          $ref: "#/components/schemas/StorageLocationSummary"
+        freezerId:
+          type: integer
+          format: int64
+        freezerName:
+          type: string
+        freezerBarcode:
+          type: string
+        freezerDisplayName:
+          type: string
+        temperature:
+          type: number
+          format: double
+        cellDisplayProp:
+          type: string
+        comments:
+          type: string
+        extensionDetail:
+          $ref: "#/components/schemas/ExtensionDetail"
+        specimensByType:
+          $ref: "#/components/schemas/Map"
+        rootContainerId:
+          type: integer
+          format: int64
+        printLabels:
+          type: boolean
+        transferredBy:
+          $ref: "#/components/schemas/UserSummary"
+        transferDate:
+          type: string
+          format: date-time
+        transferComments:
+          type: string
+        checkOut:
+          type: boolean
+        createIfAbsent:
+          type: boolean
+    StorageLocationSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/StorageLocationSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        displayName:
+          type: string
+        barcode:
+          type: string
+        mode:
+          type: string
+        positionX:
+          type: string
+        positionY:
+          type: string
+        position:
+          type: integer
+          format: int32
+        reservationId:
+          type: string
+        checkoutBy:
+          $ref: "#/components/schemas/UserSummary"
+        checkoutTime:
+          type: string
+          format: date-time
+        checkoutComments:
+          type: string
+        siteId:
+          type: integer
+          format: int64
+        siteName:
+          type: string
+        formattedPosition:
+          type: string
+        hierarchy:
+          type: string
+    UserSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/events/UserSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        loginName:
+          type: string
+        domain:
+          type: string
+        emailAddress:
+          type: string
+        instituteId:
+          type: integer
+          format: int64
+        instituteName:
+          type: string
+        primarySite:
+          type: string
+        admin:
+          type: boolean
+        instituteAdmin:
+          type: boolean
+        phoneNumber:
+          type: string
+        manageForms:
+          type: boolean
+        manageWfs:
+          type: boolean
+        managePrintJobs:
+          type: boolean
+        downloadLabelsPrintFile:
+          type: boolean
+        apiUser:
+          type: boolean
+        cpCount:
+          type: integer
+          format: int32
+        creationDate:
+          type: string
+          format: date-time
+        activityStatus:
+          type: string
+        impersonated:
+          type: boolean
+        daysBeforePasswordExpiry:
+          type: integer
+          format: int32
+    StorageContainerSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/StorageContainerSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        barcode:
+          type: string
+        displayName:
+          type: string
+        typeId:
+          type: integer
+          format: int64
+        typeName:
+          type: string
+        usedFor:
+          type: string
+        activityStatus:
+          type: string
+        siteName:
+          type: string
+        storageLocation:
+          $ref: "#/components/schemas/StorageLocationSummary"
+        createdBy:
+          $ref: "#/components/schemas/UserSummary"
+        noOfColumns:
+          type: integer
+          format: int32
+        noOfRows:
+          type: integer
+          format: int32
+        positionLabelingMode:
+          type: string
+        positionAssignment:
+          type: string
+        columnLabelingScheme:
+          type: string
+        rowLabelingScheme:
+          type: string
+        freePositions:
+          type: integer
+          format: int32
+        usedPositions:
+          type: integer
+          format: int32
+        totalPositions:
+          type: integer
+          format: int32
+        capacity:
+          type: integer
+          format: int32
+        storedSpecimens:
+          type: integer
+          format: int32
+        automated:
+          type: boolean
+        autoFreezerProvider:
+          type: string
+        childContainers:
+          type: array
+          items:
+            $ref: "#/components/schemas/StorageContainerSummary"
+        starred:
+          type: boolean
+        status:
+          type: string
+        blockedLocation:
+          $ref: "#/components/schemas/StorageLocationSummary"
+        freezerId:
+          type: integer
+          format: int64
+        freezerName:
+          type: string
+        freezerBarcode:
+          type: string
+        freezerDisplayName:
+          type: string
+    ExtensionDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/ExtensionDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        objectId:
+          type: integer
+          format: int64
+        formId:
+          type: integer
+          format: int64
+        formCaption:
+          type: string
+        dataEntryStatus:
+          type: string
+        attrsMap:
+          $ref: "#/components/schemas/Map"
+        useUdn:
+          type: boolean
+        name:
+          type: string
+        udn:
+          type: string
+        caption:
+          type: string
+        value:
+
+        type:
+          type: string
+        displayValue:
+          type: string
+        codedValue:
+          type: string
+    Map:
+      type: object
+      description: "Type `Map` (Java source not found in repository)"
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ErrorMessageList:
+      type: array
+      items:
+        $ref: "#/components/schemas/ErrorMessage"

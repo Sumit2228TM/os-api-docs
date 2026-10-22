@@ -1,0 +1,125 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Delete Form Data Record"
+  version: 1.0.0
+  description: |
+    Delete Form Data Record — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/FormsController.java` (`deleteRecords`).
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+tags:
+  - name: Forms
+    description: "Operations from `FormsController.java`"
+paths:
+  /forms/{formId}/data/{recordId}:
+    delete:
+      operationId: deleteRecords
+      summary: deleteRecords
+      description: "DELETE /forms/{id}/data/{recordId} — `FormsController.java`.`deleteRecords`"
+      tags:
+        - Forms
+      responses:
+        '200':
+          description: "Successful response for Delete Form Data Record"
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int64
+              examples:
+                biobankExample:
+                  summary: "Biobanking workflow example"
+                  value: 1
+        '400':
+          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                validationError:
+                  summary: "Business rule violation"
+                  value:
+                    - code: SPECIMEN_LABEL_REQUIRED
+                      message: "Specimen label is required."
+        '401':
+          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                unauthorized:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated but not authorized for this operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                forbidden:
+                  summary: "Insufficient privileges"
+                  value:
+                    - code: RBAC_ACCESS_DENIED
+                      message: "You are not authorized to perform this operation."
+        '404':
+          description: "Resource not found (`ErrorType.NOT_FOUND`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                notFound:
+                  summary: "Entity not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Requested resource was not found."
+        '500':
+          description: "Unexpected server error (`internal_error`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+      security:
+        - OsApiToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: recordId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+components:
+  securitySchemes:
+    OsApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  schemas:
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ErrorMessageList:
+      type: array
+      items:
+        $ref: "#/components/schemas/ErrorMessage"

@@ -1,0 +1,256 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Delete Specimen List"
+  version: 1.0.0
+  description: |
+    Delete Specimen List — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/SpecimenListsController.java` (`deleteSpecimenList`).
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+tags:
+  - name: SpecimenLists
+    description: "Operations from `SpecimenListsController.java`"
+paths:
+  /specimen-lists/{id}:
+    delete:
+      operationId: deleteSpecimenList
+      summary: deleteSpecimenList
+      description: "DELETE /specimen-lists/{listId} — `SpecimenListsController.java`.`deleteSpecimenList`"
+      tags:
+        - SpecimenLists
+      responses:
+        '200':
+          description: "Successful response for Delete Specimen List"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpecimenListDetail"
+              examples:
+                biobankExample:
+                  summary: "Biobanking workflow example"
+                  value:
+                    id: 1001
+                    name: "Baseline Visit 1"
+                    description: sample-description
+                    createdOn: "2024-10-22T14:30:00Z"
+                    lastUpdatedOn: "2024-10-22T14:30:00Z"
+                    owner:
+                      id: 1001
+                    defaultList: false
+                    specimenCount: 1
+                    starred: false
+                    sendDigestNotifs: false
+                    sourceEntityType: sample-sourceentitytype
+                    sourceEntityId: 1001
+                    sharedWith:
+                      - id: 1001
+                    sharedWithGroups:
+                      - id: 1001
+                    specimenIds:
+                      - 1
+        '400':
+          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                validationError:
+                  summary: "Business rule violation"
+                  value:
+                    - code: SPECIMEN_LABEL_REQUIRED
+                      message: "Specimen label is required."
+        '401':
+          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                unauthorized:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated but not authorized for this operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                forbidden:
+                  summary: "Insufficient privileges"
+                  value:
+                    - code: RBAC_ACCESS_DENIED
+                      message: "You are not authorized to perform this operation."
+        '404':
+          description: "Resource not found (`ErrorType.NOT_FOUND`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                notFound:
+                  summary: "Entity not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Requested resource was not found."
+        '500':
+          description: "Unexpected server error (`internal_error`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+      security:
+        - OsApiToken: []
+      parameters:
+        - name: listId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+components:
+  securitySchemes:
+    OsApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  schemas:
+    SpecimenListDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/SpecimenListDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        createdOn:
+          type: string
+          format: date-time
+        lastUpdatedOn:
+          type: string
+          format: date-time
+        owner:
+          $ref: "#/components/schemas/UserSummary"
+        defaultList:
+          type: boolean
+        specimenCount:
+          type: integer
+          format: int32
+        starred:
+          type: boolean
+        sendDigestNotifs:
+          type: boolean
+        sourceEntityType:
+          type: string
+        sourceEntityId:
+          type: integer
+          format: int64
+        sharedWith:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserSummary"
+        sharedWithGroups:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserGroupSummary"
+        specimenIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+    UserSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/events/UserSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        loginName:
+          type: string
+        domain:
+          type: string
+        emailAddress:
+          type: string
+        instituteId:
+          type: integer
+          format: int64
+        instituteName:
+          type: string
+        primarySite:
+          type: string
+        admin:
+          type: boolean
+        instituteAdmin:
+          type: boolean
+        phoneNumber:
+          type: string
+        manageForms:
+          type: boolean
+        manageWfs:
+          type: boolean
+        managePrintJobs:
+          type: boolean
+        downloadLabelsPrintFile:
+          type: boolean
+        apiUser:
+          type: boolean
+        cpCount:
+          type: integer
+          format: int32
+        creationDate:
+          type: string
+          format: date-time
+        activityStatus:
+          type: string
+        impersonated:
+          type: boolean
+        daysBeforePasswordExpiry:
+          type: integer
+          format: int32
+    UserGroupSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/UserGroupSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        institute:
+          type: string
+        noOfUsers:
+          type: integer
+          format: int32
+        activityStatus:
+          type: string
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ErrorMessageList:
+      type: array
+      items:
+        $ref: "#/components/schemas/ErrorMessage"

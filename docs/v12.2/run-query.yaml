@@ -1,0 +1,191 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Run Query"
+  version: 1.0.0
+  description: |
+    Run Query — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/QueryController.java` (`executeQuery`).
+    DTO: `WEB-INF/src/com/krishagni/catissueplus/core/de/events/ExecuteQueryEventOp.java`.
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+tags:
+  - name: Query
+    description: "Operations from `QueryController.java`"
+paths:
+  /query:
+    post:
+      operationId: executeQuery
+      summary: executeQuery
+      description: "POST /query — `QueryController.java`.`executeQuery`"
+      tags:
+        - Query
+      responses:
+        '200':
+          description: "Successful response for Run Query"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueryExecResult"
+              examples:
+                biobankExample:
+                  summary: "Biobanking workflow example"
+                  value:
+                    columnMetadata:
+                      - id: 1001
+                    dbRowsCount: 1
+        '400':
+          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                validationError:
+                  summary: "Business rule violation"
+                  value:
+                    - code: SPECIMEN_LABEL_REQUIRED
+                      message: "Specimen label is required."
+        '401':
+          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                unauthorized:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated but not authorized for this operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                forbidden:
+                  summary: "Insufficient privileges"
+                  value:
+                    - code: RBAC_ACCESS_DENIED
+                      message: "You are not authorized to perform this operation."
+        '404':
+          description: "Resource not found (`ErrorType.NOT_FOUND`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                notFound:
+                  summary: "Entity not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Requested resource was not found."
+        '500':
+          description: "Unexpected server error (`internal_error`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+      security:
+        - OsApiToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExecuteQueryEventOp"
+            examples:
+              biobankExample:
+                summary: "Biobanking workflow example"
+                value:
+                  querySpace: sample-queryspace
+                  cpId: 101
+                  cpGroupId: 101
+                  drivingForm: sample-drivingform
+                  aql: "select s.id, s.label from Specimen s where s.id = 9001"
+                  savedQueryId: 1001
+                  indexOf: sample-indexof
+                  outputIsoDateTime: false
+                  outputColumnExprs: false
+                  synchronous: false
+                  disableAccessChecks: false
+                  disableAuditing: false
+                  reportName: sample-reportname
+                  queryUid: 1001
+                  useReportingDataSource: false
+components:
+  securitySchemes:
+    OsApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  schemas:
+    ExecuteQueryEventOp:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/ExecuteQueryEventOp.java`"
+      properties:
+        querySpace:
+          type: string
+        cpId:
+          type: integer
+          format: int64
+        cpGroupId:
+          type: integer
+          format: int64
+        drivingForm:
+          type: string
+        aql:
+          type: string
+        savedQueryId:
+          type: integer
+          format: int64
+        indexOf:
+          type: string
+        outputIsoDateTime:
+          type: boolean
+        outputColumnExprs:
+          type: boolean
+        synchronous:
+          type: boolean
+        disableAccessChecks:
+          type: boolean
+        disableAuditing:
+          type: boolean
+        reportName:
+          type: string
+        queryUid:
+          type: string
+        useReportingDataSource:
+          type: boolean
+    QueryExecResult:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/QueryExecResult.java`"
+      properties:
+        columnMetadata:
+          type: array
+          items:
+            $ref: "#/components/schemas/String, Object"
+        dbRowsCount:
+          type: integer
+          format: int32
+    String, Object:
+      type: object
+      description: "Type `String, Object` (Java source not found in repository)"
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ErrorMessageList:
+      type: array
+      items:
+        $ref: "#/components/schemas/ErrorMessage"

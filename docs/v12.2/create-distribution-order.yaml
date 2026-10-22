@@ -1,0 +1,715 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Create Distribution Order"
+  version: 1.0.0
+  description: |
+    Create Distribution Order — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/DistributionOrderController.java` (`createDistribution`).
+    DTO: `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/DistributionOrderDetail.java`.
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+tags:
+  - name: DistributionOrder
+    description: "Operations from `DistributionOrderController.java`"
+paths:
+  /distribution-orders:
+    post:
+      operationId: createDistribution
+      summary: createDistribution
+      description: "POST /distribution-orders — `DistributionOrderController.java`.`createDistribution`"
+      tags:
+        - DistributionOrder
+      responses:
+        '200':
+          description: "Successful response for Create Distribution Order"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DistributionOrderDetail"
+              examples:
+                biobankExample:
+                  summary: "Biobanking workflow example"
+                  value:
+                    id: 1001
+                    name: "Baseline Visit 1"
+                    distributionProtocol:
+                      id: 1001
+                    instituteName: sample-institutename
+                    siteId: 7
+                    siteName: sample-sitename
+                    requester:
+                      id: 1001
+                    creationDate: "2024-10-22T14:30:00Z"
+                    executionDate: "2024-10-22T14:30:00Z"
+                    status: PENDING
+                    distributor:
+                      id: 1001
+                    trackingUrl: sample-trackingurl
+                    comments: sample-comments
+                    request:
+                      id: 1001
+                    specimenList:
+                      id: 1001
+                    allReservedSpmns: false
+                    clearListId: 1001
+                    clearListMode: sample-clearlistmode
+                    activityStatus: Active
+                    extraAttrs:
+                      id: 1001
+                    extensionDetail:
+                      id: 1001
+                    orderItem:
+                      id: 1001
+                    async: false
+                    copyItemsFromExistingOrder: false
+                    distributeAvailableQty: false
+        '400':
+          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                validationError:
+                  summary: "Business rule violation"
+                  value:
+                    - code: SPECIMEN_LABEL_REQUIRED
+                      message: "Specimen label is required."
+        '401':
+          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                unauthorized:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated but not authorized for this operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                forbidden:
+                  summary: "Insufficient privileges"
+                  value:
+                    - code: RBAC_ACCESS_DENIED
+                      message: "You are not authorized to perform this operation."
+        '404':
+          description: "Resource not found (`ErrorType.NOT_FOUND`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                notFound:
+                  summary: "Entity not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Requested resource was not found."
+        '500':
+          description: "Unexpected server error (`internal_error`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+      security:
+        - OsApiToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DistributionOrderDetail"
+            examples:
+              biobankExample:
+                summary: "Biobanking workflow example"
+                value:
+                  id: 1001
+                  name: "Baseline Visit 1"
+                  distributionProtocol:
+                    id: 1001
+                  instituteName: sample-institutename
+                  siteId: 7
+                  siteName: sample-sitename
+                  requester:
+                    id: 1001
+                  creationDate: "2024-10-22T14:30:00Z"
+                  executionDate: "2024-10-22T14:30:00Z"
+                  status: PENDING
+                  distributor:
+                    id: 1001
+                  trackingUrl: sample-trackingurl
+                  comments: sample-comments
+                  request:
+                    id: 1001
+                  specimenList:
+                    id: 1001
+                  allReservedSpmns: false
+                  clearListId: 1001
+                  clearListMode: sample-clearlistmode
+                  activityStatus: Active
+                  extraAttrs:
+                    id: 1001
+                  extensionDetail:
+                    id: 1001
+                  orderItem:
+                    id: 1001
+                  async: false
+                  copyItemsFromExistingOrder: false
+                  distributeAvailableQty: false
+components:
+  securitySchemes:
+    OsApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  schemas:
+    DistributionOrderDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/DistributionOrderDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        distributionProtocol:
+          $ref: "#/components/schemas/DistributionProtocolDetail"
+        instituteName:
+          type: string
+        siteId:
+          type: integer
+          format: int64
+        siteName:
+          type: string
+        requester:
+          $ref: "#/components/schemas/UserSummary"
+        creationDate:
+          type: string
+          format: date-time
+        executionDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+        distributor:
+          $ref: "#/components/schemas/UserSummary"
+        trackingUrl:
+          type: string
+        comments:
+          type: string
+        request:
+          $ref: "#/components/schemas/SpecimenRequestSummary"
+        specimenList:
+          $ref: "#/components/schemas/SpecimenListSummary"
+        allReservedSpmns:
+          type: boolean
+        clearListId:
+          type: integer
+          format: int64
+        clearListMode:
+          type: string
+        activityStatus:
+          type: string
+        extraAttrs:
+          $ref: "#/components/schemas/Map"
+        extensionDetail:
+          $ref: "#/components/schemas/ExtensionDetail"
+        orderItem:
+          $ref: "#/components/schemas/DistributionOrderItemDetail"
+        async:
+          type: boolean
+        copyItemsFromExistingOrder:
+          type: boolean
+        distributeAvailableQty:
+          type: boolean
+        checkout:
+          type: boolean
+    DistributionProtocolDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/DistributionProtocolDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        shortTitle:
+          type: string
+        principalInvestigator:
+          $ref: "#/components/schemas/UserSummary"
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        instituteName:
+          type: string
+        defReceivingSiteName:
+          type: string
+        distributedSpecimensCount:
+          type: integer
+          format: int32
+        starred:
+          type: boolean
+        coordinators:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserSummary"
+        irbId:
+          type: string
+        activityStatus:
+          type: string
+        report:
+          $ref: "#/components/schemas/SavedQuerySummary"
+        orderExtnForm:
+          $ref: "#/components/schemas/FormSummary"
+        disableEmailNotifs:
+          type: boolean
+        attachmentType:
+          type: string
+        orderItemLabelFormat:
+          type: string
+        extensionDetail:
+          $ref: "#/components/schemas/ExtensionDetail"
+    UserSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/events/UserSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        loginName:
+          type: string
+        domain:
+          type: string
+        emailAddress:
+          type: string
+        instituteId:
+          type: integer
+          format: int64
+        instituteName:
+          type: string
+        primarySite:
+          type: string
+        admin:
+          type: boolean
+        instituteAdmin:
+          type: boolean
+        phoneNumber:
+          type: string
+        manageForms:
+          type: boolean
+        manageWfs:
+          type: boolean
+        managePrintJobs:
+          type: boolean
+        downloadLabelsPrintFile:
+          type: boolean
+        cpCount:
+          type: integer
+          format: int32
+        creationDate:
+          type: string
+          format: date-time
+        activityStatus:
+          type: string
+        impersonated:
+          type: boolean
+        daysBeforePasswordExpiry:
+          type: integer
+          format: int32
+    SavedQuerySummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/SavedQuerySummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        createdBy:
+          $ref: "#/components/schemas/UserSummary"
+        lastModifiedBy:
+          $ref: "#/components/schemas/UserSummary"
+        lastModifiedOn:
+          type: string
+          format: date-time
+        starred:
+          type: boolean
+    FormSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/FormSummary.java`"
+      properties:
+        formId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        caption:
+          type: string
+        createdBy:
+          $ref: "#/components/schemas/UserSummary"
+        creationTime:
+          type: string
+          format: date-time
+        modificationTime:
+          type: string
+          format: date-time
+        associations:
+          type: integer
+          format: int32
+        sysForm:
+          type: boolean
+        entityType:
+          type: string
+        multipleRecords:
+          type: boolean
+        notifEnabled:
+          type: boolean
+        dataInNotif:
+          type: boolean
+        formCtxtId:
+          type: integer
+          format: int64
+        cpId:
+          type: integer
+          format: int64
+    ExtensionDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/ExtensionDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        objectId:
+          type: integer
+          format: int64
+        formId:
+          type: integer
+          format: int64
+        formCaption:
+          type: string
+        dataEntryStatus:
+          type: string
+        attrsMap:
+          $ref: "#/components/schemas/Map"
+        useUdn:
+          type: boolean
+        name:
+          type: string
+        udn:
+          type: string
+        caption:
+          type: string
+        value:
+
+        type:
+          type: string
+        displayValue:
+          type: string
+        codedValue:
+          type: string
+    Map:
+      type: object
+      description: "Type `Map` (Java source not found in repository)"
+    SpecimenRequestSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/SpecimenRequestSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        catalogId:
+          type: integer
+          format: int64
+        requestor:
+          $ref: "#/components/schemas/UserSummary"
+        requestorEmailId:
+          type: string
+        irbId:
+          type: string
+        dpId:
+          type: integer
+          format: int64
+        dpShortTitle:
+          type: string
+        cpId:
+          type: integer
+          format: int64
+        cpShortTitle:
+          type: string
+        dateOfRequest:
+          type: string
+          format: date-time
+        screeningStatus:
+          type: string
+        dateOfScreening:
+          type: string
+          format: date-time
+        screenedBy:
+          $ref: "#/components/schemas/UserSummary"
+        screeningComments:
+          type: string
+        activityStatus:
+          type: string
+    SpecimenListSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/SpecimenListSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        description:
+          type: string
+        createdOn:
+          type: string
+          format: date-time
+        lastUpdatedOn:
+          type: string
+          format: date-time
+        owner:
+          $ref: "#/components/schemas/UserSummary"
+        defaultList:
+          type: boolean
+        specimenCount:
+          type: integer
+          format: int32
+        starred:
+          type: boolean
+        sendDigestNotifs:
+          type: boolean
+        sourceEntityType:
+          type: string
+        sourceEntityId:
+          type: integer
+          format: int64
+    DistributionOrderItemDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/DistributionOrderItemDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        orderId:
+          type: integer
+          format: int64
+        orderName:
+          type: string
+        specimen:
+          $ref: "#/components/schemas/SpecimenInfo"
+        specimenLocation:
+          type: string
+        quantity:
+          type: number
+        cost:
+          type: number
+        label:
+          type: string
+        holdingLocation:
+          $ref: "#/components/schemas/StorageLocationSummary"
+        printLabel:
+          type: boolean
+        status:
+          type: string
+    SpecimenInfo:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/SpecimenInfo.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        cpId:
+          type: integer
+          format: int64
+        cprId:
+          type: integer
+          format: int64
+        ppid:
+          type: string
+        eventId:
+          type: integer
+          format: int64
+        eventCode:
+          type: string
+        eventLabel:
+          type: string
+        visitId:
+          type: integer
+          format: int64
+        visitName:
+          type: string
+        visitStatus:
+          type: string
+        sprNo:
+          type: string
+        visitDate:
+          type: string
+          format: date-time
+        cpShortTitle:
+          type: string
+        reqId:
+          type: integer
+          format: int64
+        sortOrder:
+          type: integer
+          format: int32
+        label:
+          type: string
+        additionalLabel:
+          type: string
+        barcode:
+          type: string
+        type:
+          type: string
+        specimenClass:
+          type: string
+        lineage:
+          type: string
+        anatomicSite:
+          type: string
+        laterality:
+          type: string
+        status:
+          type: string
+        reqCode:
+          type: string
+        reqLabel:
+          type: string
+        pathology:
+          type: string
+        initialQty:
+          type: number
+        availableQty:
+          type: number
+        concentration:
+          type: number
+        quantityUnit:
+          type: string
+        concentrationUnit:
+          type: string
+        parentId:
+          type: integer
+          format: int64
+        parentLabel:
+          type: string
+        storageLocation:
+          $ref: "#/components/schemas/StorageLocationSummary"
+        storageType:
+          type: string
+        collector:
+          $ref: "#/components/schemas/UserSummary"
+        collectionContainer:
+          type: string
+        collectionDate:
+          type: string
+          format: date-time
+        receiver:
+          $ref: "#/components/schemas/UserSummary"
+        storageSite:
+          type: string
+        activityStatus:
+          type: string
+        createdOn:
+          type: string
+          format: date-time
+        createdBy:
+          $ref: "#/components/schemas/UserSummary"
+        code:
+          type: string
+        availabilityStatus:
+          type: string
+        freezeThawCycles:
+          type: integer
+          format: int32
+        imageId:
+          type: string
+        externalIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/NameValuePair"
+        labelAutoPrintMode:
+          type: string
+        printLabel:
+          type: boolean
+        preBarcodedTube:
+          type: boolean
+    StorageLocationSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/StorageLocationSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        displayName:
+          type: string
+        barcode:
+          type: string
+        mode:
+          type: string
+        positionX:
+          type: string
+        positionY:
+          type: string
+        position:
+          type: integer
+          format: int32
+        reservationId:
+          type: string
+        checkoutBy:
+          $ref: "#/components/schemas/UserSummary"
+        checkoutTime:
+          type: string
+          format: date-time
+        checkoutComments:
+          type: string
+        siteId:
+          type: integer
+          format: int64
+        siteName:
+          type: string
+        formattedPosition:
+          type: string
+        hierarchy:
+          type: string
+    NameValuePair:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/events/NameValuePair.java`"
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ErrorMessageList:
+      type: array
+      items:
+        $ref: "#/components/schemas/ErrorMessage"

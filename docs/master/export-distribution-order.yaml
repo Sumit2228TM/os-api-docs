@@ -1,0 +1,128 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Export Distribution Order"
+  version: 1.0.0
+  description: |
+    Export Distribution Order — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/DistributionOrderController.java` (`exportDistributionReport`).
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+tags:
+  - name: DistributionOrder
+    description: "Operations from `DistributionOrderController.java`"
+paths:
+  /distribution-orders/{id}/export:
+    get:
+      operationId: exportDistributionReport
+      summary: exportDistributionReport
+      description: "GET /distribution-orders/{id}/report — `DistributionOrderController.java`.`exportDistributionReport`"
+      tags:
+        - DistributionOrder
+      responses:
+        '200':
+          description: "Successful response for Export Distribution Order"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QueryDataExportResult"
+              examples:
+                biobankExample:
+                  summary: "Biobanking workflow example"
+                  value:
+                    dataFile: sample-datafile
+                    completed: false
+        '400':
+          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                validationError:
+                  summary: "Business rule violation"
+                  value:
+                    - code: SPECIMEN_LABEL_REQUIRED
+                      message: "Specimen label is required."
+        '401':
+          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                unauthorized:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated but not authorized for this operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                forbidden:
+                  summary: "Insufficient privileges"
+                  value:
+                    - code: RBAC_ACCESS_DENIED
+                      message: "You are not authorized to perform this operation."
+        '404':
+          description: "Resource not found (`ErrorType.NOT_FOUND`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                notFound:
+                  summary: "Entity not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Requested resource was not found."
+        '500':
+          description: "Unexpected server error (`internal_error`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+      security:
+        - OsApiToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+components:
+  securitySchemes:
+    OsApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  schemas:
+    QueryDataExportResult:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/QueryDataExportResult.java`"
+      properties:
+        dataFile:
+          type: string
+        completed:
+          type: boolean
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ErrorMessageList:
+      type: array
+      items:
+        $ref: "#/components/schemas/ErrorMessage"

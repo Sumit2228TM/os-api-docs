@@ -1,0 +1,421 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Create Derived Specimen Requirement"
+  version: 1.0.0
+  description: |
+    Create Derived Specimen Requirement — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/SpecimenRequirementsController.java` (`createDerived`).
+    DTO: `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/domain/DerivedSpecimenRequirement.java`.
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+tags:
+  - name: SpecimenRequirements
+    description: "Operations from `SpecimenRequirementsController.java`"
+paths:
+  /specimen-requirements/{id}/derivatives:
+    post:
+      operationId: createDerived
+      summary: createDerived
+      description: "POST /specimen-requirements/{id}/derived — `SpecimenRequirementsController.java`.`createDerived`"
+      tags:
+        - SpecimenRequirements
+      responses:
+        '200':
+          description: "Successful response for Create Derived Specimen Requirement"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpecimenRequirementDetail"
+              examples:
+                biobankExample:
+                  summary: "Biobanking workflow example"
+                  value:
+                    id: 1001
+                    name: "Baseline Visit 1"
+                    code: USER_ERROR
+                    lineage: sample-lineage
+                    specimenClass: Tissue
+                    type: "Frozen Tissue"
+                    anatomicSite: Breast
+                    laterality: Left
+                    pathology: sample-pathology
+                    storageType: sample-storagetype
+                    initialQty: 2.5
+                    concentration: 1.0
+                    quantityUnit: sample-quantityunit
+                    concentrationUnit: sample-concentrationunit
+                    collector:
+                      id: 1001
+                    collectionProcedure: "Surgical Resection"
+                    collectionContainer: sample-collectioncontainer
+                    receiver:
+                      id: 1001
+                    labelFmt: BBCP-2024-001-S1
+                    labelAutoPrintMode: BBCP-2024-001-S1
+                    labelPrintCopies: 1
+                    sortOrder: 1
+                    defaultCustomFieldValues:
+                      id: 1001
+                    preBarcodedTube: false
+                    eventId: 1101
+        '400':
+          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                validationError:
+                  summary: "Business rule violation"
+                  value:
+                    - code: SPECIMEN_LABEL_REQUIRED
+                      message: "Specimen label is required."
+        '401':
+          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                unauthorized:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated but not authorized for this operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                forbidden:
+                  summary: "Insufficient privileges"
+                  value:
+                    - code: RBAC_ACCESS_DENIED
+                      message: "You are not authorized to perform this operation."
+        '404':
+          description: "Resource not found (`ErrorType.NOT_FOUND`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                notFound:
+                  summary: "Entity not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Requested resource was not found."
+        '500':
+          description: "Unexpected server error (`internal_error`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+      security:
+        - OsApiToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DerivedSpecimenRequirement"
+            examples:
+              biobankExample:
+                summary: "Biobanking workflow example"
+                value:
+                  cpShortTitle: sample-cpshorttitle
+                  eventLabel: BBCP-2024-001-S1
+                  parentSrId: 1001
+                  parentSrCode: sample-parentsrcode
+                  specimenClass: Tissue
+                  type: "Frozen Tissue"
+                  anatomicSite: Breast
+                  laterality: Left
+                  pathology: sample-pathology
+                  quantity: 1.0
+                  concentration: 1.0
+                  labelFmt: BBCP-2024-001-S1
+                  labelAutoPrintMode: BBCP-2024-001-S1
+                  labelPrintCopies: 1
+                  name: "Baseline Visit 1"
+                  storageType: sample-storagetype
+                  code: USER_ERROR
+                  sortOrder: 1
+                  defaultCustomFieldValues:
+                    id: 1001
+                  preBarcodedTube: false
+                  services:
+                    - id: 1001
+components:
+  securitySchemes:
+    OsApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  schemas:
+    DerivedSpecimenRequirement:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/domain/DerivedSpecimenRequirement.java`"
+      properties:
+        cpShortTitle:
+          type: string
+        eventLabel:
+          type: string
+        parentSrId:
+          type: integer
+          format: int64
+        parentSrCode:
+          type: string
+        specimenClass:
+          type: string
+        type:
+          type: string
+        anatomicSite:
+          type: string
+        laterality:
+          type: string
+        pathology:
+          type: string
+        quantity:
+          type: number
+        concentration:
+          type: number
+        labelFmt:
+          type: string
+        labelAutoPrintMode:
+          type: string
+        labelPrintCopies:
+          type: integer
+          format: int32
+        name:
+          type: string
+        storageType:
+          type: string
+        code:
+          type: string
+        sortOrder:
+          type: integer
+          format: int32
+        defaultCustomFieldValues:
+          $ref: "#/components/schemas/Map"
+        preBarcodedTube:
+          type: boolean
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/SrServiceDetail"
+    Map:
+      type: object
+      description: "Type `Map` (Java source not found in repository)"
+    SrServiceDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/SrServiceDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        serviceCode:
+          type: string
+        serviceDescription:
+          type: string
+        units:
+          type: integer
+          format: int32
+    SpecimenRequirementDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/SpecimenRequirementDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        code:
+          type: string
+        lineage:
+          type: string
+        specimenClass:
+          type: string
+        type:
+          type: string
+        anatomicSite:
+          type: string
+        laterality:
+          type: string
+        pathology:
+          type: string
+        storageType:
+          type: string
+        initialQty:
+          type: number
+        concentration:
+          type: number
+        quantityUnit:
+          type: string
+        concentrationUnit:
+          type: string
+        collector:
+          $ref: "#/components/schemas/UserSummary"
+        collectionProcedure:
+          type: string
+        collectionContainer:
+          type: string
+        receiver:
+          $ref: "#/components/schemas/UserSummary"
+        labelFmt:
+          type: string
+        labelAutoPrintMode:
+          type: string
+        labelPrintCopies:
+          type: integer
+          format: int32
+        sortOrder:
+          type: integer
+          format: int32
+        defaultCustomFieldValues:
+          $ref: "#/components/schemas/Map"
+        preBarcodedTube:
+          type: boolean
+        eventId:
+          type: integer
+          format: int64
+        cpId:
+          type: integer
+          format: int64
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecimenRequirementDetail"
+        cpShortTitle:
+          type: string
+        eventLabel:
+          type: string
+        parentSrCode:
+          type: string
+        activityStatus:
+          type: string
+        extensionDetail:
+          $ref: "#/components/schemas/ExtensionDetail"
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/SrServiceDetail"
+        uid:
+          type: string
+        parentUid:
+          type: string
+    UserSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/events/UserSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        loginName:
+          type: string
+        domain:
+          type: string
+        emailAddress:
+          type: string
+        instituteId:
+          type: integer
+          format: int64
+        instituteName:
+          type: string
+        primarySite:
+          type: string
+        admin:
+          type: boolean
+        instituteAdmin:
+          type: boolean
+        phoneNumber:
+          type: string
+        manageForms:
+          type: boolean
+        manageWfs:
+          type: boolean
+        managePrintJobs:
+          type: boolean
+        downloadLabelsPrintFile:
+          type: boolean
+        apiUser:
+          type: boolean
+        cpCount:
+          type: integer
+          format: int32
+        creationDate:
+          type: string
+          format: date-time
+        activityStatus:
+          type: string
+        impersonated:
+          type: boolean
+        daysBeforePasswordExpiry:
+          type: integer
+          format: int32
+    ExtensionDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/ExtensionDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        objectId:
+          type: integer
+          format: int64
+        formId:
+          type: integer
+          format: int64
+        formCaption:
+          type: string
+        dataEntryStatus:
+          type: string
+        attrsMap:
+          $ref: "#/components/schemas/Map"
+        useUdn:
+          type: boolean
+        name:
+          type: string
+        udn:
+          type: string
+        caption:
+          type: string
+        value:
+
+        type:
+          type: string
+        displayValue:
+          type: string
+        codedValue:
+          type: string
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ErrorMessageList:
+      type: array
+      items:
+        $ref: "#/components/schemas/ErrorMessage"

@@ -1,0 +1,251 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Get Query AQL"
+  version: 1.0.0
+  description: |
+    Get Query AQL — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/QueryController.java` (`catalogOp`).
+    DTO: `WEB-INF/src/com/krishagni/catissueplus/core/de/events/SavedQueryDetail.java`.
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+tags:
+  - name: Query
+    description: "Operations from `QueryController.java`"
+paths:
+  /query/aql:
+    post:
+      operationId: getQueryAQL
+      summary: "Get Query AQL"
+      description: "Catalog endpoint `POST /query/aql` documented for OpenSpecimen core API. Java `@RequestMapping` may differ or be absent on this branch; schemas/examples follow the catalog DTO."
+      tags:
+        - Query
+      responses:
+        '200':
+          description: "Successful response for Get Query AQL"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SavedQueryDetail"
+              examples:
+                biobankExample:
+                  summary: "Biobanking workflow example"
+                  value:
+                    id: 1001
+                    title: "Breast Cancer Biobank Protocol"
+                    createdBy:
+                      id: 1001
+                    lastModifiedBy:
+                      id: 1001
+                    lastModifiedOn: "2024-10-22T14:30:00Z"
+                    starred: false
+                    cpId: 101
+                    cpGroupId: 101
+                    drivingForm: sample-drivingform
+                    havingClause: sample-havingclause
+                    reporting:
+                      id: 1001
+                    wideRowMode: sample-widerowmode
+                    outputColumnExprs: false
+                    caseSensitive: false
+        '400':
+          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                validationError:
+                  summary: "Business rule violation"
+                  value:
+                    - code: SPECIMEN_LABEL_REQUIRED
+                      message: "Specimen label is required."
+        '401':
+          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                unauthorized:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated but not authorized for this operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                forbidden:
+                  summary: "Insufficient privileges"
+                  value:
+                    - code: RBAC_ACCESS_DENIED
+                      message: "You are not authorized to perform this operation."
+        '404':
+          description: "Resource not found (`ErrorType.NOT_FOUND`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                notFound:
+                  summary: "Entity not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Requested resource was not found."
+        '500':
+          description: "Unexpected server error (`internal_error`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+      security:
+        - OsApiToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SavedQueryDetail"
+            examples:
+              biobankExample:
+                summary: "Biobanking workflow example"
+                value:
+                  id: 1001
+                  title: "Breast Cancer Biobank Protocol"
+                  createdBy:
+                    id: 1001
+                  lastModifiedBy:
+                    id: 1001
+                  lastModifiedOn: "2024-10-22T14:30:00Z"
+                  starred: false
+                  cpId: 101
+                  cpGroupId: 101
+                  drivingForm: sample-drivingform
+                  havingClause: sample-havingclause
+                  reporting:
+                    id: 1001
+                  wideRowMode: sample-widerowmode
+                  outputColumnExprs: false
+                  caseSensitive: false
+components:
+  securitySchemes:
+    OsApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  schemas:
+    SavedQueryDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/SavedQueryDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        createdBy:
+          $ref: "#/components/schemas/UserSummary"
+        lastModifiedBy:
+          $ref: "#/components/schemas/UserSummary"
+        lastModifiedOn:
+          type: string
+          format: date-time
+        starred:
+          type: boolean
+        cpId:
+          type: integer
+          format: int64
+        cpGroupId:
+          type: integer
+          format: int64
+        drivingForm:
+          type: string
+        havingClause:
+          type: string
+        reporting:
+          $ref: "#/components/schemas/ReportSpec"
+        wideRowMode:
+          type: string
+        outputColumnExprs:
+          type: boolean
+        caseSensitive:
+          type: boolean
+    UserSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/events/UserSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        loginName:
+          type: string
+        domain:
+          type: string
+        emailAddress:
+          type: string
+        instituteId:
+          type: integer
+          format: int64
+        instituteName:
+          type: string
+        primarySite:
+          type: string
+        admin:
+          type: boolean
+        instituteAdmin:
+          type: boolean
+        phoneNumber:
+          type: string
+        manageForms:
+          type: boolean
+        manageWfs:
+          type: boolean
+        managePrintJobs:
+          type: boolean
+        downloadLabelsPrintFile:
+          type: boolean
+        cpCount:
+          type: integer
+          format: int32
+        creationDate:
+          type: string
+          format: date-time
+        activityStatus:
+          type: string
+        impersonated:
+          type: boolean
+        daysBeforePasswordExpiry:
+          type: integer
+          format: int32
+    ReportSpec:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/domain/ReportSpec.java`"
+      properties:
+        type:
+          type: string
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ErrorMessageList:
+      type: array
+      items:
+        $ref: "#/components/schemas/ErrorMessage"

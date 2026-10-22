@@ -1,0 +1,692 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Create Collection Protocol"
+  version: 1.0.0
+  description: |
+    Create Collection Protocol — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/CollectionProtocolsController.java` (`createCollectionProtocol`).
+    DTO: `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/CollectionProtocolDetail.java`.
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+tags:
+  - name: CollectionProtocols
+    description: "Operations from `CollectionProtocolsController.java`"
+paths:
+  /collection-protocols:
+    post:
+      operationId: createCollectionProtocol
+      summary: createCollectionProtocol
+      description: "POST /collection-protocols — `CollectionProtocolsController.java`.`createCollectionProtocol`"
+      tags:
+        - CollectionProtocols
+      responses:
+        '200':
+          description: "Successful response for Create Collection Protocol"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionProtocolDetail"
+              examples:
+                biobankExample:
+                  summary: "Biobanking workflow example"
+                  value:
+                    id: 1001
+                    shortTitle: BBCP
+                    title: "Breast Cancer Biobank Protocol"
+                    code: USER_ERROR
+                    principalInvestigator:
+                      id: 1001
+                    startDate: "2024-10-22T14:30:00Z"
+                    endDate: "2024-10-22T14:30:00Z"
+                    participantCount: 1
+                    specimenCount: 1
+                    ppidFmt: sample-ppidfmt
+                    manualPpidEnabled: false
+                    specimenCentric: false
+                    catalogId: 1001
+                    starred: false
+                    draftMode: false
+                    coordinators:
+                      - id: 1001
+                    cpSites:
+                      - id: 1001
+                    consentsWaived: false
+                    visitLevelConsents: false
+                    consentsSource:
+                      id: 1001
+                    irbId: 1001
+                    anticipatedParticipantsCount: 1
+                    sopDocumentUrl: sample-sopdocumenturl
+                    sopDocumentName: sample-sopdocumentname
+                    storeSprEnabled: false
+        '400':
+          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                validationError:
+                  summary: "Business rule violation"
+                  value:
+                    - code: SPECIMEN_LABEL_REQUIRED
+                      message: "Specimen label is required."
+        '401':
+          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                unauthorized:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated but not authorized for this operation"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                forbidden:
+                  summary: "Insufficient privileges"
+                  value:
+                    - code: RBAC_ACCESS_DENIED
+                      message: "You are not authorized to perform this operation."
+        '404':
+          description: "Resource not found (`ErrorType.NOT_FOUND`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+              examples:
+                notFound:
+                  summary: "Entity not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Requested resource was not found."
+        '500':
+          description: "Unexpected server error (`internal_error`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessageList"
+      security:
+        - OsApiToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CollectionProtocolDetail"
+            examples:
+              biobankExample:
+                summary: "Biobanking workflow example"
+                value:
+                  id: 1001
+                  shortTitle: BBCP
+                  title: "Breast Cancer Biobank Protocol"
+                  code: USER_ERROR
+                  principalInvestigator:
+                    id: 1001
+                  startDate: "2024-10-22T14:30:00Z"
+                  endDate: "2024-10-22T14:30:00Z"
+                  participantCount: 1
+                  specimenCount: 1
+                  ppidFmt: sample-ppidfmt
+                  manualPpidEnabled: false
+                  specimenCentric: false
+                  catalogId: 1001
+                  starred: false
+                  draftMode: false
+                  coordinators:
+                    - id: 1001
+                  cpSites:
+                    - id: 1001
+                  consentsWaived: false
+                  visitLevelConsents: false
+                  consentsSource:
+                    id: 1001
+                  irbId: 1001
+                  anticipatedParticipantsCount: 1
+                  sopDocumentUrl: sample-sopdocumenturl
+                  sopDocumentName: sample-sopdocumentname
+                  storeSprEnabled: false
+components:
+  securitySchemes:
+    OsApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  schemas:
+    CollectionProtocolDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/CollectionProtocolDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        shortTitle:
+          type: string
+        title:
+          type: string
+        code:
+          type: string
+        principalInvestigator:
+          $ref: "#/components/schemas/UserSummary"
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        participantCount:
+          type: integer
+          format: int64
+        specimenCount:
+          type: integer
+          format: int64
+        ppidFmt:
+          type: string
+        manualPpidEnabled:
+          type: boolean
+        specimenCentric:
+          type: boolean
+        catalogId:
+          type: integer
+          format: int64
+        starred:
+          type: boolean
+        draftMode:
+          type: boolean
+        coordinators:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserSummary"
+        cpSites:
+          type: array
+          items:
+            $ref: "#/components/schemas/CollectionProtocolSiteDetail"
+        consentsWaived:
+          type: boolean
+        visitLevelConsents:
+          type: boolean
+        consentsSource:
+          $ref: "#/components/schemas/CollectionProtocolSummary"
+        irbId:
+          type: string
+        anticipatedParticipantsCount:
+          type: integer
+          format: int64
+        sopDocumentUrl:
+          type: string
+        sopDocumentName:
+          type: string
+        storeSprEnabled:
+          type: boolean
+        extractSprText:
+          type: boolean
+        descriptionUrl:
+          type: string
+        specimenLabelFmt:
+          type: string
+        derivativeLabelFmt:
+          type: string
+        aliquotLabelFmt:
+          type: string
+        additionalLabelFmt:
+          type: string
+        specimenBarcodeFmt:
+          type: string
+        visitNameFmt:
+          type: string
+        manualVisitNameEnabled:
+          type: boolean
+        manualSpecLabelEnabled:
+          type: boolean
+        kitLabelsEnabled:
+          type: boolean
+        bulkPartRegEnabled:
+          type: boolean
+        barcodingEnabled:
+          type: boolean
+        closeParentSpecimens:
+          type: boolean
+        setQtyToZero:
+          type: boolean
+        containerSelectionStrategy:
+          type: string
+        aliquotsInSameContainer:
+          type: boolean
+        storageSiteBasedAccess:
+          type: boolean
+        draftDataEntry:
+          type: boolean
+        labelSequenceKey:
+          type: string
+        visitCollectionMode:
+          type: string
+        visitNamePrintMode:
+          type: string
+        visitNamePrintCopies:
+          type: integer
+          format: int32
+        spmnLabelPrePrintMode:
+          type: string
+        spmnLabelPrintSettings:
+          type: array
+          items:
+            $ref: "#/components/schemas/CpSpecimenLabelPrintSettingDetail"
+        distributionProtocols:
+          type: array
+          items:
+            $ref: "#/components/schemas/DistributionProtocolSummary"
+        activityStatus:
+          type: string
+        extensionDetail:
+          $ref: "#/components/schemas/ExtensionDetail"
+        aliquotLabelFmtToUse:
+          type: string
+        specimenBarcodeFmtToUse:
+          type: string
+        consents:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConsentTierDetail"
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/CollectionProtocolEventDetail"
+        workflows:
+          $ref: "#/components/schemas/Map"
+        units:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecimenTypeUnitDetail"
+    UserSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/events/UserSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        loginName:
+          type: string
+        domain:
+          type: string
+        emailAddress:
+          type: string
+        instituteId:
+          type: integer
+          format: int64
+        instituteName:
+          type: string
+        primarySite:
+          type: string
+        admin:
+          type: boolean
+        instituteAdmin:
+          type: boolean
+        phoneNumber:
+          type: string
+        manageForms:
+          type: boolean
+        manageWfs:
+          type: boolean
+        managePrintJobs:
+          type: boolean
+        downloadLabelsPrintFile:
+          type: boolean
+        cpCount:
+          type: integer
+          format: int32
+        creationDate:
+          type: string
+          format: date-time
+        activityStatus:
+          type: string
+        impersonated:
+          type: boolean
+        daysBeforePasswordExpiry:
+          type: integer
+          format: int32
+    CollectionProtocolSiteDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/CollectionProtocolSiteDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        siteId:
+          type: integer
+          format: int64
+        siteName:
+          type: string
+        code:
+          type: string
+    CollectionProtocolSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/CollectionProtocolSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        shortTitle:
+          type: string
+        title:
+          type: string
+        code:
+          type: string
+        principalInvestigator:
+          $ref: "#/components/schemas/UserSummary"
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        participantCount:
+          type: integer
+          format: int64
+        specimenCount:
+          type: integer
+          format: int64
+        ppidFmt:
+          type: string
+        manualPpidEnabled:
+          type: boolean
+        specimenCentric:
+          type: boolean
+        catalogId:
+          type: integer
+          format: int64
+        starred:
+          type: boolean
+        draftMode:
+          type: boolean
+    CpSpecimenLabelPrintSettingDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/CpSpecimenLabelPrintSettingDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        lineage:
+          type: string
+        printMode:
+          type: string
+        copies:
+          type: integer
+          format: int32
+    DistributionProtocolSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/DistributionProtocolSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        shortTitle:
+          type: string
+        principalInvestigator:
+          $ref: "#/components/schemas/UserSummary"
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        instituteName:
+          type: string
+        defReceivingSiteName:
+          type: string
+        distributedSpecimensCount:
+          type: integer
+          format: int32
+        starred:
+          type: boolean
+    ExtensionDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/ExtensionDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        objectId:
+          type: integer
+          format: int64
+        formId:
+          type: integer
+          format: int64
+        formCaption:
+          type: string
+        dataEntryStatus:
+          type: string
+        attrsMap:
+          $ref: "#/components/schemas/Map"
+        useUdn:
+          type: boolean
+        name:
+          type: string
+        udn:
+          type: string
+        caption:
+          type: string
+        value:
+
+        type:
+          type: string
+        displayValue:
+          type: string
+        codedValue:
+          type: string
+    Map:
+      type: object
+      description: "Type `Map` (Java source not found in repository)"
+    ConsentTierDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/ConsentTierDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        cpId:
+          type: integer
+          format: int64
+        statementId:
+          type: integer
+          format: int64
+        statementCode:
+          type: string
+        statement:
+          type: string
+    CollectionProtocolEventDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/CollectionProtocolEventDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        code:
+          type: string
+        eventLabel:
+          type: string
+        eventPoint:
+          type: integer
+          format: int32
+        eventPointUnit:
+          type: string
+        cpId:
+          type: integer
+          format: int64
+        collectionProtocol:
+          type: string
+        cpShortTitle:
+          type: string
+        defaultSite:
+          type: string
+        clinicalDiagnosis:
+          type: string
+        clinicalStatus:
+          type: string
+        visitNamePrintMode:
+          type: string
+        visitNamePrintCopies:
+          type: integer
+          format: int32
+        activityStatus:
+          type: string
+        specimenRequirements:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecimenRequirementDetail"
+        offset:
+          type: integer
+          format: int32
+        offsetUnit:
+          type: string
+    SpecimenRequirementDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/SpecimenRequirementDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        code:
+          type: string
+        lineage:
+          type: string
+        specimenClass:
+          type: string
+        type:
+          type: string
+        anatomicSite:
+          type: string
+        laterality:
+          type: string
+        pathology:
+          type: string
+        storageType:
+          type: string
+        initialQty:
+          type: number
+        concentration:
+          type: number
+        quantityUnit:
+          type: string
+        concentrationUnit:
+          type: string
+        collector:
+          $ref: "#/components/schemas/UserSummary"
+        collectionProcedure:
+          type: string
+        collectionContainer:
+          type: string
+        receiver:
+          $ref: "#/components/schemas/UserSummary"
+        labelFmt:
+          type: string
+        labelAutoPrintMode:
+          type: string
+        labelPrintCopies:
+          type: integer
+          format: int32
+        sortOrder:
+          type: integer
+          format: int32
+        defaultCustomFieldValues:
+          $ref: "#/components/schemas/Map"
+        preBarcodedTube:
+          type: boolean
+        eventId:
+          type: integer
+          format: int64
+        cpId:
+          type: integer
+          format: int64
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecimenRequirementDetail"
+        cpShortTitle:
+          type: string
+        eventLabel:
+          type: string
+        parentSrCode:
+          type: string
+        activityStatus:
+          type: string
+        extensionDetail:
+          $ref: "#/components/schemas/ExtensionDetail"
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/SrServiceDetail"
+        uid:
+          type: string
+        parentUid:
+          type: string
+    SrServiceDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/SrServiceDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        serviceCode:
+          type: string
+        serviceDescription:
+          type: string
+        units:
+          type: integer
+          format: int32
+    SpecimenTypeUnitDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/SpecimenTypeUnitDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        cpId:
+          type: integer
+          format: int64
+        cpShortTitle:
+          type: string
+        specimenClass:
+          type: string
+        type:
+          type: string
+        quantityUnit:
+          type: string
+        concentrationUnit:
+          type: string
+        activityStatus:
+          type: string
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    ErrorMessageList:
+      type: array
+      items:
+        $ref: "#/components/schemas/ErrorMessage"
