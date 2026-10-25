@@ -8,6 +8,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from urllib.parse import quote
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = REPO_ROOT / "docs" / "core-api-endpoints.json"
@@ -19,9 +20,17 @@ def kebab(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", name.strip().lower()).strip("-")
 
 
-def swagger_href(version: str, api_name: str) -> str:
-    yaml = f"../{version}/{kebab(api_name)}.yaml"
-    return f"swagger-view.html?yaml={html.escape(yaml, quote=True)}"
+def spec_relative_path(version: str, api_name: str) -> str:
+    return f"../{version}/{kebab(api_name)}.yaml"
+
+
+def swagger_link(version: str, api_name: str, label: str) -> str:
+    rel = spec_relative_path(version, api_name)
+    q = quote(rel, safe="")
+    return (
+        f'<a class="open-spec" href="swagger-view.html?yaml={q}" '
+        f'data-yaml="{html.escape(rel, quote=True)}">{html.escape(label)}</a>'
+    )
 
 
 def build_endpoints_html(entries: list[dict[str, str]]) -> str:
@@ -30,16 +39,16 @@ def build_endpoints_html(entries: list[dict[str, str]]) -> str:
         name = ep["name"]
         method = ep["method"]
         path = ep["path"]
-        master_href = swagger_href("master", name)
-        v122_href = swagger_href("v12.2", name)
+        master_link = swagger_link("master", name, "master")
+        v122_link = swagger_link("v12.2", name, "v12.2")
         search_blob = f"{method} {path} {name}".lower()
         rows.append(
             f"""    <tr class="endpoint-row" data-search="{html.escape(search_blob, quote=True)}">
       <td><code>{html.escape(method)}</code></td>
       <td><code>{html.escape(path)}</code></td>
       <td>{html.escape(name)}</td>
-      <td><a href="{master_href}">master</a></td>
-      <td><a href="{v122_href}">v12.2</a></td>
+      <td>{master_link}</td>
+      <td>{v122_link}</td>
     </tr>"""
         )
 
@@ -112,6 +121,14 @@ def build_endpoints_html(entries: list[dict[str, str]]) -> str:
       }}
       input.addEventListener("input", apply);
     }})();
+    document.querySelectorAll("a.open-spec").forEach(function (link) {{
+      link.addEventListener("click", function (ev) {{
+        var rel = link.getAttribute("data-yaml");
+        if (rel) {{
+          sessionStorage.setItem("osOpenApiSpec", rel);
+        }}
+      }});
+    }});
   </script>
 </body>
 </html>
