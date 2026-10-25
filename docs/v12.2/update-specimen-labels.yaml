@@ -1,0 +1,662 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Update Specimen Labels"
+  description: |
+    Update Specimen Labels — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/SpecimensController.java` (`catalogOp`).
+    DTO: `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/SpecimenDetail.java`.
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+security:
+  - ApiToken: []
+tags:
+  - name: Specimens
+    description: "Operations from `SpecimensController.java`"
+paths:
+  /specimens/labels:
+    put:
+      operationId: updateSpecimenLabels
+      summary: "Update Specimen Labels"
+      description: "Catalog endpoint `PUT /specimens/labels` documented for OpenSpecimen core API. Java `@RequestMapping` may differ or be absent on this branch; schemas/examples follow the catalog DTO."
+      tags:
+        - Specimens
+      security:
+        - ApiToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SpecimenDetail"
+            example:
+              labelFmt: "CP_%SPEC_TYPE%_%SYS_UID%"
+              specimenIds:
+                - 1001
+                - 1002
+      responses:
+        '200':
+          description: "Update Specimen Labels completed successfully (`PUT /specimens/labels`). Returns the standard OpenSpecimen JSON payload for this operation."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpecimenDetail"
+              example:
+                labelFmt: "CP_%SPEC_TYPE%_%SYS_UID%"
+                specimenIds:
+                  - 1001
+                  - 1002
+                id: 1
+                updatedSpecimenIds:
+                  - 1001
+                  - 1002
+        '400':
+          description: "Request failed validation or business rules for `PUT /specimens/labels` (`ErrorType.USER_ERROR`). Typical causes: malformed JSON, missing required fields for Update Specimen Labels, invalid identifiers in the path, or domain constraints on specimens. Examples: `SPECIMEN_LABEL_REQUIRED`, `SPECIMEN_DUP_LABEL`, insufficient quantity, or invalid status transition."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                specimenValidation:
+                  summary: "Specimen validation failed"
+                  value:
+                    - code: SPECIMEN_LABEL_REQUIRED
+                      message: "Specimen label is required."
+        '401':
+          description: "Missing, expired, or invalid `X-OS-API-TOKEN` when calling `PUT /specimens/labels` (`ErrorType.UNAUTHORIZED`). Obtain a token from `POST /sessions` and send it on every request except sign-in and sign-out."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingApiToken:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated user lacks RBAC permission or site/CP scope for `PUT /specimens/labels` (`ErrorType.FORBIDDEN` or equivalent access-denied codes surfaced as 400 on some deployments). Verify role assignments for specimens operations."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                specimenAccessDenied:
+                  summary: "Specimen access denied"
+                  value:
+                    - code: SPECIMEN_ACCESS_DENIED
+                      message: "You do not have access to this specimen."
+        '404':
+          description: "No entity exists for the identifiers in `PUT /specimens/labels` (`ErrorType.NOT_FOUND`). Confirm path IDs (and query filters for list endpoints) reference persisted records."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                specimenNotFound:
+                  summary: "Specimen not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Specimen not found for the given id."
+        '500':
+          description: "Unexpected failure while processing `PUT /specimens/labels` (`ErrorType.SYSTEM_ERROR`, code `internal_error`). Retry later; contact the administrator if the error persists."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    ApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  responses:
+    BadRequest:
+      description: "Invalid request (`ErrorType.USER_ERROR`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "Insufficient permissions (`ErrorType.FORBIDDEN`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "Resource not found (`ErrorType.NOT_FOUND`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: "Server error (`internal_error`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    SpecimenDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/SpecimenDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        cpId:
+          type: integer
+          format: int64
+        cprId:
+          type: integer
+          format: int64
+        ppid:
+          type: string
+        eventId:
+          type: integer
+          format: int64
+        eventCode:
+          type: string
+        eventLabel:
+          type: string
+        visitId:
+          type: integer
+          format: int64
+        visitName:
+          type: string
+        visitStatus:
+          type: string
+        sprNo:
+          type: string
+        visitDate:
+          type: string
+          format: date-time
+        cpShortTitle:
+          type: string
+        reqId:
+          type: integer
+          format: int64
+        sortOrder:
+          type: integer
+          format: int32
+        label:
+          type: string
+        additionalLabel:
+          type: string
+        barcode:
+          type: string
+        type:
+          type: string
+        specimenClass:
+          type: string
+        lineage:
+          type: string
+        anatomicSite:
+          type: string
+        laterality:
+          type: string
+        status:
+          type: string
+        reqCode:
+          type: string
+        reqLabel:
+          type: string
+        pathology:
+          type: string
+        initialQty:
+          type: number
+        availableQty:
+          type: number
+        concentration:
+          type: number
+        quantityUnit:
+          type: string
+        concentrationUnit:
+          type: string
+        parentId:
+          type: integer
+          format: int64
+        parentLabel:
+          type: string
+        storageLocation:
+          $ref: "#/components/schemas/StorageLocationSummary"
+        storageType:
+          type: string
+        collector:
+          $ref: "#/components/schemas/UserSummary"
+        collectionContainer:
+          type: string
+        collectionDate:
+          type: string
+          format: date-time
+        receiver:
+          $ref: "#/components/schemas/UserSummary"
+        storageSite:
+          type: string
+        activityStatus:
+          type: string
+        createdOn:
+          type: string
+          format: date-time
+        createdBy:
+          $ref: "#/components/schemas/UserSummary"
+        code:
+          type: string
+        availabilityStatus:
+          type: string
+        freezeThawCycles:
+          type: integer
+          format: int32
+        imageId:
+          type: string
+        externalIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/NameValuePair"
+        labelAutoPrintMode:
+          type: string
+        printLabel:
+          type: boolean
+        preBarcodedTube:
+          type: boolean
+        collectionEvent:
+          $ref: "#/components/schemas/CollectionEventDetail"
+        receivedEvent:
+          $ref: "#/components/schemas/ReceivedEventDetail"
+        labelFmt:
+          type: string
+        biohazards:
+          type: array
+          items:
+            type: string
+        comments:
+          type: string
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecimenDetail"
+        specimensPool:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecimenInfo"
+        pooledSpecimens:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecimenInfo"
+        poolSpecimen:
+          type: boolean
+        extensionDetail:
+          $ref: "#/components/schemas/ExtensionDetail"
+        reserved:
+          type: boolean
+        forceDelete:
+          type: boolean
+        autoCollectParents:
+          type: boolean
+        uid:
+          type: string
+        parentUid:
+          type: string
+        dpId:
+          type: integer
+          format: int64
+        checkedOut:
+          type: boolean
+        checkoutPosition:
+          $ref: "#/components/schemas/StorageLocationSummary"
+        kitLabel:
+          type: string
+        kitBarcode:
+          type: string
+        update:
+          type: boolean
+        ancestorId:
+          type: integer
+          format: int64
+    StorageLocationSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/StorageLocationSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        displayName:
+          type: string
+        barcode:
+          type: string
+        mode:
+          type: string
+        positionX:
+          type: string
+        positionY:
+          type: string
+        position:
+          type: integer
+          format: int32
+        reservationId:
+          type: string
+        checkoutBy:
+          $ref: "#/components/schemas/UserSummary"
+        checkoutTime:
+          type: string
+          format: date-time
+        checkoutComments:
+          type: string
+        siteId:
+          type: integer
+          format: int64
+        siteName:
+          type: string
+        formattedPosition:
+          type: string
+        hierarchy:
+          type: string
+    UserSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/events/UserSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        loginName:
+          type: string
+        domain:
+          type: string
+        emailAddress:
+          type: string
+        instituteId:
+          type: integer
+          format: int64
+        instituteName:
+          type: string
+        primarySite:
+          type: string
+        admin:
+          type: boolean
+        instituteAdmin:
+          type: boolean
+        phoneNumber:
+          type: string
+        manageForms:
+          type: boolean
+        manageWfs:
+          type: boolean
+        managePrintJobs:
+          type: boolean
+        downloadLabelsPrintFile:
+          type: boolean
+        cpCount:
+          type: integer
+          format: int32
+        creationDate:
+          type: string
+          format: date-time
+        activityStatus:
+          type: string
+        impersonated:
+          type: boolean
+        daysBeforePasswordExpiry:
+          type: integer
+          format: int32
+    NameValuePair:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/events/NameValuePair.java`"
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+    CollectionEventDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/CollectionEventDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        time:
+          type: string
+          format: date-time
+        user:
+          $ref: "#/components/schemas/UserSummary"
+        comments:
+          type: string
+        specimenLabel:
+          type: string
+        specimenId:
+          type: integer
+          format: int64
+        reason:
+          type: string
+        procedure:
+          type: string
+        container:
+          type: string
+    ReceivedEventDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/ReceivedEventDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        time:
+          type: string
+          format: date-time
+        user:
+          $ref: "#/components/schemas/UserSummary"
+        comments:
+          type: string
+        specimenLabel:
+          type: string
+        specimenId:
+          type: integer
+          format: int64
+        reason:
+          type: string
+        receivedQuality:
+          type: string
+        newLabel:
+          type: string
+    SpecimenInfo:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/SpecimenInfo.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        cpId:
+          type: integer
+          format: int64
+        cprId:
+          type: integer
+          format: int64
+        ppid:
+          type: string
+        eventId:
+          type: integer
+          format: int64
+        eventCode:
+          type: string
+        eventLabel:
+          type: string
+        visitId:
+          type: integer
+          format: int64
+        visitName:
+          type: string
+        visitStatus:
+          type: string
+        sprNo:
+          type: string
+        visitDate:
+          type: string
+          format: date-time
+        cpShortTitle:
+          type: string
+        reqId:
+          type: integer
+          format: int64
+        sortOrder:
+          type: integer
+          format: int32
+        label:
+          type: string
+        additionalLabel:
+          type: string
+        barcode:
+          type: string
+        type:
+          type: string
+        specimenClass:
+          type: string
+        lineage:
+          type: string
+        anatomicSite:
+          type: string
+        laterality:
+          type: string
+        status:
+          type: string
+        reqCode:
+          type: string
+        reqLabel:
+          type: string
+        pathology:
+          type: string
+        initialQty:
+          type: number
+        availableQty:
+          type: number
+        concentration:
+          type: number
+        quantityUnit:
+          type: string
+        concentrationUnit:
+          type: string
+        parentId:
+          type: integer
+          format: int64
+        parentLabel:
+          type: string
+        storageLocation:
+          $ref: "#/components/schemas/StorageLocationSummary"
+        storageType:
+          type: string
+        collector:
+          $ref: "#/components/schemas/UserSummary"
+        collectionContainer:
+          type: string
+        collectionDate:
+          type: string
+          format: date-time
+        receiver:
+          $ref: "#/components/schemas/UserSummary"
+        storageSite:
+          type: string
+        activityStatus:
+          type: string
+        createdOn:
+          type: string
+          format: date-time
+        createdBy:
+          $ref: "#/components/schemas/UserSummary"
+        code:
+          type: string
+        availabilityStatus:
+          type: string
+        freezeThawCycles:
+          type: integer
+          format: int32
+        imageId:
+          type: string
+        externalIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/NameValuePair"
+        labelAutoPrintMode:
+          type: string
+        printLabel:
+          type: boolean
+        preBarcodedTube:
+          type: boolean
+    ExtensionDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/ExtensionDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        objectId:
+          type: integer
+          format: int64
+        formId:
+          type: integer
+          format: int64
+        formCaption:
+          type: string
+        dataEntryStatus:
+          type: string
+        attrsMap:
+          $ref: "#/components/schemas/Map"
+        useUdn:
+          type: boolean
+        name:
+          type: string
+        udn:
+          type: string
+        caption:
+          type: string
+        value:
+
+        type:
+          type: string
+        displayValue:
+          type: string
+        codedValue:
+          type: string
+    Map:
+      type: object
+      description: "Type `Map` (Java source not found in repository)"
+    OsDate:
+      type: string
+      format: date
+      description: "Calendar date (`yyyy-MM-dd`) used in OpenSpecimen REST payloads"
+      example: 2026-10-26
+    OsDateTime:
+      type: string
+      format: date-time
+      description: "ISO-8601 date-time in UTC or server-local offset"
+      example: "2026-10-26T10:00:00Z"
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`com.krishagni.catissueplus.rest.ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: SPECIMEN_LABEL_REQUIRED
+        message:
+          type: string
+          example: "Specimen label is required."
+    ErrorResponse:
+      type: array
+      description: "Standard error payload: JSON array of `ErrorMessage` objects"
+      items:
+        $ref: "#/components/schemas/ErrorMessage"
+    ErrorMessageList:
+      $ref: "#/components/schemas/ErrorResponse"

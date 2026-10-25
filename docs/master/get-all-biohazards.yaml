@@ -1,7 +1,6 @@
 openapi: 3.0.3
 info:
   title: "OpenSpecimen API — Get All Biohazards"
-  version: 1.0.0
   description: |
     Get All Biohazards — generated from repository inspection.
     Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/PermissibleValueController.java` (`catalogOp`).
@@ -9,6 +8,8 @@ info:
 servers:
   - url: /rest/ng
     description: "OpenSpecimen REST servlet context"
+security:
+  - ApiToken: []
 tags:
   - name: PermissibleValue
     description: "Operations from `PermissibleValueController.java`"
@@ -20,86 +21,124 @@ paths:
       description: "Catalog endpoint `GET /biohazards` documented for OpenSpecimen core API. Java `@RequestMapping` may differ or be absent on this branch; schemas/examples follow the catalog DTO."
       tags:
         - PermissibleValue
+      security:
+        - ApiToken: []
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+          example: Biohazard_Level_2
       responses:
         '200':
-          description: "Successful response for Get All Biohazards"
+          description: "Get All Biohazards completed successfully (`GET /biohazards`). Returns the standard OpenSpecimen JSON payload for this operation."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PermissibleValueDetails"
-              examples:
-                biobankExample:
-                  summary: "Biobanking workflow example"
-                  value:
-                    id: 1001
-                    parentId: 1001
-                    parentValue: sample-parentvalue
-                    value: sample-value
-                    attribute: sample-attribute
-                    conceptCode: sample-conceptcode
+              example:
+                - id: 1
+                  name: "Biohazard Level 2"
+                  comment: "Handle with safety gloves"
         '400':
-          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
+          description: "Request failed validation or business rules for `GET /biohazards` (`ErrorType.USER_ERROR`). Typical causes: malformed JSON, missing required fields for Get All Biohazards, invalid identifiers in the path, or domain constraints on biohazards."
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorMessageList"
+                $ref: "#/components/schemas/ErrorResponse"
               examples:
-                validationError:
-                  summary: "Business rule violation"
+                requestValidation:
+                  summary: "Request validation failed"
                   value:
-                    - code: SPECIMEN_LABEL_REQUIRED
-                      message: "Specimen label is required."
+                    - code: USER_ERROR
+                      message: "Invalid request for Get All Biohazards."
         '401':
-          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+          description: "Missing, expired, or invalid `X-OS-API-TOKEN` when calling `GET /biohazards` (`ErrorType.UNAUTHORIZED`). Obtain a token from `POST /sessions` and send it on every request except sign-in and sign-out."
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorMessageList"
+                $ref: "#/components/schemas/ErrorResponse"
               examples:
-                unauthorized:
+                missingApiToken:
                   summary: "Missing API token"
                   value:
                     - code: UNAUTHORIZED
                       message: "Invalid or missing X-OS-API-TOKEN header."
         '403':
-          description: "Authenticated but not authorized for this operation"
+          description: "Authenticated user lacks RBAC permission or site/CP scope for `GET /biohazards` (`ErrorType.FORBIDDEN` or equivalent access-denied codes surfaced as 400 on some deployments). Verify role assignments for biohazards operations."
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorMessageList"
+                $ref: "#/components/schemas/ErrorResponse"
               examples:
-                forbidden:
-                  summary: "Insufficient privileges"
+                accessDenied:
+                  summary: "Access denied"
                   value:
-                    - code: RBAC_ACCESS_DENIED
-                      message: "You are not authorized to perform this operation."
+                    - code: FORBIDDEN
+                      message: "You are not authorized for Get All Biohazards."
         '404':
-          description: "Resource not found (`ErrorType.NOT_FOUND`)"
+          description: "No rows matched filters for `GET /biohazards` (`ErrorType.NOT_FOUND` or empty list depending on endpoint). Adjust query parameters such as name, label, or cpId."
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorMessageList"
+                $ref: "#/components/schemas/ErrorResponse"
               examples:
                 notFound:
-                  summary: "Entity not found"
+                  summary: "Resource not found"
                   value:
                     - code: NOT_FOUND
-                      message: "Requested resource was not found."
+                      message: "Resource not found for GET /biohazards."
         '500':
-          description: "Unexpected server error (`internal_error`)"
+          description: "Unexpected failure while processing `GET /biohazards` (`ErrorType.SYSTEM_ERROR`, code `internal_error`). Retry later; contact the administrator if the error persists."
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ErrorMessageList"
-      security:
-        - OsApiToken: []
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internalError:
+                  summary: "Internal error"
+                  value:
+                    - code: internal_error
+                      message: "An unexpected error occurred."
 components:
   securitySchemes:
-    OsApiToken:
+    ApiToken:
       type: apiKey
       in: header
       name: X-OS-API-TOKEN
       description: "Token from `POST /sessions`"
+  responses:
+    BadRequest:
+      description: "Invalid request (`ErrorType.USER_ERROR`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "Insufficient permissions (`ErrorType.FORBIDDEN`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "Resource not found (`ErrorType.NOT_FOUND`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: "Server error (`internal_error`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
   schemas:
     PermissibleValueDetails:
       type: object
@@ -119,18 +158,33 @@ components:
           type: string
         conceptCode:
           type: string
+    OsDate:
+      type: string
+      format: date
+      description: "Calendar date (`yyyy-MM-dd`) used in OpenSpecimen REST payloads"
+      example: 2026-10-26
+    OsDateTime:
+      type: string
+      format: date-time
+      description: "ISO-8601 date-time in UTC or server-local offset"
+      example: "2026-10-26T10:00:00Z"
     ErrorMessage:
       type: object
-      description: "REST error entry (`ErrorMessage`)"
+      description: "REST error entry (`com.krishagni.catissueplus.rest.ErrorMessage`)"
       required:
         - code
         - message
       properties:
         code:
           type: string
+          example: SPECIMEN_LABEL_REQUIRED
         message:
           type: string
-    ErrorMessageList:
+          example: "Specimen label is required."
+    ErrorResponse:
       type: array
+      description: "Standard error payload: JSON array of `ErrorMessage` objects"
       items:
         $ref: "#/components/schemas/ErrorMessage"
+    ErrorMessageList:
+      $ref: "#/components/schemas/ErrorResponse"

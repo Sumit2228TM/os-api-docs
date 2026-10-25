@@ -1,0 +1,350 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Merge Participants"
+  description: |
+    Merge Participants — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/ParticipantController.java` (`catalogOp`).
+    DTO: `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/ParticipantDetail.java`.
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+security:
+  - ApiToken: []
+tags:
+  - name: Participant
+    description: "Operations from `ParticipantController.java`"
+paths:
+  /participants/{id}/merge:
+    post:
+      operationId: mergeParticipants
+      summary: "Merge Participants"
+      description: "Catalog endpoint `POST /participants/{id}/merge` documented for OpenSpecimen core API. Java `@RequestMapping` may differ or be absent on this branch; schemas/examples follow the catalog DTO."
+      tags:
+        - Participant
+      security:
+        - ApiToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParticipantDetail"
+            example:
+              sourceParticipantIds:
+                - 105
+              targetParticipantId: 102
+      responses:
+        '200':
+          description: "Merge Participants completed successfully (`POST /participants/{id}/merge`). Returns the standard OpenSpecimen JSON payload for this operation."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParticipantDetail"
+              example:
+                sourceParticipantIds:
+                  - 105
+                targetParticipantId: 102
+                id: 1
+                mergedParticipantIds:
+                  - 105
+        '400':
+          description: "Request failed validation or business rules for `POST /participants/{id}/merge` (`ErrorType.USER_ERROR`). Typical causes: malformed JSON, missing required fields for Merge Participants, invalid identifiers in the path, or domain constraints on participants. Examples: duplicate PPID, invalid participant demographics, or CPR linkage errors."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                cprValidation:
+                  summary: "CPR validation failed"
+                  value:
+                    - code: USER_ERROR
+                      message: "Invalid CPR or participant registration data."
+        '401':
+          description: "Missing, expired, or invalid `X-OS-API-TOKEN` when calling `POST /participants/{id}/merge` (`ErrorType.UNAUTHORIZED`). Obtain a token from `POST /sessions` and send it on every request except sign-in and sign-out."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingApiToken:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated user lacks RBAC permission or site/CP scope for `POST /participants/{id}/merge` (`ErrorType.FORBIDDEN` or equivalent access-denied codes surfaced as 400 on some deployments). Verify role assignments for participants operations."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                cprForbidden:
+                  summary: "CPR access denied"
+                  value:
+                    - code: FORBIDDEN
+                      message: "You do not have permission for this collection protocol."
+        '404':
+          description: "No entity exists for the identifiers in `POST /participants/{id}/merge` (`ErrorType.NOT_FOUND`). Confirm path IDs (and query filters for list endpoints) reference persisted records."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                cprNotFound:
+                  summary: "CPR not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Collection protocol registration not found."
+        '500':
+          description: "Unexpected failure while processing `POST /participants/{id}/merge` (`ErrorType.SYSTEM_ERROR`, code `internal_error`). Retry later; contact the administrator if the error persists."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    ApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  responses:
+    BadRequest:
+      description: "Invalid request (`ErrorType.USER_ERROR`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "Insufficient permissions (`ErrorType.FORBIDDEN`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "Resource not found (`ErrorType.NOT_FOUND`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: "Server error (`internal_error`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    ParticipantDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/ParticipantDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        source:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        emailAddress:
+          type: string
+        emailOptIn:
+          type: boolean
+        phoneNumber:
+          type: string
+        textOptIn:
+          type: boolean
+        textOptInConsent:
+          type: boolean
+        birthDate:
+          type: string
+          format: date-time
+        deathDate:
+          type: string
+          format: date-time
+        gender:
+          type: string
+        races:
+          type: array
+          items:
+            type: string
+        vitalStatus:
+          type: string
+        pmis:
+          type: array
+          items:
+            $ref: "#/components/schemas/PmiDetail"
+        sexGenotype:
+          type: string
+        ethnicities:
+          type: array
+          items:
+            type: string
+        uid:
+          type: string
+        activityStatus:
+          type: string
+        empi:
+          type: string
+        phiAccess:
+          type: boolean
+        registeredCps:
+          type: array
+          items:
+            $ref: "#/components/schemas/CprSummary"
+        extensionDetail:
+          $ref: "#/components/schemas/ExtensionDetail"
+        stagedId:
+          type: integer
+          format: int64
+        dataEntryStatus:
+          type: string
+        reqRegInfo:
+          type: boolean
+        forceDelete:
+          type: boolean
+    PmiDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/PmiDetail.java`"
+      properties:
+
+    CprSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/CprSummary.java`"
+      properties:
+        participant:
+          $ref: "#/components/schemas/ParticipantSummary"
+        id:
+          type: integer
+          format: int64
+        cprId:
+          type: integer
+          format: int64
+        registrationDate:
+          type: string
+          format: date-time
+        ppid:
+          type: string
+        cpId:
+          type: integer
+          format: int64
+        cpShortTitle:
+          type: string
+        site:
+          type: string
+        scgCount:
+          type: integer
+          format: int64
+        specimenCount:
+          type: integer
+          format: int64
+    ParticipantSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/ParticipantSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        source:
+          type: string
+        empi:
+          type: string
+        uid:
+          type: string
+        emailAddress:
+          type: string
+        emailOptIn:
+          type: boolean
+        phoneNumber:
+          type: string
+        textOptIn:
+          type: boolean
+        textOptInConsent:
+          type: boolean
+        birthDate:
+          type: string
+          format: date-time
+    ExtensionDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/ExtensionDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        objectId:
+          type: integer
+          format: int64
+        formId:
+          type: integer
+          format: int64
+        formCaption:
+          type: string
+        dataEntryStatus:
+          type: string
+        attrsMap:
+          $ref: "#/components/schemas/Map"
+        useUdn:
+          type: boolean
+        name:
+          type: string
+        udn:
+          type: string
+        caption:
+          type: string
+        value:
+
+        type:
+          type: string
+        displayValue:
+          type: string
+        codedValue:
+          type: string
+    Map:
+      type: object
+      description: "Type `Map` (Java source not found in repository)"
+    OsDate:
+      type: string
+      format: date
+      description: "Calendar date (`yyyy-MM-dd`) used in OpenSpecimen REST payloads"
+      example: 2026-10-26
+    OsDateTime:
+      type: string
+      format: date-time
+      description: "ISO-8601 date-time in UTC or server-local offset"
+      example: "2026-10-26T10:00:00Z"
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`com.krishagni.catissueplus.rest.ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: SPECIMEN_LABEL_REQUIRED
+        message:
+          type: string
+          example: "Specimen label is required."
+    ErrorResponse:
+      type: array
+      description: "Standard error payload: JSON array of `ErrorMessage` objects"
+      items:
+        $ref: "#/components/schemas/ErrorMessage"
+    ErrorMessageList:
+      $ref: "#/components/schemas/ErrorResponse"

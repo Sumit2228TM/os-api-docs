@@ -1,7 +1,6 @@
 openapi: 3.0.3
 info:
   title: "OpenSpecimen API — Create Import Job"
-  version: 1.0.0
   description: |
     Create Import Job — generated from repository inspection.
     Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/BulkObjectImportController.java` (`createImportJob`).
@@ -9,6 +8,8 @@ info:
 servers:
   - url: /rest/ng
     description: "OpenSpecimen REST servlet context"
+security:
+  - ApiToken: []
 tags:
   - name: BulkObjectImport
     description: "Operations from `BulkObjectImportController.java`"
@@ -20,119 +21,127 @@ paths:
       description: "POST /import-jobs — `BulkObjectImportController.java`.`createImportJob`"
       tags:
         - BulkObjectImport
-      responses:
-        '200':
-          description: "Successful response for Create Import Job"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ImportJobDetail"
-              examples:
-                biobankExample:
-                  summary: "Biobanking workflow example"
-                  value:
-                    id: 1001
-                    name: "Baseline Visit 1"
-                    type: "Frozen Tissue"
-                    status: PENDING
-                    totalRecords: 1
-                    failedRecords: 1
-                    createdBy:
-                      id: 1001
-                    creationTime: "2024-10-22T14:30:00Z"
-                    endTime: "2024-10-22T14:30:00Z"
-                    params:
-                      id: 1001
-                    displayName: sample-displayname
-                    dateFormat: sample-dateformat
-                    timeFormat: sample-timeformat
-                    fieldSeparator: sample-fieldseparator
-                    unmatchedColumns:
-                      - sample-unmatchedcolumnsitem
-        '400':
-          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
-              examples:
-                validationError:
-                  summary: "Business rule violation"
-                  value:
-                    - code: SPECIMEN_LABEL_REQUIRED
-                      message: "Specimen label is required."
-        '401':
-          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
-              examples:
-                unauthorized:
-                  summary: "Missing API token"
-                  value:
-                    - code: UNAUTHORIZED
-                      message: "Invalid or missing X-OS-API-TOKEN header."
-        '403':
-          description: "Authenticated but not authorized for this operation"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
-              examples:
-                forbidden:
-                  summary: "Insufficient privileges"
-                  value:
-                    - code: RBAC_ACCESS_DENIED
-                      message: "You are not authorized to perform this operation."
-        '404':
-          description: "Resource not found (`ErrorType.NOT_FOUND`)"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
-              examples:
-                notFound:
-                  summary: "Entity not found"
-                  value:
-                    - code: NOT_FOUND
-                      message: "Requested resource was not found."
-        '500':
-          description: "Unexpected server error (`internal_error`)"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
       security:
-        - OsApiToken: []
+        - ApiToken: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/ImportDetail"
-            examples:
-              biobankExample:
-                summary: "Biobanking workflow example"
-                value:
-                  objectType: specimen
-                  importType: CREATE
-                  csvType: sample-csvtype
-                  dateFormat: sample-dateformat
-                  timeFormat: sample-timeformat
-                  timeZone: sample-timezone
-                  fieldSeparator: sample-fieldseparator
-                  inputFileId: 1001
-                  atomic: false
-                  offlineQueue: false
-                  validateColumns: false
+            example:
+              inputFile: import_file.csv
+              objectType: cpr
+      responses:
+        '201':
+          description: "Create Import Job completed successfully (`POST /import-jobs`). Returns the standard OpenSpecimen JSON payload for this operation."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportJobDetail"
+              example:
+                inputFile: import_file.csv
+                objectType: cpr
+                id: 7001
+                status: QUEUED
+        '400':
+          description: "Request failed validation or business rules for `POST /import-jobs` (`ErrorType.USER_ERROR`). Typical causes: malformed JSON, missing required fields for Create Import Job, invalid identifiers in the path, or domain constraints on import jobs."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                requestValidation:
+                  summary: "Request validation failed"
+                  value:
+                    - code: USER_ERROR
+                      message: "Invalid request for Create Import Job."
+        '401':
+          description: "Missing, expired, or invalid `X-OS-API-TOKEN` when calling `POST /import-jobs` (`ErrorType.UNAUTHORIZED`). Obtain a token from `POST /sessions` and send it on every request except sign-in and sign-out."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingApiToken:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated user lacks RBAC permission or site/CP scope for `POST /import-jobs` (`ErrorType.FORBIDDEN` or equivalent access-denied codes surfaced as 400 on some deployments). Verify role assignments for import jobs operations."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                accessDenied:
+                  summary: "Access denied"
+                  value:
+                    - code: FORBIDDEN
+                      message: "You are not authorized for Create Import Job."
+        '404':
+          description: "No entity exists for the identifiers in `POST /import-jobs` (`ErrorType.NOT_FOUND`). Confirm path IDs (and query filters for list endpoints) reference persisted records."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  summary: "Resource not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Resource not found for POST /import-jobs."
+        '500':
+          description: "Unexpected failure while processing `POST /import-jobs` (`ErrorType.SYSTEM_ERROR`, code `internal_error`). Retry later; contact the administrator if the error persists."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internalError:
+                  summary: "Internal error"
+                  value:
+                    - code: internal_error
+                      message: "An unexpected error occurred."
 components:
   securitySchemes:
-    OsApiToken:
+    ApiToken:
       type: apiKey
       in: header
       name: X-OS-API-TOKEN
       description: "Token from `POST /sessions`"
+  responses:
+    BadRequest:
+      description: "Invalid request (`ErrorType.USER_ERROR`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "Insufficient permissions (`ErrorType.FORBIDDEN`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "Resource not found (`ErrorType.NOT_FOUND`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: "Server error (`internal_error`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
   schemas:
     ImportDetail:
       type: object
@@ -259,18 +268,33 @@ components:
     Map:
       type: object
       description: "Type `Map` (Java source not found in repository)"
+    OsDate:
+      type: string
+      format: date
+      description: "Calendar date (`yyyy-MM-dd`) used in OpenSpecimen REST payloads"
+      example: 2026-10-26
+    OsDateTime:
+      type: string
+      format: date-time
+      description: "ISO-8601 date-time in UTC or server-local offset"
+      example: "2026-10-26T10:00:00Z"
     ErrorMessage:
       type: object
-      description: "REST error entry (`ErrorMessage`)"
+      description: "REST error entry (`com.krishagni.catissueplus.rest.ErrorMessage`)"
       required:
         - code
         - message
       properties:
         code:
           type: string
+          example: SPECIMEN_LABEL_REQUIRED
         message:
           type: string
-    ErrorMessageList:
+          example: "Specimen label is required."
+    ErrorResponse:
       type: array
+      description: "Standard error payload: JSON array of `ErrorMessage` objects"
       items:
         $ref: "#/components/schemas/ErrorMessage"
+    ErrorMessageList:
+      $ref: "#/components/schemas/ErrorResponse"

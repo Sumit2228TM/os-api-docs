@@ -1,0 +1,269 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Query Audit Revisions"
+  description: |
+    Query Audit Revisions — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/AuditController.java` (`getRevisions`).
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+security:
+  - ApiToken: []
+tags:
+  - name: Audit
+    description: "Operations from `AuditController.java`"
+paths:
+  /audit/revisions:
+    get:
+      operationId: getRevisions
+      summary: getRevisions
+      description: "GET /audit/revisions — `AuditController.java`.`getRevisions`"
+      tags:
+        - Audit
+      security:
+        - ApiToken: []
+      parameters:
+        - name: objectName
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: objectId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: "Query Audit Revisions completed successfully (`GET /audit/revisions`). Returns the standard OpenSpecimen JSON payload for this operation."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RevisionDetail"
+              example:
+                - revisionId: 90001
+                  entityType: Specimen
+                  entityId: 1001
+                  modifiedOn: "2026-10-26T10:00:00Z"
+        '400':
+          description: "Request failed validation or business rules for `GET /audit/revisions` (`ErrorType.USER_ERROR`). Typical causes: malformed JSON, missing required fields for Query Audit Revisions, invalid identifiers in the path, or domain constraints on audit."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                requestValidation:
+                  summary: "Request validation failed"
+                  value:
+                    - code: USER_ERROR
+                      message: "Invalid request for Query Audit Revisions."
+        '401':
+          description: "Missing, expired, or invalid `X-OS-API-TOKEN` when calling `GET /audit/revisions` (`ErrorType.UNAUTHORIZED`). Obtain a token from `POST /sessions` and send it on every request except sign-in and sign-out."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingApiToken:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated user lacks RBAC permission or site/CP scope for `GET /audit/revisions` (`ErrorType.FORBIDDEN` or equivalent access-denied codes surfaced as 400 on some deployments). Verify role assignments for audit operations."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                accessDenied:
+                  summary: "Access denied"
+                  value:
+                    - code: FORBIDDEN
+                      message: "You are not authorized for Query Audit Revisions."
+        '404':
+          description: "No rows matched filters for `GET /audit/revisions` (`ErrorType.NOT_FOUND` or empty list depending on endpoint). Adjust query parameters such as name, label, or cpId."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  summary: "Resource not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Resource not found for GET /audit/revisions."
+        '500':
+          description: "Unexpected failure while processing `GET /audit/revisions` (`ErrorType.SYSTEM_ERROR`, code `internal_error`). Retry later; contact the administrator if the error persists."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internalError:
+                  summary: "Internal error"
+                  value:
+                    - code: internal_error
+                      message: "An unexpected error occurred."
+components:
+  securitySchemes:
+    ApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  responses:
+    BadRequest:
+      description: "Invalid request (`ErrorType.USER_ERROR`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "Insufficient permissions (`ErrorType.FORBIDDEN`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "Resource not found (`ErrorType.NOT_FOUND`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: "Server error (`internal_error`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    RevisionDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/audit/events/RevisionDetail.java`"
+      properties:
+        revisionId:
+          type: integer
+          format: int64
+        changedBy:
+          $ref: "#/components/schemas/UserSummary"
+        changedOn:
+          type: string
+          format: date-time
+        ipAddress:
+          type: string
+        records:
+          type: array
+          items:
+            $ref: "#/components/schemas/RevisionEntityRecordDetail"
+    UserSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/events/UserSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        loginName:
+          type: string
+        domain:
+          type: string
+        emailAddress:
+          type: string
+        instituteId:
+          type: integer
+          format: int64
+        instituteName:
+          type: string
+        primarySite:
+          type: string
+        admin:
+          type: boolean
+        instituteAdmin:
+          type: boolean
+        phoneNumber:
+          type: string
+        manageForms:
+          type: boolean
+        manageWfs:
+          type: boolean
+        managePrintJobs:
+          type: boolean
+        downloadLabelsPrintFile:
+          type: boolean
+        apiUser:
+          type: boolean
+        cpCount:
+          type: integer
+          format: int32
+        creationDate:
+          type: string
+          format: date-time
+        activityStatus:
+          type: string
+        impersonated:
+          type: boolean
+        daysBeforePasswordExpiry:
+          type: integer
+          format: int32
+    RevisionEntityRecordDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/audit/events/RevisionEntityRecordDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: integer
+          format: int32
+        entityName:
+          type: string
+        entityId:
+          type: integer
+          format: int64
+        modifiedProps:
+          type: string
+    OsDate:
+      type: string
+      format: date
+      description: "Calendar date (`yyyy-MM-dd`) used in OpenSpecimen REST payloads"
+      example: 2026-10-26
+    OsDateTime:
+      type: string
+      format: date-time
+      description: "ISO-8601 date-time in UTC or server-local offset"
+      example: "2026-10-26T10:00:00Z"
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`com.krishagni.catissueplus.rest.ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: SPECIMEN_LABEL_REQUIRED
+        message:
+          type: string
+          example: "Specimen label is required."
+    ErrorResponse:
+      type: array
+      description: "Standard error payload: JSON array of `ErrorMessage` objects"
+      items:
+        $ref: "#/components/schemas/ErrorMessage"
+    ErrorMessageList:
+      $ref: "#/components/schemas/ErrorResponse"

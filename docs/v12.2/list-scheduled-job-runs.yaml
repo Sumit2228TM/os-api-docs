@@ -1,13 +1,14 @@
 openapi: 3.0.3
 info:
   title: "OpenSpecimen API — List Scheduled Job Runs"
-  version: 1.0.0
   description: |
     List Scheduled Job Runs — generated from repository inspection.
     Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/ScheduledJobsController.java` (`getJobRuns`).
 servers:
   - url: /rest/ng
     description: "OpenSpecimen REST servlet context"
+security:
+  - ApiToken: []
 tags:
   - name: ScheduledJobs
     description: "Operations from `ScheduledJobsController.java`"
@@ -19,76 +20,8 @@ paths:
       description: "GET /scheduled-jobs/{jobId}/runs — `ScheduledJobsController.java`.`getJobRuns`"
       tags:
         - ScheduledJobs
-      responses:
-        '200':
-          description: "Successful response for List Scheduled Job Runs"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ScheduledJobRunDetail"
-              examples:
-                biobankExample:
-                  summary: "Biobanking workflow example"
-                  value:
-                    - id: 1001
-        '400':
-          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
-              examples:
-                validationError:
-                  summary: "Business rule violation"
-                  value:
-                    - code: SPECIMEN_LABEL_REQUIRED
-                      message: "Specimen label is required."
-        '401':
-          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
-              examples:
-                unauthorized:
-                  summary: "Missing API token"
-                  value:
-                    - code: UNAUTHORIZED
-                      message: "Invalid or missing X-OS-API-TOKEN header."
-        '403':
-          description: "Authenticated but not authorized for this operation"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
-              examples:
-                forbidden:
-                  summary: "Insufficient privileges"
-                  value:
-                    - code: RBAC_ACCESS_DENIED
-                      message: "You are not authorized to perform this operation."
-        '404':
-          description: "Resource not found (`ErrorType.NOT_FOUND`)"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
-              examples:
-                notFound:
-                  summary: "Entity not found"
-                  value:
-                    - code: NOT_FOUND
-                      message: "Requested resource was not found."
-        '500':
-          description: "Unexpected server error (`internal_error`)"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
       security:
-        - OsApiToken: []
+        - ApiToken: []
       parameters:
         - name: jobId
           in: path
@@ -113,13 +46,118 @@ paths:
             type: integer
             format: int32
             default: 100
+      responses:
+        '200':
+          description: "List Scheduled Job Runs completed successfully (`GET /scheduled-jobs/{jobId}/runs`). Returns the standard OpenSpecimen JSON payload for this operation."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScheduledJobRunDetail"
+              example:
+                - runId: 70001
+                  jobId: 7001
+                  status: COMPLETED
+                  startTime: "2026-10-26T08:00:00Z"
+        '400':
+          description: "Request failed validation or business rules for `GET /scheduled-jobs/{jobId}/runs` (`ErrorType.USER_ERROR`). Typical causes: malformed JSON, missing required fields for List Scheduled Job Runs, invalid identifiers in the path, or domain constraints on scheduled jobs."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                requestValidation:
+                  summary: "Request validation failed"
+                  value:
+                    - code: USER_ERROR
+                      message: "Invalid request for List Scheduled Job Runs."
+        '401':
+          description: "Missing, expired, or invalid `X-OS-API-TOKEN` when calling `GET /scheduled-jobs/{jobId}/runs` (`ErrorType.UNAUTHORIZED`). Obtain a token from `POST /sessions` and send it on every request except sign-in and sign-out."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingApiToken:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated user lacks RBAC permission or site/CP scope for `GET /scheduled-jobs/{jobId}/runs` (`ErrorType.FORBIDDEN` or equivalent access-denied codes surfaced as 400 on some deployments). Verify role assignments for scheduled jobs operations."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                accessDenied:
+                  summary: "Access denied"
+                  value:
+                    - code: FORBIDDEN
+                      message: "You are not authorized for List Scheduled Job Runs."
+        '404':
+          description: "No entity exists for the identifiers in `GET /scheduled-jobs/{jobId}/runs` (`ErrorType.NOT_FOUND`). Confirm path IDs (and query filters for list endpoints) reference persisted records."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  summary: "Resource not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Resource not found for GET /scheduled-jobs/{jobId}/runs."
+        '500':
+          description: "Unexpected failure while processing `GET /scheduled-jobs/{jobId}/runs` (`ErrorType.SYSTEM_ERROR`, code `internal_error`). Retry later; contact the administrator if the error persists."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internalError:
+                  summary: "Internal error"
+                  value:
+                    - code: internal_error
+                      message: "An unexpected error occurred."
 components:
   securitySchemes:
-    OsApiToken:
+    ApiToken:
       type: apiKey
       in: header
       name: X-OS-API-TOKEN
       description: "Token from `POST /sessions`"
+  responses:
+    BadRequest:
+      description: "Invalid request (`ErrorType.USER_ERROR`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "Insufficient permissions (`ErrorType.FORBIDDEN`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "Resource not found (`ErrorType.NOT_FOUND`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: "Server error (`internal_error`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
   schemas:
     Instant:
       type: object
@@ -205,18 +243,33 @@ components:
         daysBeforePasswordExpiry:
           type: integer
           format: int32
+    OsDate:
+      type: string
+      format: date
+      description: "Calendar date (`yyyy-MM-dd`) used in OpenSpecimen REST payloads"
+      example: 2026-10-26
+    OsDateTime:
+      type: string
+      format: date-time
+      description: "ISO-8601 date-time in UTC or server-local offset"
+      example: "2026-10-26T10:00:00Z"
     ErrorMessage:
       type: object
-      description: "REST error entry (`ErrorMessage`)"
+      description: "REST error entry (`com.krishagni.catissueplus.rest.ErrorMessage`)"
       required:
         - code
         - message
       properties:
         code:
           type: string
+          example: SPECIMEN_LABEL_REQUIRED
         message:
           type: string
-    ErrorMessageList:
+          example: "Specimen label is required."
+    ErrorResponse:
       type: array
+      description: "Standard error payload: JSON array of `ErrorMessage` objects"
       items:
         $ref: "#/components/schemas/ErrorMessage"
+    ErrorMessageList:
+      $ref: "#/components/schemas/ErrorResponse"

@@ -1,0 +1,194 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Send External App Message"
+  description: |
+    Send External App Message — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/ExtAppMessagesController.java` (`processMessages`).
+    DTO: `WEB-INF/src/com/krishagni/catissueplus/core/common/domain/ExtAppMessagesList.java`.
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+security:
+  - ApiToken: []
+tags:
+  - name: ExtAppMessages
+    description: "Operations from `ExtAppMessagesController.java`"
+paths:
+  /external-app-messages:
+    post:
+      operationId: processMessages
+      summary: processMessages
+      description: "POST /external-app-messages — `ExtAppMessagesController.java`.`processMessages`"
+      tags:
+        - ExtAppMessages
+      security:
+        - ApiToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExtAppMessagesList"
+            example:
+              msgId: HL7_001
+              payload: "MSH|^~\\&|..."
+      responses:
+        '200':
+          description: "Send External App Message completed successfully (`POST /external-app-messages`). Returns the standard OpenSpecimen JSON payload for this operation."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Map"
+              example:
+                msgId: HL7_001
+                payload: "MSH|^~\\&|..."
+                id: 1
+                accepted: true
+        '400':
+          description: "Request failed validation or business rules for `POST /external-app-messages` (`ErrorType.USER_ERROR`). Typical causes: malformed JSON, missing required fields for Send External App Message, invalid identifiers in the path, or domain constraints on external app messages."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                requestValidation:
+                  summary: "Request validation failed"
+                  value:
+                    - code: USER_ERROR
+                      message: "Invalid request for Send External App Message."
+        '401':
+          description: "Missing, expired, or invalid `X-OS-API-TOKEN` when calling `POST /external-app-messages` (`ErrorType.UNAUTHORIZED`). Obtain a token from `POST /sessions` and send it on every request except sign-in and sign-out."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingApiToken:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated user lacks RBAC permission or site/CP scope for `POST /external-app-messages` (`ErrorType.FORBIDDEN` or equivalent access-denied codes surfaced as 400 on some deployments). Verify role assignments for external app messages operations."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                accessDenied:
+                  summary: "Access denied"
+                  value:
+                    - code: FORBIDDEN
+                      message: "You are not authorized for Send External App Message."
+        '404':
+          description: "No entity exists for the identifiers in `POST /external-app-messages` (`ErrorType.NOT_FOUND`). Confirm path IDs (and query filters for list endpoints) reference persisted records."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  summary: "Resource not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Resource not found for POST /external-app-messages."
+        '500':
+          description: "Unexpected failure while processing `POST /external-app-messages` (`ErrorType.SYSTEM_ERROR`, code `internal_error`). Retry later; contact the administrator if the error persists."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internalError:
+                  summary: "Internal error"
+                  value:
+                    - code: internal_error
+                      message: "An unexpected error occurred."
+components:
+  securitySchemes:
+    ApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  responses:
+    BadRequest:
+      description: "Invalid request (`ErrorType.USER_ERROR`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "Insufficient permissions (`ErrorType.FORBIDDEN`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "Resource not found (`ErrorType.NOT_FOUND`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: "Server error (`internal_error`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    ExtAppMessagesList:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/domain/ExtAppMessagesList.java`"
+      properties:
+        protocol:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExtAppMessage"
+    ExtAppMessage:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/domain/ExtAppMessage.java`"
+      properties:
+        message:
+          type: string
+    Map:
+      type: object
+      description: "Type `Map` (Java source not found in repository)"
+    OsDate:
+      type: string
+      format: date
+      description: "Calendar date (`yyyy-MM-dd`) used in OpenSpecimen REST payloads"
+      example: 2026-10-26
+    OsDateTime:
+      type: string
+      format: date-time
+      description: "ISO-8601 date-time in UTC or server-local offset"
+      example: "2026-10-26T10:00:00Z"
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`com.krishagni.catissueplus.rest.ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: SPECIMEN_LABEL_REQUIRED
+        message:
+          type: string
+          example: "Specimen label is required."
+    ErrorResponse:
+      type: array
+      description: "Standard error payload: JSON array of `ErrorMessage` objects"
+      items:
+        $ref: "#/components/schemas/ErrorMessage"
+    ErrorMessageList:
+      $ref: "#/components/schemas/ErrorResponse"

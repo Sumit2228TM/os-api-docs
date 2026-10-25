@@ -1,13 +1,14 @@
 openapi: 3.0.3
 info:
   title: "OpenSpecimen API — Get Container Types"
-  version: 1.0.0
   description: |
     Get Container Types — generated from repository inspection.
     Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/ContainerTypesController.java` (`getContainerTypes`).
 servers:
   - url: /rest/ng
     description: "OpenSpecimen REST servlet context"
+security:
+  - ApiToken: []
 tags:
   - name: ContainerTypes
     description: "Operations from `ContainerTypesController.java`"
@@ -19,76 +20,8 @@ paths:
       description: "GET /container-types — `ContainerTypesController.java`.`getContainerTypes`"
       tags:
         - ContainerTypes
-      responses:
-        '200':
-          description: "Successful response for Get Container Types"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ContainerTypeSummary"
-              examples:
-                biobankExample:
-                  summary: "Biobanking workflow example"
-                  value:
-                    - id: 1001
-        '400':
-          description: "Invalid request or business rule violation (`ErrorType.USER_ERROR`)"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
-              examples:
-                validationError:
-                  summary: "Business rule violation"
-                  value:
-                    - code: SPECIMEN_LABEL_REQUIRED
-                      message: "Specimen label is required."
-        '401':
-          description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
-              examples:
-                unauthorized:
-                  summary: "Missing API token"
-                  value:
-                    - code: UNAUTHORIZED
-                      message: "Invalid or missing X-OS-API-TOKEN header."
-        '403':
-          description: "Authenticated but not authorized for this operation"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
-              examples:
-                forbidden:
-                  summary: "Insufficient privileges"
-                  value:
-                    - code: RBAC_ACCESS_DENIED
-                      message: "You are not authorized to perform this operation."
-        '404':
-          description: "Resource not found (`ErrorType.NOT_FOUND`)"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
-              examples:
-                notFound:
-                  summary: "Entity not found"
-                  value:
-                    - code: NOT_FOUND
-                      message: "Requested resource was not found."
-        '500':
-          description: "Unexpected server error (`internal_error`)"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorMessageList"
       security:
-        - OsApiToken: []
+        - ApiToken: []
       parameters:
         - name: name
           in: query
@@ -120,13 +53,110 @@ paths:
             type: integer
             format: int32
             default: 100
+      responses:
+        '200':
+          description: "Get Container Types completed successfully (`GET /container-types`). Returns the standard OpenSpecimen JSON payload for this operation."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContainerTypeSummary"
+              example:
+                - id: 1
+                  name: "9x9 Box"
+        '400':
+          description: "Request failed validation or business rules for `GET /container-types` (`ErrorType.USER_ERROR`). Typical causes: malformed JSON, missing required fields for Get Container Types, invalid identifiers in the path, or domain constraints on container types."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                storageValidation:
+                  summary: "Storage validation failed"
+                  value:
+                    - code: USER_ERROR
+                      message: "Invalid storage container or position data."
+        '401':
+          description: "Missing, expired, or invalid `X-OS-API-TOKEN` when calling `GET /container-types` (`ErrorType.UNAUTHORIZED`). Obtain a token from `POST /sessions` and send it on every request except sign-in and sign-out."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingApiToken:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated user lacks RBAC permission or site/CP scope for `GET /container-types` (`ErrorType.FORBIDDEN` or equivalent access-denied codes surfaced as 400 on some deployments). Verify role assignments for container types operations."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                storageAccessDenied:
+                  summary: "Storage access denied"
+                  value:
+                    - code: SPECIMEN_CONTAINER_ACCESS_DENIED
+                      message: "You do not have access to this container."
+        '404':
+          description: "No rows matched filters for `GET /container-types` (`ErrorType.NOT_FOUND` or empty list depending on endpoint). Adjust query parameters such as name, label, or cpId."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                containerNotFound:
+                  summary: "Container not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Storage container not found."
+        '500':
+          description: "Unexpected failure while processing `GET /container-types` (`ErrorType.SYSTEM_ERROR`, code `internal_error`). Retry later; contact the administrator if the error persists."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   securitySchemes:
-    OsApiToken:
+    ApiToken:
       type: apiKey
       in: header
       name: X-OS-API-TOKEN
       description: "Token from `POST /sessions`"
+  responses:
+    BadRequest:
+      description: "Invalid request (`ErrorType.USER_ERROR`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "Insufficient permissions (`ErrorType.FORBIDDEN`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "Resource not found (`ErrorType.NOT_FOUND`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: "Server error (`internal_error`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
   schemas:
     ContainerTypeSummary:
       type: object
@@ -160,18 +190,33 @@ components:
           type: boolean
         activityStatus:
           type: string
+    OsDate:
+      type: string
+      format: date
+      description: "Calendar date (`yyyy-MM-dd`) used in OpenSpecimen REST payloads"
+      example: 2026-10-26
+    OsDateTime:
+      type: string
+      format: date-time
+      description: "ISO-8601 date-time in UTC or server-local offset"
+      example: "2026-10-26T10:00:00Z"
     ErrorMessage:
       type: object
-      description: "REST error entry (`ErrorMessage`)"
+      description: "REST error entry (`com.krishagni.catissueplus.rest.ErrorMessage`)"
       required:
         - code
         - message
       properties:
         code:
           type: string
+          example: SPECIMEN_LABEL_REQUIRED
         message:
           type: string
-    ErrorMessageList:
+          example: "Specimen label is required."
+    ErrorResponse:
       type: array
+      description: "Standard error payload: JSON array of `ErrorMessage` objects"
       items:
         $ref: "#/components/schemas/ErrorMessage"
+    ErrorMessageList:
+      $ref: "#/components/schemas/ErrorResponse"

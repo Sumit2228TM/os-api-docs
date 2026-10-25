@@ -1,0 +1,319 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Update Collection Protocol Group"
+  description: |
+    Update Collection Protocol Group — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/CollectionProtocolGroupsController.java` (`updateGroup`).
+    DTO: `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/CollectionProtocolGroupSummary.java`.
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+security:
+  - ApiToken: []
+tags:
+  - name: CollectionProtocolGroups
+    description: "Operations from `CollectionProtocolGroupsController.java`"
+paths:
+  /collection-protocol-groups/{id}:
+    put:
+      operationId: updateGroup
+      summary: updateGroup
+      description: "PUT /collection-protocol-groups/{id} — `CollectionProtocolGroupsController.java`.`updateGroup`"
+      tags:
+        - CollectionProtocolGroups
+      security:
+        - ApiToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CollectionProtocolGroupSummary"
+            example:
+              cpIds:
+                - 1
+                - 2
+                - 5
+              name: "Oncology CP Group"
+      responses:
+        '200':
+          description: "Update Collection Protocol Group completed successfully (`PUT /collection-protocol-groups/{id}`). Returns the standard OpenSpecimen JSON payload for this operation."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CollectionProtocolGroupSummary"
+              example:
+                cpIds:
+                  - 1
+                  - 2
+                  - 5
+                name: "Oncology CP Group"
+                id: 1
+        '400':
+          description: "Request failed validation or business rules for `PUT /collection-protocol-groups/{id}` (`ErrorType.USER_ERROR`). Typical causes: malformed JSON, missing required fields for Update Collection Protocol Group, invalid identifiers in the path, or domain constraints on collection protocol groups."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                requestValidation:
+                  summary: "Request validation failed"
+                  value:
+                    - code: USER_ERROR
+                      message: "Invalid request for Update Collection Protocol Group."
+        '401':
+          description: "Missing, expired, or invalid `X-OS-API-TOKEN` when calling `PUT /collection-protocol-groups/{id}` (`ErrorType.UNAUTHORIZED`). Obtain a token from `POST /sessions` and send it on every request except sign-in and sign-out."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingApiToken:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated user lacks RBAC permission or site/CP scope for `PUT /collection-protocol-groups/{id}` (`ErrorType.FORBIDDEN` or equivalent access-denied codes surfaced as 400 on some deployments). Verify role assignments for collection protocol groups operations."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                accessDenied:
+                  summary: "Access denied"
+                  value:
+                    - code: FORBIDDEN
+                      message: "You are not authorized for Update Collection Protocol Group."
+        '404':
+          description: "No entity exists for the identifiers in `PUT /collection-protocol-groups/{id}` (`ErrorType.NOT_FOUND`). Confirm path IDs (and query filters for list endpoints) reference persisted records."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                notFound:
+                  summary: "Resource not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Resource not found for PUT /collection-protocol-groups/{id}."
+        '500':
+          description: "Unexpected failure while processing `PUT /collection-protocol-groups/{id}` (`ErrorType.SYSTEM_ERROR`, code `internal_error`). Retry later; contact the administrator if the error persists."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                internalError:
+                  summary: "Internal error"
+                  value:
+                    - code: internal_error
+                      message: "An unexpected error occurred."
+components:
+  securitySchemes:
+    ApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  responses:
+    BadRequest:
+      description: "Invalid request (`ErrorType.USER_ERROR`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "Insufficient permissions (`ErrorType.FORBIDDEN`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "Resource not found (`ErrorType.NOT_FOUND`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: "Server error (`internal_error`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    CollectionProtocolGroupSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/CollectionProtocolGroupSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        cpsCount:
+          type: integer
+          format: int32
+        cps:
+          type: array
+          items:
+            $ref: "#/components/schemas/CollectionProtocolSummary"
+        requestManagerGroup:
+          $ref: "#/components/schemas/RequestManagerGroupSummary"
+    CollectionProtocolSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/CollectionProtocolSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        shortTitle:
+          type: string
+        title:
+          type: string
+        code:
+          type: string
+        principalInvestigator:
+          $ref: "#/components/schemas/UserSummary"
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        participantCount:
+          type: integer
+          format: int64
+        specimenCount:
+          type: integer
+          format: int64
+        ppidFmt:
+          type: string
+        manualPpidEnabled:
+          type: boolean
+        specimenCentric:
+          type: boolean
+        catalogId:
+          type: integer
+          format: int64
+        starred:
+          type: boolean
+        draftMode:
+          type: boolean
+        groupWorkflowsInherited:
+          type: boolean
+    UserSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/events/UserSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        loginName:
+          type: string
+        domain:
+          type: string
+        emailAddress:
+          type: string
+        instituteId:
+          type: integer
+          format: int64
+        instituteName:
+          type: string
+        primarySite:
+          type: string
+        admin:
+          type: boolean
+        instituteAdmin:
+          type: boolean
+        phoneNumber:
+          type: string
+        manageForms:
+          type: boolean
+        manageWfs:
+          type: boolean
+        managePrintJobs:
+          type: boolean
+        downloadLabelsPrintFile:
+          type: boolean
+        apiUser:
+          type: boolean
+        cpCount:
+          type: integer
+          format: int32
+        creationDate:
+          type: string
+          format: date-time
+        activityStatus:
+          type: string
+        impersonated:
+          type: boolean
+        daysBeforePasswordExpiry:
+          type: integer
+          format: int32
+    RequestManagerGroupSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/biospecimen/events/RequestManagerGroupSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        userGroupId:
+          type: integer
+          format: int64
+        userGroupName:
+          type: string
+        cpCount:
+          type: integer
+          format: int64
+    OsDate:
+      type: string
+      format: date
+      description: "Calendar date (`yyyy-MM-dd`) used in OpenSpecimen REST payloads"
+      example: 2026-10-26
+    OsDateTime:
+      type: string
+      format: date-time
+      description: "ISO-8601 date-time in UTC or server-local offset"
+      example: "2026-10-26T10:00:00Z"
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`com.krishagni.catissueplus.rest.ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: SPECIMEN_LABEL_REQUIRED
+        message:
+          type: string
+          example: "Specimen label is required."
+    ErrorResponse:
+      type: array
+      description: "Standard error payload: JSON array of `ErrorMessage` objects"
+      items:
+        $ref: "#/components/schemas/ErrorMessage"
+    ErrorMessageList:
+      $ref: "#/components/schemas/ErrorResponse"

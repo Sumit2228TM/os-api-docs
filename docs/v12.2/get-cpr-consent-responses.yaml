@@ -1,0 +1,164 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Get CPR Consent Responses"
+  description: |
+    Get CPR Consent Responses — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/CollectionProtocolRegistrationsController.java` (`catalogOp`).
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+security:
+  - ApiToken: []
+tags:
+  - name: CollectionProtocolRegistrations
+    description: "Operations from `CollectionProtocolRegistrationsController.java`"
+paths:
+  /collection-protocol-registrations/{cprId}/consent-responses:
+    get:
+      operationId: getCPRConsentResponses
+      summary: "Get CPR Consent Responses"
+      description: "Catalog endpoint `GET /collection-protocol-registrations/{cprId}/consent-responses` documented for OpenSpecimen core API. Java `@RequestMapping` may differ or be absent on this branch; schemas/examples follow the catalog DTO."
+      tags:
+        - CollectionProtocolRegistrations
+      security:
+        - ApiToken: []
+      parameters:
+        - name: cprId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: "Get CPR Consent Responses completed successfully (`GET /collection-protocol-registrations/{cprId}/consent-responses`). Returns the standard OpenSpecimen JSON payload for this operation."
+          content:
+            application/json:
+              schema:
+
+              example:
+                - response: Yes
+                  statement: "Consent for genetic testing"
+        '400':
+          description: "Request failed validation or business rules for `GET /collection-protocol-registrations/{cprId}/consent-responses` (`ErrorType.USER_ERROR`). Typical causes: malformed JSON, missing required fields for Get CPR Consent Responses, invalid identifiers in the path, or domain constraints on collection protocol registrations. Examples: invalid `cpId`, closed CP, or duplicate registration for the participant."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                cprValidation:
+                  summary: "CPR validation failed"
+                  value:
+                    - code: USER_ERROR
+                      message: "Invalid CPR or participant registration data."
+        '401':
+          description: "Missing, expired, or invalid `X-OS-API-TOKEN` when calling `GET /collection-protocol-registrations/{cprId}/consent-responses` (`ErrorType.UNAUTHORIZED`). Obtain a token from `POST /sessions` and send it on every request except sign-in and sign-out."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingApiToken:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated user lacks RBAC permission or site/CP scope for `GET /collection-protocol-registrations/{cprId}/consent-responses` (`ErrorType.FORBIDDEN` or equivalent access-denied codes surfaced as 400 on some deployments). Verify role assignments for collection protocol registrations operations."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                cprForbidden:
+                  summary: "CPR access denied"
+                  value:
+                    - code: FORBIDDEN
+                      message: "You do not have permission for this collection protocol."
+        '404':
+          description: "No entity exists for the identifiers in `GET /collection-protocol-registrations/{cprId}/consent-responses` (`ErrorType.NOT_FOUND`). Confirm path IDs (and query filters for list endpoints) reference persisted records."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                cprNotFound:
+                  summary: "CPR not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Collection protocol registration not found."
+        '500':
+          description: "Unexpected failure while processing `GET /collection-protocol-registrations/{cprId}/consent-responses` (`ErrorType.SYSTEM_ERROR`, code `internal_error`). Retry later; contact the administrator if the error persists."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    ApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  responses:
+    BadRequest:
+      description: "Invalid request (`ErrorType.USER_ERROR`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "Insufficient permissions (`ErrorType.FORBIDDEN`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "Resource not found (`ErrorType.NOT_FOUND`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: "Server error (`internal_error`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    OsDate:
+      type: string
+      format: date
+      description: "Calendar date (`yyyy-MM-dd`) used in OpenSpecimen REST payloads"
+      example: 2026-10-26
+    OsDateTime:
+      type: string
+      format: date-time
+      description: "ISO-8601 date-time in UTC or server-local offset"
+      example: "2026-10-26T10:00:00Z"
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`com.krishagni.catissueplus.rest.ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: SPECIMEN_LABEL_REQUIRED
+        message:
+          type: string
+          example: "Specimen label is required."
+    ErrorResponse:
+      type: array
+      description: "Standard error payload: JSON array of `ErrorMessage` objects"
+      items:
+        $ref: "#/components/schemas/ErrorMessage"
+    ErrorMessageList:
+      $ref: "#/components/schemas/ErrorResponse"

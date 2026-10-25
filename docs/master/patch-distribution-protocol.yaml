@@ -1,0 +1,370 @@
+openapi: 3.0.3
+info:
+  title: "OpenSpecimen API — Patch Distribution Protocol"
+  description: |
+    Patch Distribution Protocol — generated from repository inspection.
+    Controller: `WEB-INF/src/com/krishagni/catissueplus/rest/controller/DistributionProtocolController.java` (`updateActivityStatus`).
+    DTO: `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/DistributionProtocolDetail.java`.
+servers:
+  - url: /rest/ng
+    description: "OpenSpecimen REST servlet context"
+security:
+  - ApiToken: []
+tags:
+  - name: DistributionProtocol
+    description: "Operations from `DistributionProtocolController.java`"
+paths:
+  /distribution-protocols/{id}:
+    put:
+      operationId: updateActivityStatus
+      summary: updateActivityStatus
+      description: "PUT /distribution-protocols/{id}/activity-status — `DistributionProtocolController.java`.`updateActivityStatus`"
+      tags:
+        - DistributionProtocol
+      security:
+        - ApiToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DistributionProtocolDetail"
+            example:
+              activityStatus: Disabled
+      responses:
+        '200':
+          description: "Patch Distribution Protocol completed successfully (`PATCH /distribution-protocols/{id}`). Returns the standard OpenSpecimen JSON payload for this operation."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DistributionProtocolDetail"
+              example:
+                activityStatus: Disabled
+                id: 1
+        '400':
+          description: "Request failed validation or business rules for `PATCH /distribution-protocols/{id}` (`ErrorType.USER_ERROR`). Typical causes: malformed JSON, missing required fields for Patch Distribution Protocol, invalid identifiers in the path, or domain constraints on distribution protocols."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                distributionValidation:
+                  summary: "Distribution validation failed"
+                  value:
+                    - code: USER_ERROR
+                      message: "Invalid distribution protocol or order data."
+        '401':
+          description: "Missing, expired, or invalid `X-OS-API-TOKEN` when calling `PATCH /distribution-protocols/{id}` (`ErrorType.UNAUTHORIZED`). Obtain a token from `POST /sessions` and send it on every request except sign-in and sign-out."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingApiToken:
+                  summary: "Missing API token"
+                  value:
+                    - code: UNAUTHORIZED
+                      message: "Invalid or missing X-OS-API-TOKEN header."
+        '403':
+          description: "Authenticated user lacks RBAC permission or site/CP scope for `PATCH /distribution-protocols/{id}` (`ErrorType.FORBIDDEN` or equivalent access-denied codes surfaced as 400 on some deployments). Verify role assignments for distribution protocols operations."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                distributionForbidden:
+                  summary: "Distribution access denied"
+                  value:
+                    - code: FORBIDDEN
+                      message: "You do not have permission for this distribution protocol."
+        '404':
+          description: "No entity exists for the identifiers in `PATCH /distribution-protocols/{id}` (`ErrorType.NOT_FOUND`). Confirm path IDs (and query filters for list endpoints) reference persisted records."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                orderNotFound:
+                  summary: "Order not found"
+                  value:
+                    - code: NOT_FOUND
+                      message: "Distribution order not found."
+        '500':
+          description: "Unexpected failure while processing `PATCH /distribution-protocols/{id}` (`ErrorType.SYSTEM_ERROR`, code `internal_error`). Retry later; contact the administrator if the error persists."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    ApiToken:
+      type: apiKey
+      in: header
+      name: X-OS-API-TOKEN
+      description: "Token from `POST /sessions`"
+  responses:
+    BadRequest:
+      description: "Invalid request (`ErrorType.USER_ERROR`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Unauthorized:
+      description: "Missing or invalid API token (`ErrorType.UNAUTHORIZED`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: "Insufficient permissions (`ErrorType.FORBIDDEN`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    NotFound:
+      description: "Resource not found (`ErrorType.NOT_FOUND`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InternalError:
+      description: "Server error (`internal_error`)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    DistributionProtocolDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/administrative/events/DistributionProtocolDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        shortTitle:
+          type: string
+        principalInvestigator:
+          $ref: "#/components/schemas/UserSummary"
+        startDate:
+          type: string
+          format: date-time
+        endDate:
+          type: string
+          format: date-time
+        instituteName:
+          type: string
+        defReceivingSiteName:
+          type: string
+        distributedSpecimensCount:
+          type: integer
+          format: int32
+        starred:
+          type: boolean
+        coordinators:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserSummary"
+        irbId:
+          type: string
+        activityStatus:
+          type: string
+        report:
+          $ref: "#/components/schemas/SavedQuerySummary"
+        orderExtnForm:
+          $ref: "#/components/schemas/FormSummary"
+        disableEmailNotifs:
+          type: boolean
+        attachmentType:
+          type: string
+        orderItemLabelFormat:
+          type: string
+        extensionDetail:
+          $ref: "#/components/schemas/ExtensionDetail"
+    UserSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/common/events/UserSummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        loginName:
+          type: string
+        domain:
+          type: string
+        emailAddress:
+          type: string
+        instituteId:
+          type: integer
+          format: int64
+        instituteName:
+          type: string
+        primarySite:
+          type: string
+        admin:
+          type: boolean
+        instituteAdmin:
+          type: boolean
+        phoneNumber:
+          type: string
+        manageForms:
+          type: boolean
+        manageWfs:
+          type: boolean
+        managePrintJobs:
+          type: boolean
+        downloadLabelsPrintFile:
+          type: boolean
+        apiUser:
+          type: boolean
+        cpCount:
+          type: integer
+          format: int32
+        creationDate:
+          type: string
+          format: date-time
+        activityStatus:
+          type: string
+        impersonated:
+          type: boolean
+        daysBeforePasswordExpiry:
+          type: integer
+          format: int32
+    SavedQuerySummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/SavedQuerySummary.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        createdBy:
+          $ref: "#/components/schemas/UserSummary"
+        lastModifiedBy:
+          $ref: "#/components/schemas/UserSummary"
+        lastModifiedOn:
+          type: string
+          format: date-time
+        starred:
+          type: boolean
+    FormSummary:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/FormSummary.java`"
+      properties:
+        formId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        caption:
+          type: string
+        createdBy:
+          $ref: "#/components/schemas/UserSummary"
+        creationTime:
+          type: string
+          format: date-time
+        modificationTime:
+          type: string
+          format: date-time
+        associations:
+          type: integer
+          format: int32
+        sysForm:
+          type: boolean
+        entityType:
+          type: string
+        multipleRecords:
+          type: boolean
+        notifEnabled:
+          type: boolean
+        dataInNotif:
+          type: boolean
+        formCtxtId:
+          type: integer
+          format: int64
+        cpId:
+          type: integer
+          format: int64
+    ExtensionDetail:
+      type: object
+      description: "From `WEB-INF/src/com/krishagni/catissueplus/core/de/events/ExtensionDetail.java`"
+      properties:
+        id:
+          type: integer
+          format: int64
+        objectId:
+          type: integer
+          format: int64
+        formId:
+          type: integer
+          format: int64
+        formCaption:
+          type: string
+        dataEntryStatus:
+          type: string
+        attrsMap:
+          $ref: "#/components/schemas/Map"
+        useUdn:
+          type: boolean
+        name:
+          type: string
+        udn:
+          type: string
+        caption:
+          type: string
+        value:
+
+        type:
+          type: string
+        displayValue:
+          type: string
+        codedValue:
+          type: string
+    Map:
+      type: object
+      description: "Type `Map` (Java source not found in repository)"
+    OsDate:
+      type: string
+      format: date
+      description: "Calendar date (`yyyy-MM-dd`) used in OpenSpecimen REST payloads"
+      example: 2026-10-26
+    OsDateTime:
+      type: string
+      format: date-time
+      description: "ISO-8601 date-time in UTC or server-local offset"
+      example: "2026-10-26T10:00:00Z"
+    ErrorMessage:
+      type: object
+      description: "REST error entry (`com.krishagni.catissueplus.rest.ErrorMessage`)"
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: SPECIMEN_LABEL_REQUIRED
+        message:
+          type: string
+          example: "Specimen label is required."
+    ErrorResponse:
+      type: array
+      description: "Standard error payload: JSON array of `ErrorMessage` objects"
+      items:
+        $ref: "#/components/schemas/ErrorMessage"
+    ErrorMessageList:
+      $ref: "#/components/schemas/ErrorResponse"
